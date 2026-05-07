@@ -2,6 +2,8 @@ import { createBrowserRouter, redirect } from 'react-router'
 import { supabase } from './lib/supabase'
 import DashboardLayout from './components/layout/DashboardLayout'
 import Login from './pages/Login'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 // ─── Auth Guard ───────────────────────────────────────────────────────────────
 // Runs before any /dashboard/* route renders.
@@ -27,8 +29,6 @@ const Placeholder = ({ name }: { name: string }) => (
   </div>
 )
 
-const ForgotPassword  = () => <Placeholder name="Forgot Password" />
-const ResetPassword   = () => <Placeholder name="Reset Password" />
 const Overview     = () => <Placeholder name="Overview" />
 const Rooms        = () => <Placeholder name="Rooms" />
 const Tenants      = () => <Placeholder name="Tenants" />
