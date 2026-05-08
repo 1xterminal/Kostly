@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router'
-import { useSidebar } from './SidebarContext'
-import { useSession } from '@/hooks/useAuth'
+import { useSession, useSignOut } from '@/hooks/useAuth'
 
 // ─── Nav Items Config ─────────────────────────────────────────────────────────
 
@@ -75,20 +74,24 @@ const NAV_ITEMS = [
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function Sidebar() {
-  const { close } = useSidebar()
   const { data: session } = useSession()
-
+  const { mutate: signOut, isPending } = useSignOut()
   const userName = session?.user?.user_metadata?.full_name ?? session?.user?.email ?? 'Manager'
 
   return (
     <aside
-      className="fixed left-0 top-0 h-full z-20 flex flex-col"
       style={{
         width: 300,
         backgroundColor: '#FAFAFA',
-        borderRadius: '0 16px 16px 0',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
-        borderRight: '1px solid #E5E7EB',
+        borderRadius: 16,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+        border: '1px solid #E5E7EB',
+        display: 'flex',
+        flexDirection: 'column',
+        flexShrink: 0,
+        overflow: 'hidden',
+        position: 'sticky',
+        top: 40,
       }}
     >
       {/* Profile Section */}
@@ -102,13 +105,12 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav style={{ padding: '20px 16px 24px', display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
-        {NAV_ITEMS.map(({ to, end, label, icon }) => (
+      {NAV_ITEMS.map(({ to, end, label, icon }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
-            onClick={close}
-            style={({ isActive }) => ({
+            style={({ isActive }) =>({
               display: 'flex',
               alignItems: 'center',
               gap: 14,
@@ -120,8 +122,16 @@ export default function Sidebar() {
               border: '1px solid',
               transition: 'all 0.2s ease',
               ...(isActive
-                ? { backgroundColor: '#F8FAFC', color: '#2563EB', borderColor: '#A5B4FC' }
-                : { color: '#111827', borderColor: 'transparent', backgroundColor: 'transparent' }),
+                ? {
+                    backgroundColor: '#ffffff',
+                    color: '#3045AF',
+                    borderColor: 'rgba(48,69,175,0.5)',
+                  }
+                : {
+                    color: '#111827',
+                    borderColor: 'transparent',
+                    backgroundColor: 'transparent',
+                  }),
             })}
           >
             <span style={{ width: 22, height: 22, flexShrink: 0, display: 'flex' }}>
@@ -131,6 +141,49 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      {/* Sign out — pinned to bottom */}
+      <div style={{ padding: '0 16px 20px', marginTop: 'auto' }}>
+        <button
+          onClick={() => signOut()}
+          disabled={isPending}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '12px 16px',
+            fontSize: 16,
+            fontWeight: 600,
+            color: '#6B7280',
+            background: 'none',
+            border: '1px solid transparent',
+            borderRadius: 6,
+            cursor: isPending ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s ease',
+            fontFamily: 'inherit',
+            opacity: isPending ? 0.5 : 1,
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = '#DC2626'
+            e.currentTarget.style.backgroundColor = '#FEF2F2'
+            e.currentTarget.style.borderColor = '#FECACA'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = '#6B7280'
+            e.currentTarget.style.backgroundColor = 'transparent'
+            e.currentTarget.style.borderColor = 'transparent'
+          }}
+        >
+          <span style={{ width: 22, height: 22, flexShrink: 0, display: 'flex' }}>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </span>
+          {isPending ? 'Signing out…' : 'Sign Out'}
+        </button>
+      </div>
     </aside>
   )
 }

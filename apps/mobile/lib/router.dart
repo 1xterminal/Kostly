@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'core/supabase_client.dart';
+import 'shell/main_shell.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/set_password_screen.dart';
 import 'features/auth/screens/forgot_password_screen.dart';
 import 'features/auth/screens/reset_password_screen.dart';
 import 'features/auth/services/auth_service.dart';
+import 'features/home/screens/home_screen.dart';
 
 
 // ─── Placeholder screen ───────────────────────────────────────────────────────
-// Swap these out as each feature screen gets built by the team.
 class _Placeholder extends StatelessWidget {
   final String name;
   const _Placeholder(this.name);
@@ -18,16 +19,16 @@ class _Placeholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(name)),
+      backgroundColor: const Color(0xFFF0F0F0),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.construction, size: 48, color: Colors.grey),
+            const Icon(Icons.construction_rounded, size: 48, color: Color(0xFF9CA3AF)),
             const SizedBox(height: 12),
-            Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+            Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Color(0xFF111827))),
             const SizedBox(height: 4),
-            const Text('This screen is not built yet.', style: TextStyle(color: Colors.grey)),
+            const Text('Coming soon', style: TextStyle(color: Color(0xFF9CA3AF))),
           ],
         ),
       ),
@@ -41,7 +42,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/home',
 
-    // Auth guard — redirects to /login if no active session
+    // Auth guard — runs on every navigation event
     redirect: (context, state) {
       final session = supabase.auth.currentSession;
       final isLoggedIn = session != null;
@@ -49,83 +50,65 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnAuthScreen = ['/login', '/forgot-password', '/reset-password']
           .contains(path);
 
-      // Not logged in — send to login (allow auth screens through)
+      // Not logged in → login
       if (!isLoggedIn && !isOnAuthScreen) return '/login';
 
-      // Already logged in — don't show login again
+      // Logged in but on login → redirect to app (or set-password if first login)
       if (isLoggedIn && path == '/login') {
-        final mustChange = AuthService().mustChangePassword;
-        return mustChange ? '/set-password' : '/home';
+        return AuthService().mustChangePassword ? '/set-password' : '/home';
       }
 
       return null;
     },
 
     routes: [
-      // ── Auth ──────────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/login',
-        builder: (_, _) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: '/set-password',
-        builder: (_, _) => const SetPasswordScreen(),
-      ),
-      GoRoute(
-        path: '/forgot-password',
-        builder: (_, _) => const ForgotPasswordScreen(),
-      ),
-      GoRoute(
-        path: '/reset-password',
-        builder: (_, _) => const ResetPasswordScreen(),
-      ),
+      // ── Auth (no bottom nav) ──────────────────────────────────────────────
+      GoRoute(path: '/login',           builder: (_, _) => const LoginScreen()),
+      GoRoute(path: '/set-password',    builder: (_, _) => const SetPasswordScreen()),
+      GoRoute(path: '/forgot-password', builder: (_, _) => const ForgotPasswordScreen()),
+      GoRoute(path: '/reset-password',  builder: (_, _) => const ResetPasswordScreen()),
 
-      // ── Home (contract overview) ───────────────────────────────────────────
+      // ── Full-screen flows (no bottom nav) ─────────────────────────────────
       GoRoute(
-        path: '/home',
-        builder: (_, _) => const _Placeholder('Home'),
+        path: '/pay/:invoiceId',
+        builder: (_, state) => _Placeholder('Pay Invoice ${state.pathParameters['invoiceId']}'),
       ),
-
-      // ── Invoices ──────────────────────────────────────────────────────────
+      GoRoute(path: '/extend', builder: (_, _) => const _Placeholder('Extend Contract')),
+      GoRoute(path: '/maintenance/new', builder: (_, _) => const _Placeholder('New Ticket')),
       GoRoute(
-        path: '/invoices',
-        builder: (_, _) => const _Placeholder('Invoices'),
+        path: '/maintenance/:id',
+        builder: (_, state) => _Placeholder('Ticket ${state.pathParameters['id']}'),
       ),
       GoRoute(
         path: '/invoices/:id',
         builder: (_, state) => _Placeholder('Invoice ${state.pathParameters['id']}'),
       ),
 
-      // ── Payments ──────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/pay/:invoiceId',
-        builder: (_, state) => _Placeholder('Pay Invoice ${state.pathParameters['invoiceId']}'),
-      ),
-
-      // ── Maintenance ───────────────────────────────────────────────────────
-      GoRoute(
-        path: '/maintenance',
-        builder: (_, _) => const _Placeholder('Maintenance Tickets'),
-      ),
-      GoRoute(
-        path: '/maintenance/new',
-        builder: (_, _) => const _Placeholder('New Ticket'),
-      ),
-      GoRoute(
-        path: '/maintenance/:id',
-        builder: (_, state) => _Placeholder('Ticket ${state.pathParameters['id']}'),
-      ),
-
-      // ── Extend Contract ───────────────────────────────────────────────────
-      GoRoute(
-        path: '/extend',
-        builder: (_, _) => const _Placeholder('Extend Contract'),
-      ),
-
-      // ── Profile ───────────────────────────────────────────────────────────
-      GoRoute(
-        path: '/profile',
-        builder: (_, _) => const _Placeholder('Profile'),
+      // ── Main shell with bottom nav ─────────────────────────────────────────
+      StatefulShellRoute.indexedStack(
+        builder: (_, _, shell) => MainShell(navigationShell: shell),
+        branches: [
+          // Tab 0 — Home
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+          ]),
+          // Tab 1 — Payments / Invoices list
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/invoices', builder: (_, _) => const _Placeholder('Invoices')),
+          ]),
+          // Tab 2 — Maintenance
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/maintenance', builder: (_, _) => const _Placeholder('Maintenance Tickets')),
+          ]),
+          // Tab 3 — Contracts
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/contracts', builder: (_, _) => const _Placeholder('My Contract')),
+          ]),
+          // Tab 4 — Profile
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/profile', builder: (_, _) => const _Placeholder('Profile')),
+          ]),
+        ],
       ),
     ],
   );
