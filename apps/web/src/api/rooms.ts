@@ -38,9 +38,12 @@ export async function getRoomById(id: string): Promise<Room> {
 export type CreateRoomInput = Pick<Room, 'number' | 'price' | 'wifi_password'>
 
 export async function createRoom(input: CreateRoomInput): Promise<Room> {
+  const ownerId = (await supabase.auth.getUser()).data.user?.id
+  if (!ownerId) throw new Error('Not authenticated')
+
   const { data, error } = await supabase
     .from('rooms')
-    .insert(input)
+    .insert({ ...input, owner_id: ownerId })
     .select()
     .single()
 
