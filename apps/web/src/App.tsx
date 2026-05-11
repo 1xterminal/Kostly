@@ -1,4 +1,3 @@
-import { lazy } from 'react'
 import { createBrowserRouter, redirect } from 'react-router'
 import { supabase } from './lib/supabase'
 import DashboardLayout from './components/layout/DashboardLayout'
