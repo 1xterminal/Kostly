@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Contract, Invoice } from '@/types'
+import type { Contract, Invoice, ContractWithRelations, InvoiceWithRelations } from '@/types'
 
 // ─── Query Key Factory ────────────────────────────────────────────────────────
 
@@ -16,7 +16,7 @@ export const invoiceKeys = {
 // ─── Contracts ────────────────────────────────────────────────────────────────
 
 /** Fetch all contracts with room + tenant info. */
-export async function getContracts(): Promise<Contract[]> {
+export async function getContracts(): Promise<ContractWithRelations[]> {
   const { data, error } = await supabase
     .from('contracts')
     .select(`
@@ -27,18 +27,14 @@ export async function getContracts(): Promise<Contract[]> {
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data
+  return data as ContractWithRelations[]
 }
 
 /** Fetch a single contract with full details. */
 export async function getContractById(id: string): Promise<Contract> {
   const { data, error } = await supabase
     .from('contracts')
-    .select(`
-      *,
-      room:rooms ( * ),
-      tenant:users!contracts_tenant_id_fkey ( * )
-    `)
+    .select('*')
     .eq('id', id)
     .single()
 
@@ -49,7 +45,7 @@ export async function getContractById(id: string): Promise<Contract> {
 // ─── Invoices ─────────────────────────────────────────────────────────────────
 
 /** Fetch all invoices with contract + tenant info. */
-export async function getInvoices(): Promise<Invoice[]> {
+export async function getInvoices(): Promise<InvoiceWithRelations[]> {
   const { data, error } = await supabase
     .from('invoices')
     .select(`
@@ -58,6 +54,18 @@ export async function getInvoices(): Promise<Invoice[]> {
       tenant:users!invoices_tenant_id_fkey ( id, name, email )
     `)
     .order('due_date', { ascending: false })
+
+  if (error) throw error
+  return data as InvoiceWithRelations[]
+}
+
+/** Fetch a single invoice by ID. */
+export async function getInvoiceById(id: string): Promise<Invoice> {
+  const { data, error } = await supabase
+    .from('invoices')
+    .select('*')
+    .eq('id', id)
+    .single()
 
   if (error) throw error
   return data
