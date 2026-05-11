@@ -1,0 +1,16 @@
+# Mobile app — not needed for web deploy
+apps/mobile/
+
+# Dependencies — Vercel installs these itself
+node_modules/
+**/node_modules/
+
+# Flutter/Android build artifacts
+**/.dart_tool/
+**/build/
+**/.gradle/
+**/android/.gradle/
+
+# Local env files — set these in Vercel dashboard instead
+**/.env
+**/.env.local
