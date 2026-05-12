@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/supabase_client.dart';
 
-// ─── Models ───────────────────────────────────────────────────────────────────
+// Models
 
 class ActiveContract {
   final String id;
@@ -20,7 +20,7 @@ class ActiveContract {
     required this.monthlyRate,
   });
 
-  /// Months remaining from today (rounded up, min 0).
+  /// months remaining from today (rounded up, min 0).
   int get monthsRemaining {
     final now = DateTime.now();
     if (endDate.isBefore(now)) return 0;
@@ -87,7 +87,7 @@ class ActiveTicket {
   }
 }
 
-// ─── Repository ────────────────────────────────────────────────────────────────
+// Repository 
 
 class HomeRepository {
   const HomeRepository();

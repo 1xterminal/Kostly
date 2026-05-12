@@ -9,6 +9,8 @@ import 'features/auth/screens/forgot_password_screen.dart';
 import 'features/auth/screens/reset_password_screen.dart';
 import 'features/auth/services/auth_service.dart';
 import 'features/home/screens/home_screen.dart';
+import 'features/contracts/screens/contract_screen.dart';
+import 'features/contracts/screens/extend_contract_screen.dart';
 
 
 // ─── Placeholder screen ───────────────────────────────────────────────────────
@@ -73,7 +75,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/pay/:invoiceId',
         builder: (_, state) => _Placeholder('Pay Invoice ${state.pathParameters['invoiceId']}'),
       ),
-      GoRoute(path: '/extend', builder: (_, _) => const _Placeholder('Extend Contract')),
+      GoRoute(path: '/extend', builder: (_, _) => const ExtendContractScreen()),
       GoRoute(path: '/maintenance/new', builder: (_, _) => const _Placeholder('New Ticket')),
       GoRoute(
         path: '/maintenance/:id',
@@ -102,7 +104,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ]),
           // Tab 3 — Contracts
           StatefulShellBranch(routes: [
-            GoRoute(path: '/contracts', builder: (_, _) => const _Placeholder('My Contract')),
+            GoRoute(path: '/contracts', builder: (_, _) => const ContractScreen()),
           ]),
           // Tab 4 — Profile
           StatefulShellBranch(routes: [
