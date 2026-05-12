@@ -8,6 +8,7 @@ export type TenantWithDetails = {
   phone_number: string | null
   tenant_status: string | null
   activeContract?: {
+    id: string
     start_date: string
     end_date: string
     room: { number: string } | null
@@ -79,6 +80,7 @@ export function useTenants() {
           phone_number: user.phone_number,
           tenant_status: user.tenant_status,
           activeContract: activeContract ? {
+            id: activeContract.id,
             start_date: activeContract.start_date,
             end_date: activeContract.end_date,
             room: activeContract.rooms,

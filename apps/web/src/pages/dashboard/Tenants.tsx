@@ -1,11 +1,17 @@
 import React, { useState } from 'react'
-import { Search, Plus, MessageCircle, Mail } from 'lucide-react'
+import { Search, Plus, MessageCircle, Mail, MoreVertical, Archive, Bell } from 'lucide-react'
 import { useTenants } from '../../hooks/useTenants'
+import OnboardTenantModal from '../../components/tenants/OnboardTenantModal'
+import ExtendRequestsModal from '../../components/tenants/ExtendRequestsModal'
+import { supabase } from '../../lib/supabase'
 
 export default function Tenants() {
-  const { data: tenants, isLoading, error } = useTenants()
+  const { data: tenants, isLoading, error, refetch } = useTenants()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<'Active' | 'Pending' | 'Archived'>('Active')
+  const [isOnboardModalOpen, setIsOnboardModalOpen] = useState(false)
+  const [isExtendModalOpen, setIsExtendModalOpen] = useState(false)
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null)
 
   if (error) {
     return <div className="p-8 text-red-500">Error loading tenants: {(error as Error).message}</div>
@@ -38,6 +44,20 @@ export default function Tenants() {
     return `${formatDate(start)} - ${formatDate(end)}`
   }
 
+  const handleArchive = async (tenantId: string, contractId?: string) => {
+    if (!confirm('Are you sure you want to archive this tenant?')) return
+    try {
+      if (contractId) {
+        await supabase.from('contracts').update({ status: 'terminated' }).eq('id', contractId)
+      }
+      await supabase.from('users').update({ tenant_status: 'archived' }).eq('id', tenantId)
+      refetch()
+    } catch (err) {
+      console.error('Failed to archive tenant', err)
+      alert('Failed to archive tenant')
+    }
+  }
+
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
 
@@ -56,6 +76,14 @@ export default function Tenants() {
           />
         </div>
         <button
+          onClick={() => setIsExtendModalOpen(true)}
+          className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <Bell className="-ml-1 mr-2 h-5 w-5 text-gray-500" />
+          Extend Requests
+        </button>
+        <button
+          onClick={() => setIsOnboardModalOpen(true)}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#3B5998] hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           <Plus className="-ml-1 mr-2 h-5 w-5" />
@@ -104,6 +132,9 @@ export default function Tenants() {
               <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-l border-gray-200">
                 Contact
               </th>
+              <th scope="col" className="relative px-6 py-3 border-l border-gray-200">
+                <span className="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -149,12 +180,53 @@ export default function Tenants() {
                       </a>
                     </div>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium border-l border-gray-200">
+                    <div className="relative">
+                      <button 
+                        onClick={() => setActiveMenuId(activeMenuId === tenant.id ? null : tenant.id)}
+                        className="text-gray-400 hover:text-gray-500"
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                      </button>
+                      {activeMenuId === tenant.id && (
+                        <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                          <div className="py-1">
+                            <button
+                              onClick={() => {
+                                handleArchive(tenant.id, tenant.activeContract?.id)
+                                setActiveMenuId(null)
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center"
+                            >
+                              <Archive className="mr-2 h-4 w-4" /> Archive Tenant
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      <OnboardTenantModal 
+        isOpen={isOnboardModalOpen} 
+        onClose={() => setIsOnboardModalOpen(false)} 
+        onSuccess={() => {
+          refetch()
+        }} 
+      />
+
+      <ExtendRequestsModal 
+        isOpen={isExtendModalOpen} 
+        onClose={() => setIsExtendModalOpen(false)} 
+        onSuccess={() => {
+          refetch()
+        }} 
+      />
     </div>
   )
 }
