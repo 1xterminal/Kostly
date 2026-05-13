@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Search, Plus, MessageCircle, Mail, MoreVertical, Archive, Bell } from 'lucide-react'
 import { useTenants } from '../../hooks/useTenants'
 import OnboardTenantModal from '../../components/tenants/OnboardTenantModal'
