@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+import { lazy } from 'react'
 import { createBrowserRouter, redirect } from 'react-router'
 import { supabase } from './lib/supabase'
 import DashboardLayout from './components/layout/DashboardLayout'
@@ -35,7 +37,8 @@ const _Placeholder = ({ name }: { name: string }) => (
 // Swap each lazy() import with the real page as your team builds them:
 const Overview      = () => <PageWrapper><_Placeholder name="Overview" /></PageWrapper>
 const Rooms         = () => <PageWrapper><_Placeholder name="Rooms" /></PageWrapper>
-const Tenants       = () => <PageWrapper><_Placeholder name="Tenants" /></PageWrapper>
+const TenantsPage   = lazy(() => import('./pages/dashboard/Tenants'))
+const Tenants       = () => <PageWrapper><TenantsPage /></PageWrapper>
 const Payments      = () => <PageWrapper><_Placeholder name="Payments" /></PageWrapper>
 const Tickets       = () => <PageWrapper><_Placeholder name="Maintenance" /></PageWrapper>
 const Reports       = () => <PageWrapper><_Placeholder name="Reports" /></PageWrapper>
