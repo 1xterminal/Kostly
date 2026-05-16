@@ -35,15 +35,15 @@ const _Placeholder = ({ name }: { name: string }) => (
 )
 
 // Swap each lazy() import with the real page as your team builds them:
-const Overview      = () => <PageWrapper><_Placeholder name="Overview" /></PageWrapper>
-const Rooms         = () => <PageWrapper><_Placeholder name="Rooms" /></PageWrapper>
-const TenantsPage   = lazy(() => import('./pages/dashboard/Tenants'))
-const Tenants       = () => <PageWrapper><TenantsPage /></PageWrapper>
-const Payments      = () => <PageWrapper><_Placeholder name="Payments" /></PageWrapper>
-const Tickets       = () => <PageWrapper><_Placeholder name="Maintenance" /></PageWrapper>
-const Reports       = () => <PageWrapper><_Placeholder name="Reports" /></PageWrapper>
-const ReportDetails = () => <PageWrapper><_Placeholder name="Report Details" /></PageWrapper>
-const Profile       = () => <PageWrapper><_Placeholder name="Profile" /></PageWrapper>
+const Overview = () => <PageWrapper><_Placeholder name="Overview" /></PageWrapper>
+const Rooms = () => <PageWrapper><_Placeholder name="Rooms" /></PageWrapper>
+const TenantsPage = lazy(() => import('./pages/dashboard/Tenants'))
+const Tenants = () => <PageWrapper><TenantsPage /></PageWrapper>
+const Payments = () => <PageWrapper><_Placeholder name="Payments" /></PageWrapper>
+const Tickets = () => <PageWrapper><_Placeholder name="Maintenance" /></PageWrapper>
+const Reports = lazy(() => import('./pages/dashboard/reports/Reports'))
+const ReportDetails = lazy(() => import('./pages/dashboard/reports/ReportDetails'))
+const Profile = () => <PageWrapper><_Placeholder name="Profile" /></PageWrapper>
 
 // Example of how to swap in a real page (uncomment when ready):
 // const Overview = lazy(() => import('./pages/dashboard/Overview'))
@@ -51,9 +51,9 @@ const Profile       = () => <PageWrapper><_Placeholder name="Profile" /></PageWr
 // ─── Router ───────────────────────────────────────────────────────────────────
 export const router = createBrowserRouter([
   // Public
-  { path: '/login',           element: <Login /> },
+  { path: '/login', element: <Login /> },
   { path: '/forgot-password', element: <ForgotPassword /> },
-  { path: '/reset-password',  element: <ResetPassword /> },
+  { path: '/reset-password', element: <ResetPassword /> },
 
   // Protected — all under DashboardLayout
   {
@@ -61,14 +61,14 @@ export const router = createBrowserRouter([
     element: <DashboardLayout />,
     loader: requireOwner,
     children: [
-      { index: true,                element: <Overview /> },
-      { path: 'rooms',              element: <Rooms /> },
-      { path: 'tenants',            element: <Tenants /> },
-      { path: 'payments',           element: <Payments /> },
-      { path: 'maintenance',        element: <Tickets /> },
-      { path: 'reports',            element: <Reports /> },
+      { index: true, element: <Overview /> },
+      { path: 'rooms', element: <Rooms /> },
+      { path: 'tenants', element: <Tenants /> },
+      { path: 'payments', element: <Payments /> },
+      { path: 'maintenance', element: <Tickets /> },
+      { path: 'reports', element: <Reports /> },
       { path: 'reports/:monthYear', element: <ReportDetails /> },
-      { path: 'profile',            element: <Profile /> },
+      { path: 'profile', element: <Profile /> },
     ],
   },
 
