@@ -14,7 +14,7 @@ export function OccupancyPieChart({ data, currentRate }: OccupancyPieChartProps)
                     {currentRate}%
                 </p>
             </div>
-            <div className="h-[200px] w-full">
+            <div className="h-[200px] w-full" style={{ minHeight: 200 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={false} stroke="#F3F4F6" />

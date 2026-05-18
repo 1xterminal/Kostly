@@ -20,10 +20,10 @@ Deno.serve(async (req) => {
     }
 
     // Initialize client passing the user's JWT
-    const SUPABASE_PUBLISHABLE_KEYS = JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')!)
+    // SUPABASE_URL and SUPABASE_ANON_KEY are auto-injected by Supabase into every Edge Function
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      SUPABASE_PUBLISHABLE_KEYS['default'],
+      Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } }
     )
 
