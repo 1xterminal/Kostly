@@ -27,7 +27,7 @@ export default function ReportDetails() {
 
     // Generate historical data spanning the 5 months PRIOR to the monthYear being viewed
     const generateHistoricalData = (reports: Report[] | undefined, targetMonthYear: string | undefined) => {
-        const data = []
+        const data: { name: string; revenue: number; rate: number }[] = []
         if (!targetMonthYear) return data
         const targetDate = new Date(targetMonthYear)
         for (let i = 5; i >= 0; i--) {
@@ -52,8 +52,9 @@ export default function ReportDetails() {
     // Fetch invoices for "Transaction Log"
     const { data: invoices } = useQuery({
         queryKey: ['invoices', monthYear],
+        enabled: !!monthYear,
         queryFn: async () => {
-            const { data, error } = await supabase.from('invoices').select('*, contracts(rooms(number)), users(name)').eq('billing_month', monthYear)
+            const { data, error } = await supabase.from('invoices').select('*, contracts(rooms(number)), users(name)').eq('billing_month', monthYear!)
             if (error) throw error
             return data
         }

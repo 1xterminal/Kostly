@@ -20,7 +20,7 @@ export function OccupancyPieChart({ data, currentRate }: OccupancyPieChartProps)
                         <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={false} stroke="#F3F4F6" />
                         <XAxis dataKey="name" axisLine={{ stroke: '#111827', strokeWidth: 2 }} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} dy={10} />
                         <YAxis domain={[50, 100]} ticks={[50, 60, 70, 80, 90, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => `${value}%`} width={40} />
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value: number) => [`${value}%`, 'Occupancy']} />
+                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(value) => [`${Number(value)}%`, 'Occupancy']} />
                         <Line type="linear" dataKey="rate" stroke="#3341A5" strokeWidth={2} dot={false} />
                     </LineChart>
                 </ResponsiveContainer>
