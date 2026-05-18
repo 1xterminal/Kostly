@@ -11,6 +11,9 @@ import 'features/auth/services/auth_service.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/contracts/screens/contract_screen.dart';
 import 'features/contracts/screens/extend_contract_screen.dart';
+import 'features/payments/screens/invoices_screen.dart';
+import 'features/payments/screens/invoice_detail_screen.dart';
+import 'features/payments/screens/pay_invoice_screen.dart';
 
 
 // ─── Placeholder screen ───────────────────────────────────────────────────────
@@ -73,7 +76,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // ── Full-screen flows (no bottom nav) ─────────────────────────────────
       GoRoute(
         path: '/pay/:invoiceId',
-        builder: (_, state) => _Placeholder('Pay Invoice ${state.pathParameters['invoiceId']}'),
+        builder: (_, state) => PayInvoiceScreen(invoiceId: state.pathParameters['invoiceId']!),
       ),
       GoRoute(path: '/extend', builder: (_, _) => const ExtendContractScreen()),
       GoRoute(path: '/maintenance/new', builder: (_, _) => const _Placeholder('New Ticket')),
@@ -83,7 +86,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/invoices/:id',
-        builder: (_, state) => _Placeholder('Invoice ${state.pathParameters['id']}'),
+        builder: (_, state) => InvoiceDetailScreen(invoiceId: state.pathParameters['id']!),
       ),
 
       // ── Main shell with bottom nav ─────────────────────────────────────────
@@ -96,7 +99,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ]),
           // Tab 1 — Payments / Invoices list
           StatefulShellBranch(routes: [
-            GoRoute(path: '/invoices', builder: (_, _) => const _Placeholder('Invoices')),
+            GoRoute(path: '/invoices', builder: (_, _) => const InvoicesScreen()),
           ]),
           // Tab 2 — Maintenance
           StatefulShellBranch(routes: [

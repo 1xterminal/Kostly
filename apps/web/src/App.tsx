@@ -39,7 +39,8 @@ const Overview      = () => <PageWrapper><_Placeholder name="Overview" /></PageW
 const Rooms         = () => <PageWrapper><_Placeholder name="Rooms" /></PageWrapper>
 const TenantsPage   = lazy(() => import('./pages/dashboard/Tenants'))
 const Tenants       = () => <PageWrapper><TenantsPage /></PageWrapper>
-const Payments      = () => <PageWrapper><_Placeholder name="Payments" /></PageWrapper>
+const PaymentsPage  = lazy(() => import('./pages/dashboard/Payments'))
+const Payments      = () => <PageWrapper><PaymentsPage /></PageWrapper>
 const Tickets       = () => <PageWrapper><_Placeholder name="Maintenance" /></PageWrapper>
 const Reports       = () => <PageWrapper><_Placeholder name="Reports" /></PageWrapper>
 const ReportDetails = () => <PageWrapper><_Placeholder name="Report Details" /></PageWrapper>
