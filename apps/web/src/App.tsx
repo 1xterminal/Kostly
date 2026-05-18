@@ -60,6 +60,7 @@ export const router = createBrowserRouter([
     path: '/dashboard',
     element: <DashboardLayout />,
     loader: requireOwner,
+    HydrateFallback: () => null,
     children: [
       { index: true, element: <Overview /> },
       { path: 'rooms', element: <Rooms /> },

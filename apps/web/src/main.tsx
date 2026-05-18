@@ -9,7 +9,7 @@ import './index.css'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} fallbackElement={null} />
+      <RouterProvider router={router} />
     </QueryClientProvider>
   </StrictMode>,
 )
