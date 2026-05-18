@@ -1,0 +1,8 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- apps/web/ package.json pnpm-lock.yaml turbo.json"
+}
