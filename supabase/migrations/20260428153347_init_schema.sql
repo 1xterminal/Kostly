@@ -203,3 +203,38 @@ create trigger trg_payments_updated_at
 create trigger trg_tickets_updated_at
   before update on public.maintenance_tickets
   for each row execute function public.set_updated_at();
+
+-- ─── AUTH SYNC TRIGGER ────────────────────────────────────────
+-- Automatically inserts a row into public.users whenever a new account
+-- is created via Supabase Auth (email/password, OAuth, magic link, etc.).
+--
+-- Why this is necessary:
+--   Supabase Auth stores accounts in auth.users (managed by Supabase).
+--   Our app's business logic lives in public.users (managed by us).
+--   public.users.id is a FK to auth.users.id — so every table that
+--   references a user (rooms, contracts, invoices, reports, etc.) will
+--   throw a FK violation if the public.users row doesn't exist first.
+--
+-- Role assignment:
+--   - Pass { role: 'owner' } in signUp() options.data to create an owner.
+--   - All other signups default to 'tenant'.
+--   - Name is read from options.data.name, or falls back to the email prefix.
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer as $$
+begin
+  insert into public.users (id, email, name, role)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    coalesce((new.raw_user_meta_data->>'role')::user_role, 'tenant')
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+-- Fire after every new row in auth.users (covers all auth methods)
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();

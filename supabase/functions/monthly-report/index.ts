@@ -16,55 +16,72 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
+      console.error('[monthly-report] No Authorization header')
       return new Response('Unauthorized', { status: 401, headers: corsHeaders })
     }
 
-    // Initialize client passing the user's JWT
-    // SUPABASE_URL and SUPABASE_ANON_KEY are auto-injected by Supabase into every Edge Function
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    )
+    // --- Step 1: Verify the user with their JWT ---
+    console.log('[monthly-report] Step 1: Verifying user JWT...')
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-    // Verify the user
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    // User client - respects RLS, used only to verify identity
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } }
+    })
+
+    const { data: { user }, error: authError } = await userClient.auth.getUser()
     if (authError || !user) {
+      console.error('[monthly-report] Auth error:', authError?.message)
       return new Response('Unauthorized', { status: 401, headers: corsHeaders })
     }
+    console.log('[monthly-report] User verified:', user.id)
 
-    // Extract requested month and year from the payload
+    // --- Step 2: Parse body ---
+    console.log('[monthly-report] Step 2: Parsing request body...')
     const { month, year } = await req.json()
     if (!month || !year) throw new Error("Missing 'month' or 'year' in request body")
-    
     const monthYear = `${year}-${String(month).padStart(2, '0')}-01`
+    console.log('[monthly-report] Target month_year:', monthYear)
 
-    // 1. Fetch Rooms (RLS automatically restricts to this Owner)
-    const { data: rooms, error: roomsError } = await supabaseClient
+    // --- Step 3: Fetch Rooms (use user client so RLS restricts to owner) ---
+    console.log('[monthly-report] Step 3: Fetching rooms...')
+    const { data: rooms, error: roomsError } = await userClient
       .from('rooms')
       .select('id, status')
-    
-    if (roomsError) throw roomsError
-    
+
+    if (roomsError) {
+      console.error('[monthly-report] Rooms error:', roomsError.message)
+      throw roomsError
+    }
+    console.log('[monthly-report] Rooms fetched:', rooms?.length ?? 0)
+
     const totalRooms = rooms?.length || 0
     const occupiedRooms = rooms?.filter(r => r.status === 'occupied').length || 0
     const occupancyRate = totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0
 
-    // 2. Fetch Paid Invoices for this month
-    // We only fetch invoices that have 'paid' status for the specified billing month
-    // Again, RLS ensures the Owner only sees invoices linked to their contracts
-    const { data: invoices, error: invoicesError } = await supabaseClient
+    // --- Step 4: Fetch Paid Invoices ---
+    console.log('[monthly-report] Step 4: Fetching invoices...')
+    const { data: invoices, error: invoicesError } = await userClient
       .from('invoices')
       .select('id, total_amount')
       .eq('billing_month', monthYear)
       .eq('status', 'paid')
-    
-    if (invoicesError) throw invoicesError
+
+    if (invoicesError) {
+      console.error('[monthly-report] Invoices error:', invoicesError.message)
+      throw invoicesError
+    }
+    console.log('[monthly-report] Invoices fetched:', invoices?.length ?? 0)
 
     const totalPaidInvoices = invoices?.length || 0
     const totalRevenue = invoices?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0
 
-    // 3. Prepare the report snapshot
+    // --- Step 5: Upsert Report (use service role to bypass RLS on insert) ---
+    console.log('[monthly-report] Step 5: Upserting report...')
+    const adminClient = createClient(supabaseUrl, serviceRoleKey)
+
     const reportData = {
       owner_id: user.id,
       month_year: monthYear,
@@ -75,22 +92,25 @@ Deno.serve(async (req) => {
       total_paid_invoices: totalPaidInvoices,
     }
 
-    // 4. Save/Update the snapshot in the 'reports' table
-    const { error: upsertError } = await supabaseClient
+    const { error: upsertError } = await adminClient
       .from('reports')
-      .upsert(reportData, { onConflict: 'owner_id, month_year' })
-    
-    if (upsertError) throw upsertError
+      .upsert(reportData, { onConflict: 'owner_id,month_year' })
 
-    // 5. Return the report data to the frontend
+    if (upsertError) {
+      console.error('[monthly-report] Upsert error:', upsertError.message, upsertError.details)
+      throw upsertError
+    }
+    console.log('[monthly-report] Report upserted successfully.')
+
+    // --- Step 6: Return success ---
     return new Response(JSON.stringify(reportData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
 
   } catch (error: any) {
-    console.error("Function error:", error)
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('[monthly-report] Unhandled error:', error?.message, error?.details ?? '')
+    return new Response(JSON.stringify({ error: error.message, details: error.details ?? null }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     })
