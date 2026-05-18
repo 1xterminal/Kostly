@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 interface RevenueChartProps {
@@ -6,6 +7,8 @@ interface RevenueChartProps {
 }
 
 export function RevenueChart({ data, totalRevenue }: RevenueChartProps) {
+    const [mounted, setMounted] = useState(false)
+    useEffect(() => setMounted(true), [])
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
             <div className="mb-4">
@@ -15,6 +18,7 @@ export function RevenueChart({ data, totalRevenue }: RevenueChartProps) {
                 </p>
             </div>
             <div className="h-[200px] w-full" style={{ minHeight: 200 }}>
+                {mounted && (
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={false} stroke="#F3F4F6" />
@@ -24,6 +28,7 @@ export function RevenueChart({ data, totalRevenue }: RevenueChartProps) {
                         <Line type="linear" dataKey="revenue" stroke="#3341A5" strokeWidth={2} dot={false} />
                     </LineChart>
                 </ResponsiveContainer>
+                )}
             </div>
         </div>
     )
