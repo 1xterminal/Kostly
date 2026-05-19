@@ -7,6 +7,7 @@ import { PageWrapper } from './components/ui/ErrorBoundary'
 import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import TenantsPage from './pages/dashboard/Tenants'
 
 // ─── Auth Guard ───────────────────────────────────────────────────────────────
 // Runs before any /dashboard/* route renders.
@@ -40,9 +41,9 @@ const _Placeholder = ({ name }: { name: string }) => (
 )
 
 // Swap each lazy() import with the real page as your team builds them:
-const Overview = () => <PageWrapper><_Placeholder name="Overview" /></PageWrapper>
+const OverviewPage = lazy(() => import('./pages/dashboard/Overview'))
+const Overview = () => <PageWrapper><OverviewPage /></PageWrapper>
 const Rooms = () => <PageWrapper><_Placeholder name="Rooms" /></PageWrapper>
-const TenantsPage = lazy(() => import('./pages/dashboard/Tenants'))
 const Tenants = () => <PageWrapper><TenantsPage /></PageWrapper>
 const Payments = () => <PageWrapper><_Placeholder name="Payments" /></PageWrapper>
 const Tickets = () => <PageWrapper><_Placeholder name="Maintenance" /></PageWrapper>
