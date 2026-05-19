@@ -7,6 +7,17 @@ import { RevenueChart } from '@/components/reports/RevenueChart'
 import { OccupancyPieChart } from '@/components/reports/OccupancyPieChart'
 import type { Report } from '@/types'
 
+type InvoiceLogRow = {
+    id: string
+    due_date: string
+    status: 'unpaid' | 'pending' | 'paid'
+    total_amount: number
+    contracts: {
+        rooms: { number: string } | null
+    } | null
+    users: { name: string } | null
+}
+
 export default function ReportDetails() {
     const { monthYear } = useParams<{ monthYear: string }>()
     const navigate = useNavigate()
@@ -93,7 +104,7 @@ export default function ReportDetails() {
                 {activeTab === 'transactions' ? (
                     <div className="space-y-3">
                         {(!invoices || invoices.length === 0) && <div className="text-center text-sm text-gray-500 py-10 bg-white rounded-xl border border-gray-200">No transactions recorded for this month.</div>}
-                        {invoices?.map((inv: any) => (
+                        {invoices?.map((inv: InvoiceLogRow) => (
                             <div key={inv.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center justify-between hover:shadow-md transition-shadow">
                                 <div>
                                     <h4 className="text-[16px] font-bold text-gray-900">{inv.users?.name} <span className="text-gray-400 font-medium ml-1">· Room {inv.contracts?.rooms?.number}</span></h4>

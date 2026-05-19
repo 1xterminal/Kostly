@@ -8,7 +8,7 @@ interface Transaction {
     invoices: {
         total_amount: number
         users: { name: string }
-    }
+    } | null
 }
 
 export function RecentTransactionsTable() {
@@ -33,7 +33,7 @@ export function RecentTransactionsTable() {
                 .limit(5)
 
             if (!error && data) {
-                setTransactions(data as any)
+                setTransactions(data as Transaction[])
             }
             setLoading(false)
         }
