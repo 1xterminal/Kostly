@@ -1,23 +1,5 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
-
-// ─── Header actions context (for page-level buttons in the layout header) ─────
-
-type HeaderContextType = {
-  actions: ReactNode | null
-  setActions: (node: ReactNode | null) => void
-}
-
-const HeaderContext = createContext<HeaderContextType | null>(null)
-
-// ─── Sidebar context (kept for future mobile collapse) ────────────────────────
-
-type SidebarContextType = {
-  isOpen: boolean
-  toggle: () => void
-  close: () => void
-}
-
-const SidebarContext = createContext<SidebarContextType | null>(null)
+import { useState, type ReactNode } from 'react'
+import { HeaderContext, SidebarContext } from './sidebar-context'
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
@@ -36,18 +18,4 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       </HeaderContext.Provider>
     </SidebarContext.Provider>
   )
-}
-
-// ─── Hooks ────────────────────────────────────────────────────────────────────
-
-export function useSidebar() {
-  const ctx = useContext(SidebarContext)
-  if (!ctx) throw new Error('useSidebar must be used inside SidebarProvider')
-  return ctx
-}
-
-export function useSidebarHeader() {
-  const ctx = useContext(HeaderContext)
-  if (!ctx) throw new Error('useSidebarHeader must be used inside SidebarProvider')
-  return ctx
 }
