@@ -17,9 +17,15 @@ export async function signIn({ email, password }: SignInCredentials) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) throw error
 
-  // Role check — only owners can access the web dashboard
-  const role = data.user?.user_metadata?.role
-  if (role !== 'owner') {
+  // Role check — only owners can access the web dashboard.
+  // Use public.users as the authorization source of truth, not user_metadata.
+  const { data: profile, error: profileError } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', data.user.id)
+    .single()
+
+  if (profileError || profile?.role !== 'owner') {
     await supabase.auth.signOut()
     throw new Error('Access denied. This dashboard is for property owners only.')
   }

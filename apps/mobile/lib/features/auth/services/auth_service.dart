@@ -12,8 +12,19 @@ class AuthService {
       password: password,
     );
 
-    final role = response.user?.userMetadata?['role'];
-    if (role != 'tenant') {
+    final userId = response.user?.id;
+    if (userId == null) {
+      await supabase.auth.signOut();
+      throw Exception('Login failed. Please try again.');
+    }
+
+    final profile = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+    if (profile['role'] != 'tenant') {
       await supabase.auth.signOut();
       throw Exception(
         'This app is for tenants only. Property owners use the Kostly web dashboard.',

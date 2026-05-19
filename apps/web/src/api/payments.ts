@@ -45,9 +45,17 @@ export async function getPaymentById(id: string): Promise<Payment> {
 
 /** Mark a payment as verified. */
 export async function verifyPayment(id: string): Promise<Payment> {
+  const userId = (await supabase.auth.getUser()).data.user?.id
+  if (!userId) throw new Error('Not authenticated')
+
   const { data, error } = await supabase
     .from('payments')
-    .update({ status: 'verified', is_verified: true, verified_at: new Date().toISOString() })
+    .update({
+      status: 'verified',
+      is_verified: true,
+      verified_by: userId,
+      verified_at: new Date().toISOString(),
+    })
     .eq('id', id)
     .select()
     .single()
@@ -58,9 +66,18 @@ export async function verifyPayment(id: string): Promise<Payment> {
 
 /** Reject a payment with a reason. */
 export async function rejectPayment(id: string, rejection_reason: string): Promise<Payment> {
+  const userId = (await supabase.auth.getUser()).data.user?.id
+  if (!userId) throw new Error('Not authenticated')
+
   const { data, error } = await supabase
     .from('payments')
-    .update({ status: 'rejected', is_verified: false, rejection_reason })
+    .update({
+      status: 'rejected',
+      is_verified: false,
+      rejection_reason,
+      verified_by: userId,
+      verified_at: new Date().toISOString(),
+    })
     .eq('id', id)
     .select()
     .single()

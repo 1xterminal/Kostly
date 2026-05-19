@@ -38,6 +38,17 @@ Deno.serve(async (req) => {
     }
     console.log('[monthly-report] User verified:', user.id)
 
+    const { data: profile, error: profileError } = await userClient
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || profile?.role !== 'owner') {
+      console.error('[monthly-report] Forbidden: caller is not owner')
+      return new Response('Forbidden', { status: 403, headers: corsHeaders })
+    }
+
     // --- Step 2: Parse body ---
     console.log('[monthly-report] Step 2: Parsing request body...')
     const { month, year } = await req.json()

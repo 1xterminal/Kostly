@@ -27,7 +27,13 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
     if (userError || !user) throw new Error('Unauthorized')
 
-    if (user.user_metadata?.role !== 'owner') {
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || profile?.role !== 'owner') {
       throw new Error('Forbidden: Only owners can onboard tenants')
     }
 

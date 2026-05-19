@@ -15,8 +15,13 @@ async function requireOwner() {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return redirect('/login')
 
-  const role = session.user.user_metadata?.role
-  if (role !== 'owner') {
+  const { data: profile, error } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', session.user.id)
+    .single()
+
+  if (error || profile?.role !== 'owner') {
     await supabase.auth.signOut()
     return redirect('/login')
   }

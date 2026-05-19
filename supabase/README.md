@@ -47,9 +47,7 @@ supabase functions deploy generate-invoices --project-ref <your-project-ref>
 
 ### 3. Create the first Owner account
 
-After deploying, sign up through the app UI normally. The `on_auth_user_created` trigger (see below) will automatically create the `public.users` row.
-
-To make yourself an **owner** instead of a tenant, pass `{ role: 'owner' }` in the signup metadata. This is already handled in the app's auth flow.
+After deploying, sign up through the app UI normally. The `on_auth_user_created` trigger (see below) will automatically create the `public.users` row as a tenant.
 
 If you need to manually promote an existing account:
 
@@ -86,15 +84,16 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 ```
 
-The function reads `raw_user_meta_data` from the auth signup payload:
+The function reads safe profile fields from `raw_user_meta_data` in the auth signup payload:
 - `name` → used as the user's display name (falls back to email prefix)
-- `role` → cast to `user_role` enum (`'owner'` or `'tenant'`, defaults to `'tenant'`)
+
+Authorization role is stored in `public.users.role`, not trusted from user-editable auth metadata. New signups default to tenant; owner accounts are promoted manually or by an existing trusted owner/admin flow.
 
 ### Row-Level Security (RLS)
 
 All tables have RLS enabled. The general pattern is:
 
-- **Owners** can read/write all rows they own (matched via `owner_id = auth.uid()`)
+- **Owners** can read/write all owner dashboard rows for the single-owner MVP
 - **Tenants** can only read their own rows (matched via `tenant_id = auth.uid()`)
 - **Edge Functions** that need to write across ownership boundaries use `SUPABASE_SERVICE_ROLE_KEY` (bypasses RLS)
 
