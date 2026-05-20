@@ -33,7 +33,7 @@ class AuthService {
       );
     }
 
-    if (profile['role'] != 'tenant') {
+    if (profile == null || profile['role'] != 'tenant') {
       await supabase.auth.signOut();
       throw Exception(
         'This app is for tenants only. Property owners use the Kostly web dashboard.',

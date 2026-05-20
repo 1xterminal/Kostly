@@ -151,14 +151,14 @@ class HomeScreen extends ConsumerWidget {
                           _CardAction(
                             icon: Icons.info_outline_rounded,
                             label: 'Details',
-                            onTap: () => context.go('/invoices'),
+                            onTap: () => context.go('/payments'),
                           ),
                           const Spacer(),
                           if (invoice != null)
                             _CardAction(
                               icon: Icons.crop_free_rounded,
                               label: 'Pay now',
-                              onTap: () => context.go('/pay/${invoice.id}'),
+                              onTap: () => context.go('/payments/new'),
                             ),
                         ],
                       ),
