@@ -7,6 +7,7 @@ export type TenantWithDetails = {
   email: string
   phone_number: string | null
   tenant_status: string | null
+  onboarding: boolean
   activeContract?: {
     id: string
     start_date: string
@@ -21,7 +22,7 @@ type PaymentRow = { id: string; status: string }
 type InvoiceRow = { id: string; status: string; due_date: string; payments: PaymentRow[] | null }
 type RoomRow = { number: string }
 type ContractRow = { id: string; start_date: string; end_date: string; status: string; rooms: RoomRow | null; invoices: InvoiceRow[] | null }
-type UserRow = { id: string; name: string; email: string; phone_number: string | null; tenant_status: string | null; contracts: ContractRow[] | null }
+type UserRow = { id: string; name: string; email: string; phone_number: string | null; tenant_status: string | null; onboarding: boolean | null; contracts: ContractRow[] | null }
 
 export function useTenants() {
   return useQuery({
@@ -30,7 +31,7 @@ export function useTenants() {
       const { data, error } = await supabase
         .from('users')
         .select(`
-          id, name, email, phone_number, tenant_status,
+          id, name, email, phone_number, tenant_status, onboarding,
           contracts (
             id, start_date, end_date, status,
             rooms ( number ),
@@ -79,6 +80,7 @@ export function useTenants() {
           email: user.email,
           phone_number: user.phone_number,
           tenant_status: user.tenant_status,
+          onboarding: !!user.onboarding,
           activeContract: activeContract ? {
             id: activeContract.id,
             start_date: activeContract.start_date,
