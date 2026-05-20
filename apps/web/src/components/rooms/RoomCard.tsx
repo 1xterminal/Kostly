@@ -1,6 +1,11 @@
-import type { Room } from '@/types'
+import type { RoomWithRelations } from '@/types'
 
-export function RoomCard(roomData: Room) {
+export function RoomCard(roomData: RoomWithRelations) {
+  const activeContract = roomData.contracts?.find(contract => contract.status === 'active')
+  const activeTicket = roomData.maintenance_tickets?.find(ticket =>
+    ticket.ticket_status === 'reported' || ticket.ticket_status === 'in_progress'
+  )
+
   const theme = {
     "available": {
       "cardBackground": "from-[#0fc95c]/0 to-[#0fc95c]/10",
@@ -51,12 +56,12 @@ export function RoomCard(roomData: Room) {
           : roomData.status === 'occupied' ?
             <div className="flex flex-col gap-1">
               <p className='uppercase font-bold text-sm'>Tenant</p>
-              <p>TBA</p>
+              <p>{activeContract?.tenant?.name ?? 'No active tenant'}</p>
             </div>
           : // Maintenance
             <div className="flex flex-col gap-1">
               <p className='uppercase font-bold text-sm'>Reason</p>
-              <p>TBA</p>
+              <p className="line-clamp-2">{activeTicket?.description ?? 'No active ticket'}</p>
             </div>
         }
     </div>

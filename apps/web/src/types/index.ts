@@ -39,6 +39,17 @@ export type PaymentWithRelations = Payment & {
   tenant?:  Pick<AppUser, 'id' | 'name' | 'email'>
 }
 
+export type RoomContractWithTenant = Pick<Contract, 'id' | 'tenant_id' | 'start_date' | 'end_date' | 'monthly_rate' | 'status'> & {
+  tenant?: Pick<AppUser, 'id' | 'name' | 'email' | 'phone_number'> | null
+}
+
+export type RoomMaintenanceTicket = Pick<MaintenanceTicket, 'id' | 'description' | 'ticket_status' | 'date_created' | 'created_at' | 'resolved_at'>
+
+export type RoomWithRelations = Room & {
+  contracts?: RoomContractWithTenant[] | null
+  maintenance_tickets?: RoomMaintenanceTicket[] | null
+}
+
 export type TicketWithRelations = MaintenanceTicket & {
   room?:     Pick<Room, 'id' | 'number'>
   reporter?: Pick<AppUser, 'id' | 'name' | 'email'>
