@@ -41,7 +41,7 @@ const _Placeholder = ({ name }: { name: string }) => (
 
 // Swap each lazy() import with the real page as your team builds them:
 const Overview = () => <PageWrapper><_Placeholder name="Overview" /></PageWrapper>
-const Rooms = () => <PageWrapper><_Placeholder name="Rooms" /></PageWrapper>
+const Rooms = lazy(() => import('./pages/dashboard/Rooms'))
 const TenantsPage = lazy(() => import('./pages/dashboard/Tenants'))
 const Tenants = () => <PageWrapper><TenantsPage /></PageWrapper>
 const Payments = () => <PageWrapper><_Placeholder name="Payments" /></PageWrapper>
