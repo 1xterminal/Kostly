@@ -91,8 +91,8 @@ export default function Payments() {
         />
       </div>
 
-      {/* Tabs — underline style matching screenshot */}
-      <div className="flex gap-6 border-b border-gray-200">
+      {/* Tabs */}
+      <div className="flex gap-3">
         {tabs.map((tab) => {
           const count = (payments ?? []).filter(p =>
             tab === 'Unverified' ? p.status === 'not_verified' :
@@ -104,15 +104,15 @@ export default function Payments() {
               key={tab}
               id={`tab-${tab.toLowerCase()}`}
               onClick={() => setActiveTab(tab)}
-              className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-1.5 text-sm font-semibold rounded transition-colors ${
                 activeTab === tab
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm'
+                  : 'text-gray-700 hover:text-gray-900 border border-transparent'
               }`}
             >
               {tab}
               {count > 0 && (
-                <span className="ml-1.5 text-xs text-gray-400">({count})</span>
+                <span className={`ml-1.5 text-xs ${activeTab === tab ? 'text-indigo-500' : 'text-gray-400'}`}>({count})</span>
               )}
             </button>
           )
@@ -224,42 +224,83 @@ export default function Payments() {
       {selectedProof && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/60" onClick={() => setSelectedProof(null)} />
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden z-10">
-            <div className="flex items-center justify-between px-5 py-4 border-b">
-              <h2 className="font-semibold text-gray-900">Payment Proof</h2>
+          <div className="relative bg-[#f4f4f4] rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden z-10">
+            <div className="flex items-start justify-between px-6 pt-6 pb-2">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Payment Proof</h2>
+                <p className="text-sm text-gray-400 mt-1">Subtitle</p>
+              </div>
               <button onClick={() => setSelectedProof(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
             </div>
-            <div className="p-5 bg-gray-50 flex justify-center">
-              <img
-                src={selectedProof.url}
-                alt="Payment Proof"
-                className="max-h-[55vh] object-contain rounded-lg"
-                onError={(e) => { (e.target as HTMLImageElement).alt = 'Could not load image' }}
-              />
-            </div>
-            {/* Find the payment matching this proof */}
+            
             {(() => {
               const current = selectedProof.payment
               if (!current || current.status !== 'not_verified') return null
               const busy = actionLoading === current.id
               return (
-                <div className="flex justify-end gap-3 px-5 py-4 border-t bg-white">
-                  <button
-                    id={`reject-btn-${current.id}`}
-                    onClick={() => { setSelectedProof(null); setRejectModal(current) }}
-                    disabled={busy}
-                    className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 disabled:opacity-50"
-                  >
-                    Reject
-                  </button>
-                  <button
-                    id={`approve-btn-${current.id}`}
-                    onClick={async () => { await handleApprove(current); setSelectedProof(null) }}
-                    disabled={busy}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {busy ? 'Saving…' : 'Approve'}
-                  </button>
+                <div className="px-6 pb-6">
+                  <div className="grid grid-cols-2 gap-6 mt-4">
+                    {/* Left Column */}
+                    <div className="space-y-3">
+                      <h3 className="font-bold text-gray-800 text-sm">Tenants proof</h3>
+                      <div className="bg-white p-4 rounded-xl shadow-sm flex justify-center border border-gray-100">
+                        <img
+                          src={selectedProof.url}
+                          alt="Payment Proof"
+                          className="max-h-[300px] object-contain rounded-lg"
+                          onError={(e) => { (e.target as HTMLImageElement).alt = 'Could not load image' }}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Right Column */}
+                    <div className="space-y-6">
+                      <h3 className="font-bold text-gray-800 text-sm">Invoice Info</h3>
+                      
+                      <div className="space-y-5">
+                        <div>
+                          <p className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-1">Tenant Name</p>
+                          <p className="text-gray-900 text-sm">{current.tenant.name}</p>
+                        </div>
+                        
+                        <div>
+                          <p className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-1">Payment Amount</p>
+                          <p className="text-gray-900 font-semibold flex items-center gap-2">
+                            {formatCurrency(current.invoices?.total_amount ?? 0)}
+                            <svg className="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                          </p>
+                        </div>
+                        
+                        <div>
+                          <p className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-1">Payment Target</p>
+                          <p className="text-gray-900 font-semibold flex items-center gap-2">
+                            Rental Room Cloud
+                            <svg className="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="grid grid-cols-2 gap-4 mt-8">
+                    <button
+                      id={`reject-btn-${current.id}`}
+                      onClick={() => { setSelectedProof(null); setRejectModal(current) }}
+                      disabled={busy}
+                      className="flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white bg-[#E23E28] rounded-md hover:bg-red-700 disabled:opacity-50"
+                    >
+                      <span>✕</span> Reject
+                    </button>
+                    <button
+                      id={`approve-btn-${current.id}`}
+                      onClick={async () => { await handleApprove(current); setSelectedProof(null) }}
+                      disabled={busy}
+                      className="flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white bg-[#2E41A2] rounded-md hover:bg-indigo-800 disabled:opacity-50"
+                    >
+                      <span>✓</span> {busy ? 'Approving…' : 'Approve'}
+                    </button>
+                  </div>
                 </div>
               )
             })()}
@@ -270,35 +311,30 @@ export default function Payments() {
       {/* ── Reject reason modal ───────────────────────────────────────────────── */}
       {rejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setRejectModal(null)} />
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md z-10 p-6 space-y-4">
-            <h2 className="font-semibold text-gray-900">Reject Payment</h2>
-            <p className="text-sm text-gray-500">
-              Enter the reason for rejecting <strong>{rejectModal.tenant.name}</strong>'s payment.
-            </p>
-            <textarea
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Rejection reason…"
-              rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
-            />
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => { setRejectModal(null); setRejectReason('') }}
-                className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                id={`confirm-reject-${rejectModal.id}`}
-                onClick={handleRejectSubmit}
-                disabled={!!actionLoading}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                {actionLoading ? 'Saving…' : 'Confirm Reject'}
-              </button>
+          <div className="absolute inset-0 bg-black/60" onClick={() => { setRejectModal(null); setRejectReason('') }} />
+          <div className="relative bg-[#f4f4f4] rounded-xl shadow-2xl w-full max-w-[400px] z-10 p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Reject Reason</h2>
+              <button onClick={() => { setRejectModal(null); setRejectReason('') }} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
             </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-2 font-medium">Reason</p>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                rows={5}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E41A2]"
+              />
+            </div>
+            <button
+              id={`confirm-reject-${rejectModal.id}`}
+              onClick={handleRejectSubmit}
+              disabled={!!actionLoading}
+              className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-white bg-[#2E41A2] rounded-md hover:bg-indigo-800 disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+              {actionLoading ? 'Sending…' : 'Send'}
+            </button>
           </div>
         </div>
       )}
