@@ -67,27 +67,44 @@ export default function OnboardTenantModal({
     try {
       const { data: sessionData } = await supabase.auth.getSession()
       const token = sessionData.session?.access_token
-
       if (!token) throw new Error('Not authenticated')
 
-      // Ensure URL works locally and in production if deployed
-      const functionsUrl = import.meta.env.VITE_SUPABASE_URL 
-        ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-tenant`
-        : 'http://127.0.0.1:54321/functions/v1/create-tenant'
+      const baseUrl = import.meta.env.VITE_SUPABASE_URL
+        ?? 'http://127.0.0.1:54321'
 
-      const res = await fetch(functionsUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
-      })
-
-      const resData = await res.json()
-      if (!res.ok) {
-        throw new Error(resData.error || 'Failed to create tenant')
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       }
+
+      // Step 1: Create the Supabase Auth account + public.users profile
+      const accountRes = await fetch(`${baseUrl}/functions/v1/create-tenant-account`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          phone_number: data.phone_number,
+        }),
+      })
+      const accountData = await accountRes.json()
+      if (!accountRes.ok) throw new Error(accountData.error || 'Failed to create tenant account')
+
+      const tenantId: string = accountData.tenant_id
+
+      // Step 2: Assign room + create contract
+      const roomRes = await fetch(`${baseUrl}/functions/v1/assign-tenant-room`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          tenant_id: tenantId,
+          room_id: data.room_id,
+          start_date: data.start_date,
+          end_date: data.end_date,
+        }),
+      })
+      const roomData = await roomRes.json()
+      if (!roomRes.ok) throw new Error(roomData.error || 'Failed to assign room')
 
       reset()
       onSuccess()
