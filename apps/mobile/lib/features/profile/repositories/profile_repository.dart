@@ -53,11 +53,6 @@ class ProfileRepository {
     final user = supabase.auth.currentUser;
     if (user == null) throw Exception('User not logged in');
 
-    // Updates the email if it is different from the current one
-    if (user.email != email) {
-      await supabase.auth.updateUser(UserAttributes(email: email));
-    }
-
     final existing = await supabase
         .from('users')
         .select()
@@ -67,7 +62,7 @@ class ProfileRepository {
     if (existing == null) {
       await supabase.from('users').insert({
         'id': user.id,
-        'email': email,
+        'email': user.email ?? email,
         'name': name,
         'phone_number': phone,
         'role': 'tenant',
@@ -75,7 +70,7 @@ class ProfileRepository {
     } else {
       await supabase
           .from('users')
-          .update({'name': name, 'email': email, 'phone_number': phone})
+          .update({'name': name, 'phone_number': phone})
           .eq('id', user.id);
     }
   }

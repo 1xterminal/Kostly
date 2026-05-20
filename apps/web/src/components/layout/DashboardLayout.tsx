@@ -29,12 +29,14 @@ function Layout() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        height: '100vh',
         backgroundColor: '#EBEBEB',
-        padding: '40px',
+        padding: '24px',
+        boxSizing: 'border-box',
         display: 'flex',
         justifyContent: 'center',
         fontFamily: "'Inter', sans-serif",
+        overflow: 'hidden',
       }}
     >
       <div
@@ -43,8 +45,9 @@ function Layout() {
           gap: 32,
           width: '100%',
           maxWidth: 1400,
-          minHeight: 'calc(100vh - 80px)',
+          height: '100%',
           alignItems: 'flex-start',
+          minHeight: 0,
         }}
       >
         {/*
@@ -73,15 +76,16 @@ function Layout() {
         </div>
 
         {/* Main content */}
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%', minHeight: 0 }}>
 
           <header
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 32,
-              paddingTop: 8,
+              marginBottom: 20,
+              paddingTop: 0,
+              flexShrink: 0,
             }}
           >
             <h1
@@ -126,7 +130,7 @@ function Layout() {
             </div>
           </header>
 
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
             <Outlet />
           </div>
 

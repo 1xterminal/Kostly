@@ -7,22 +7,28 @@ export type TenantWithDetails = {
   email: string
   phone_number: string | null
   tenant_status: string | null
-  onboarding: boolean
+  onboarding: boolean | null
+  lifecycle: 'assigned' | 'needs_onboarding' | 'unassigned' | 'archived'
   activeContract?: {
     id: string
     start_date: string
     end_date: string
-    room: { number: string } | null
+    monthly_rate: number
+    status: string
+    room: { id: string; number: string; price: number } | null
   }
-  paymentState: 'Paid' | 'Unpaid'
+  contractCount: number
+  ticketCount: number
+  paymentState: 'Paid' | 'Pending' | 'Unpaid'
   hasPendingPayment: boolean
 }
 
 type PaymentRow = { id: string; status: string }
 type InvoiceRow = { id: string; status: string; due_date: string; payments: PaymentRow[] | null }
-type RoomRow = { number: string }
-type ContractRow = { id: string; start_date: string; end_date: string; status: string; rooms: RoomRow | null; invoices: InvoiceRow[] | null }
-type UserRow = { id: string; name: string; email: string; phone_number: string | null; tenant_status: string | null; onboarding: boolean | null; contracts: ContractRow[] | null }
+type RoomRow = { id: string; number: string; price: number }
+type TicketRow = { id: string; ticket_status: string }
+type ContractRow = { id: string; start_date: string; end_date: string; monthly_rate: number; status: string; room: RoomRow | null; invoices: InvoiceRow[] | null }
+type UserRow = { id: string; name: string; email: string; phone_number: string | null; tenant_status: string | null; onboarding: boolean | null; contracts: ContractRow[] | null; maintenance_tickets: TicketRow[] | null }
 
 export function useTenants() {
   return useQuery({
@@ -32,16 +38,20 @@ export function useTenants() {
         .from('users')
         .select(`
           id, name, email, phone_number, tenant_status, onboarding,
-          contracts (
-            id, start_date, end_date, status,
-            rooms ( number ),
-            invoices (
+          contracts:contracts!contracts_tenant_id_fkey (
+            id, start_date, end_date, monthly_rate, status,
+            room:rooms!contracts_room_id_fkey ( id, number, price ),
+            invoices:invoices!invoices_contract_id_fkey (
               id, status, due_date,
-              payments ( id, status )
+              payments:payments!payments_invoice_id_fkey ( id, status )
             )
+          ),
+          maintenance_tickets:maintenance_tickets!maintenance_tickets_reported_by_user_id_fkey (
+            id, ticket_status
           )
         `)
         .eq('role', 'tenant')
+        .order('name', { ascending: true })
 
       if (error) throw error
 
@@ -50,8 +60,15 @@ export function useTenants() {
       return users.map((user) => {
         // Find the active contract
         const activeContract = user.contracts?.find((c) => c.status === 'active')
+        const lifecycle = user.tenant_status === 'archived'
+          ? 'archived'
+          : !user.onboarding
+            ? 'needs_onboarding'
+            : activeContract
+              ? 'assigned'
+              : 'unassigned'
         
-        let paymentState: 'Paid' | 'Unpaid' = 'Paid'
+        let paymentState: 'Paid' | 'Pending' | 'Unpaid' = 'Paid'
         let hasPendingPayment = false
 
         if (activeContract && activeContract.invoices) {
@@ -64,12 +81,14 @@ export function useTenants() {
             const latestInvoice = sortedInvoices[0]
             if (latestInvoice.status === 'unpaid') {
               paymentState = 'Unpaid'
+            } else if (latestInvoice.status === 'pending') {
+              paymentState = 'Pending'
             }
 
             // Check if any payment is pending ('not_verified') for this invoice
             // Or across all invoices if we want to be thorough
-            hasPendingPayment = activeContract.invoices.some((inv) => 
-              inv.payments?.some((p) => p.status === 'not_verified')
+            hasPendingPayment = activeContract.invoices.some((inv) =>
+              inv.status === 'pending' || inv.payments?.some((p) => p.status === 'not_verified')
             )
           }
         }
@@ -79,14 +98,19 @@ export function useTenants() {
           name: user.name,
           email: user.email,
           phone_number: user.phone_number,
-          tenant_status: user.tenant_status,
-          onboarding: !!user.onboarding,
+          tenant_status: user.tenant_status ?? 'active',
+          onboarding: user.onboarding,
+          lifecycle,
           activeContract: activeContract ? {
             id: activeContract.id,
             start_date: activeContract.start_date,
             end_date: activeContract.end_date,
-            room: activeContract.rooms,
+            monthly_rate: activeContract.monthly_rate,
+            status: activeContract.status,
+            room: activeContract.room,
           } : undefined,
+          contractCount: user.contracts?.length ?? 0,
+          ticketCount: user.maintenance_tickets?.length ?? 0,
           paymentState,
           hasPendingPayment,
         }

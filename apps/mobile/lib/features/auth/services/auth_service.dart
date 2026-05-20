@@ -2,6 +2,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mobile/core/supabase_client.dart';
 
 class AuthService {
+  static bool _mustChangePasswordOverride = false;
+
   /// Sign in — only 'tenant' role accounts can use the mobile app.
   Future<AuthResponse> signIn({
     required String email,
@@ -20,9 +22,16 @@ class AuthService {
 
     final profile = await supabase
         .from('users')
-        .select('role')
+        .select('role, onboarding')
         .eq('id', userId)
         .maybeSingle();
+
+    if (profile == null) {
+      await supabase.auth.signOut();
+      throw Exception(
+        'This tenant account has not been onboarded by the property owner.',
+      );
+    }
 
     if (profile == null || profile['role'] != 'tenant') {
       await supabase.auth.signOut();
@@ -30,6 +39,10 @@ class AuthService {
         'This app is for tenants only. Property owners use the Kostly web dashboard.',
       );
     }
+
+    _mustChangePasswordOverride =
+        profile['onboarding'] != true ||
+        response.user?.userMetadata?['must_change_password'] == true;
 
     return response;
   }
@@ -43,6 +56,15 @@ class AuthService {
         data: {'must_change_password': false},
       ),
     );
+
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) {
+      throw Exception('Session expired. Please log in again.');
+    }
+
+    await supabase.from('users').update({'onboarding': true}).eq('id', userId);
+
+    _mustChangePasswordOverride = false;
   }
 
   /// Sends a password reset email (forgot password flow).
@@ -52,15 +74,17 @@ class AuthService {
 
   /// Used on /reset-password after arriving from the email deep link.
   Future<void> resetPassword(String newPassword) async {
-    await supabase.auth.updateUser(
-      UserAttributes(password: newPassword),
-    );
+    await supabase.auth.updateUser(UserAttributes(password: newPassword));
   }
 
-  Future<void> signOut() => supabase.auth.signOut();
+  Future<void> signOut() async {
+    _mustChangePasswordOverride = false;
+    await supabase.auth.signOut();
+  }
 
   User? get currentUser => supabase.auth.currentUser;
 
   bool get mustChangePassword =>
+      _mustChangePasswordOverride ||
       supabase.auth.currentUser?.userMetadata?['must_change_password'] == true;
 }

@@ -91,7 +91,8 @@ export default function Sidebar() {
         flexShrink: 0,
         overflow: 'hidden',
         position: 'sticky',
-        top: 40,
+        top: 0,
+        maxHeight: '100%',
       }}
     >
       {/* Profile Section */}

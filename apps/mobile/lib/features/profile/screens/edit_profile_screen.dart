@@ -92,6 +92,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   'Email',
                   _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  enabled: false,
                 ),
                 const SizedBox(height: 20),
                 _buildTextField(
@@ -149,6 +150,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     String label,
     TextEditingController controller, {
     TextInputType? keyboardType,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,9 +163,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          enabled: enabled,
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: enabled ? Colors.white : const Color(0xFFE5E7EB),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,

@@ -1,0 +1,5 @@
+-- Superseded.
+--
+-- Tenant accounts are intentionally owner-created only. Auth identity alone
+-- must not create app membership in public.users. See the following migration:
+-- 20260520142245_lock_owner_created_tenants.sql
