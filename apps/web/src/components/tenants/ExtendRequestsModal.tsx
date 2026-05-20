@@ -72,6 +72,9 @@ export default function ExtendRequestsModal({
     setProcessingId(requestId)
     setError(null)
     try {
+      const userId = (await supabase.auth.getUser()).data.user?.id
+      if (!userId) throw new Error('Not authenticated')
+
       if (action === 'approved') {
         // Update contract end date
         const { error: contractError } = await supabase
@@ -84,7 +87,11 @@ export default function ExtendRequestsModal({
       // Update request status
       const { error: reqError } = await supabase
         .from('extend_requests')
-        .update({ status: action, reviewed_at: new Date().toISOString() })
+        .update({
+          status: action,
+          reviewed_by: userId,
+          reviewed_at: new Date().toISOString(),
+        })
         .eq('id', requestId)
       
       if (reqError) throw reqError

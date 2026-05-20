@@ -309,7 +309,7 @@ class _SkeletonBlockState extends State<_SkeletonBlock>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _anim,
-      builder: (_, __) => Container(
+      builder: (context, child) => Container(
         height: widget.height,
         decoration: BoxDecoration(
           color: Color.fromRGBO(209, 213, 219, _anim.value),

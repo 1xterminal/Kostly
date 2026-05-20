@@ -15,8 +15,13 @@ async function requireOwner() {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return redirect('/login')
 
-  const role = session.user.user_metadata?.role
-  if (role !== 'owner') {
+  const { data: profile, error } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', session.user.id)
+    .single()
+
+  if (error || profile?.role !== 'owner') {
     await supabase.auth.signOut()
     return redirect('/login')
   }
@@ -34,17 +39,22 @@ const _Placeholder = ({ name }: { name: string }) => (
   </div>
 )
 
-// Swap each lazy() import with the real page as your team builds them:
-const Overview      = () => <PageWrapper><_Placeholder name="Overview" /></PageWrapper>
-const Rooms         = () => <PageWrapper><_Placeholder name="Rooms" /></PageWrapper>
-const TenantsPage   = lazy(() => import('./pages/dashboard/Tenants'))
-const Tenants       = () => <PageWrapper><TenantsPage /></PageWrapper>
-const PaymentsPage  = lazy(() => import('./pages/dashboard/Payments'))
-const Payments      = () => <PageWrapper><PaymentsPage /></PageWrapper>
-const Tickets       = () => <PageWrapper><_Placeholder name="Maintenance" /></PageWrapper>
-const Reports       = () => <PageWrapper><_Placeholder name="Reports" /></PageWrapper>
-const ReportDetails = () => <PageWrapper><_Placeholder name="Report Details" /></PageWrapper>
-const Profile       = () => <PageWrapper><_Placeholder name="Profile" /></PageWrapper>
+const TenantsPage = lazy(() => import('./pages/dashboard/Tenants'))
+const OverviewPage = lazy(() => import('./pages/dashboard/Overview'))
+const RoomsPage = lazy(() => import('./pages/dashboard/Rooms'))
+const PaymentsPage = lazy(() => import('./pages/dashboard/Payments'))
+const TicketsPage = lazy(() => import('./pages/dashboard/Tickets'))
+const ReportsPage = lazy(() => import('./pages/dashboard/reports/Reports'))
+const ReportDetailsPage = lazy(() => import('./pages/dashboard/reports/ReportDetails'))
+
+const Overview = () => <PageWrapper><OverviewPage /></PageWrapper>
+const Rooms = () => <PageWrapper><RoomsPage /></PageWrapper>
+const Tenants = () => <PageWrapper><TenantsPage /></PageWrapper>
+const Payments = () => <PageWrapper><PaymentsPage /></PageWrapper>
+const Tickets = () => <PageWrapper><TicketsPage /></PageWrapper>
+const Reports = () => <PageWrapper><ReportsPage /></PageWrapper>
+const ReportDetails = () => <PageWrapper><ReportDetailsPage /></PageWrapper>
+const Profile = () => <PageWrapper><_Placeholder name="Profile" /></PageWrapper>
 
 // Example of how to swap in a real page (uncomment when ready):
 // const Overview = lazy(() => import('./pages/dashboard/Overview'))
@@ -52,24 +62,25 @@ const Profile       = () => <PageWrapper><_Placeholder name="Profile" /></PageWr
 // ─── Router ───────────────────────────────────────────────────────────────────
 export const router = createBrowserRouter([
   // Public
-  { path: '/login',           element: <Login /> },
+  { path: '/login', element: <Login /> },
   { path: '/forgot-password', element: <ForgotPassword /> },
-  { path: '/reset-password',  element: <ResetPassword /> },
+  { path: '/reset-password', element: <ResetPassword /> },
 
   // Protected — all under DashboardLayout
   {
     path: '/dashboard',
     element: <DashboardLayout />,
     loader: requireOwner,
+    HydrateFallback: () => null,
     children: [
-      { index: true,                element: <Overview /> },
-      { path: 'rooms',              element: <Rooms /> },
-      { path: 'tenants',            element: <Tenants /> },
-      { path: 'payments',           element: <Payments /> },
-      { path: 'maintenance',        element: <Tickets /> },
-      { path: 'reports',            element: <Reports /> },
-      { path: 'reports/:monthYear', element: <ReportDetails /> },
-      { path: 'profile',            element: <Profile /> },
+      { index: true, element: <Overview /> },
+      { path: 'rooms', element: <Rooms /> },
+      { path: 'tenants', element: <Tenants /> },
+      { path: 'payments', element: <Payments /> },
+      { path: 'maintenance', element: <Tickets /> },
+      { path: 'reports', element: <Reports /> },
+      { path: 'reports/:reportId', element: <ReportDetails /> },
+      { path: 'profile', element: <Profile /> },
     ],
   },
 

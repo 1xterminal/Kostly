@@ -5,24 +5,24 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 Deno.serve(async (req) => {
   // 1. Verify Authorization Header, it will pass the service_role key as a bearer token
   const authHeader = req.headers.get('Authorization')
-  if (!authHeader) {
+  let serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!serviceRoleKey) {
+    const secretKeysStr = Deno.env.get('SUPABASE_SECRET_KEYS')
+    if (secretKeysStr) {
+      serviceRoleKey = JSON.parse(secretKeysStr)['default']
+    }
+  }
+
+  if (!authHeader || !serviceRoleKey || authHeader !== `Bearer ${serviceRoleKey}`) {
     return new Response('Unauthorized: Missing Authorization header', {
       status: 401
     })
   }
 
   // 2. Initializing the Supabase CLient
-  const SUPABASE_SECRET_KEYS = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')!)
   const supabaseAdmin = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    SUPABASE_SECRET_KEYS['default'],
-    {
-      global: {
-        headers: {
-          Authorization: authHeader
-        }
-      }
-    }
+    serviceRoleKey
   )
 
   try {

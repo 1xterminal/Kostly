@@ -1,7 +1,8 @@
 import { Outlet, useLocation } from 'react-router'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import Sidebar from './Sidebar'
-import { SidebarProvider, useSidebar, useSidebarHeader } from './SidebarContext'
+import { SidebarProvider } from './SidebarContext'
+import { useSidebar, useSidebarHeader } from './sidebar-context'
 
 // ─── Page title map ───────────────────────────────────────────────────────────
 const PAGE_TITLES: Record<string, string> = {

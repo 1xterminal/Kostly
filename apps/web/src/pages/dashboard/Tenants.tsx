@@ -113,7 +113,7 @@ export default function Tenants() {
       </div>
 
       {/* Table */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200">
+      <div className="bg-white shadow overflow-visible sm:rounded-lg border border-gray-200">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -140,13 +140,13 @@ export default function Tenants() {
           <tbody className="bg-white divide-y divide-gray-200">
             {isLoading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
                   Loading tenants...
                 </td>
               </tr>
             ) : filteredTenants.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
                   No tenants found.
                 </td>
               </tr>

@@ -17,7 +17,8 @@ Future<void> main() async {
   );
 
   runApp(
-    const ProviderScope(  // Riverpod root
+    const ProviderScope(
+      // Riverpod root
       child: KostlyApp(),
     ),
   );

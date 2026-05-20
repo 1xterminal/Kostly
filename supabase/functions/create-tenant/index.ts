@@ -27,7 +27,13 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
     if (userError || !user) throw new Error('Unauthorized')
 
-    if (user.user_metadata?.role !== 'owner') {
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || profile?.role !== 'owner') {
       throw new Error('Forbidden: Only owners can onboard tenants')
     }
 
@@ -70,7 +76,7 @@ Deno.serve(async (req) => {
     // 2. The `users` table row is usually created via trigger in Supabase, 
     // but if it's not, we manually insert/update it.
     // Wait, let's just attempt an upsert or update to ensure details are populated.
-    const { error: profileError } = await supabaseAdmin.from('users').upsert({
+    const { error: upsertProfileError } = await supabaseAdmin.from('users').upsert({
       id: newUserId,
       name,
       email,
@@ -80,7 +86,7 @@ Deno.serve(async (req) => {
       onboarding: false
     })
 
-    if (profileError) throw profileError
+    if (upsertProfileError) throw upsertProfileError
 
     // 3. Create the initial contract
     const { error: contractError } = await supabaseAdmin.from('contracts').insert({

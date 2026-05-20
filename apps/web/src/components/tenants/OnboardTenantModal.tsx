@@ -16,6 +16,11 @@ const onboardSchema = z.object({
 })
 
 type OnboardFormData = z.infer<typeof onboardSchema>
+type AvailableRoom = {
+  id: string
+  number: string
+  price: number
+}
 
 export default function OnboardTenantModal({ 
   isOpen, 
@@ -26,21 +31,27 @@ export default function OnboardTenantModal({
   onClose: () => void
   onSuccess: () => void 
 }) {
-  const [rooms, setRooms] = useState<{id: string, number: string}[]>([])
+  const [rooms, setRooms] = useState<AvailableRoom[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<OnboardFormData>({
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<OnboardFormData>({
     resolver: zodResolver(onboardSchema)
   })
 
   useEffect(() => {
     if (isOpen) {
-      supabase.from('rooms').select('id, number').eq('status', 'available').then(({ data }) => {
+      supabase.from('rooms').select('id, number, price').eq('status', 'available').then(({ data }) => {
         if (data) setRooms(data)
       })
     }
   }, [isOpen])
+
+  const handleRoomChange = (roomId: string) => {
+    const selectedRoom = rooms.find(room => room.id === roomId)
+    setValue('room_id', roomId, { shouldValidate: true })
+    setValue('monthly_rate', selectedRoom?.price ?? 0, { shouldValidate: true })
+  }
 
   const onSubmit = async (data: OnboardFormData) => {
     setIsSubmitting(true)
@@ -122,10 +133,13 @@ export default function OnboardTenantModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Assign Room</label>
-              <select {...register('room_id')} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+              <select
+                {...register('room_id', { onChange: (event) => handleRoomChange(event.target.value) })}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
                 <option value="">Select an available room</option>
                 {rooms.map(room => (
-                  <option key={room.id} value={room.id}>Room #{room.number}</option>
+                  <option key={room.id} value={room.id}>Room #{room.number} - IDR {Number(room.price).toLocaleString('id-ID')}</option>
                 ))}
               </select>
               {errors.room_id && <p className="mt-1 text-xs text-red-500">{errors.room_id.message}</p>}
@@ -146,7 +160,7 @@ export default function OnboardTenantModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Monthly Rate (IDR)</label>
-              <input type="number" {...register('monthly_rate', { valueAsNumber: true })} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              <input type="number" readOnly {...register('monthly_rate', { valueAsNumber: true })} className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
               {errors.monthly_rate && <p className="mt-1 text-xs text-red-500">{errors.monthly_rate.message}</p>}
             </div>
 
