@@ -71,13 +71,7 @@ export default function Payments() {
   const tabs = ['Unverified', 'Verified', 'Rejected'] as const
 
   return (
-    <div className="p-6 space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <span className="text-lg">≡</span>
-        <h1 className="text-lg font-semibold text-gray-800">Payments</h1>
-      </div>
-
+    <div className="space-y-6">
       {/* Search */}
       <div className="relative max-w-full">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -87,7 +81,7 @@ export default function Payments() {
           placeholder="Search payments"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-100 bg-[#f8f9fa] rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
         />
       </div>
 
@@ -120,15 +114,15 @@ export default function Payments() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border-none overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-left text-xs text-gray-500 uppercase tracking-wide">
-              <th className="px-4 py-3 font-medium">Invoice ID</th>
-              <th className="px-4 py-3 font-medium">Tenant Name</th>
-              <th className="px-4 py-3 font-medium">Transaction date</th>
-              <th className="px-4 py-3 font-medium">Amount</th>
-              <th className="px-4 py-3 font-medium">Actions</th>
+            <tr className="border-b border-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-4 font-semibold">Invoice ID</th>
+              <th className="px-6 py-4 font-semibold">Tenant Name</th>
+              <th className="px-6 py-4 font-semibold">Transaction date</th>
+              <th className="px-6 py-4 font-semibold">Amount</th>
+              <th className="px-6 py-4 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -154,14 +148,14 @@ export default function Payments() {
               filtered.map((p) => {
                 const isActioning = actionLoading === p.id
                 return (
-                  <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
                     {/* Invoice ID */}
-                    <td className="px-4 py-3 font-mono text-gray-800 font-medium">
+                    <td className="px-6 py-4 font-mono text-gray-800 font-medium">
                       {shortInvoiceId(p.invoice_id)}
                     </td>
 
                     {/* Tenant */}
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-xs text-gray-600 font-medium">
                           {p.tenant.name.charAt(0).toUpperCase()}
@@ -171,17 +165,17 @@ export default function Payments() {
                     </td>
 
                     {/* Date */}
-                    <td className="px-4 py-3 text-gray-600">
+                    <td className="px-6 py-4 text-gray-600">
                       {formatDate(p.transaction_date)}
                     </td>
 
                     {/* Amount */}
-                    <td className="px-4 py-3 text-gray-800 font-medium">
+                    <td className="px-6 py-4 text-gray-800 font-medium">
                       {formatCurrency(p.invoices?.total_amount ?? 0)}
                     </td>
 
                     {/* Actions */}
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4">
                       {p.status === 'not_verified' ? (
                         <div className="flex items-center gap-2">
                           {/* Check proof → opens modal */}
