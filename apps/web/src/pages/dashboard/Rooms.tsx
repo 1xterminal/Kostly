@@ -11,6 +11,7 @@ export default function RoomInventory() {
     const { data: rooms, isLoading, error, refetch } = useRooms();
 
     const [search, setSearch] = useState('');
+    const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
     const [isNewRoomOpen, setIsNewRoomOpen] = useState(false);
     const [isSetStatusOpen, setIsSetStatusOpen] = useState(false);
@@ -28,6 +29,28 @@ export default function RoomInventory() {
       setIsSetStatusOpen(true);
     }
 
+    const toggleFilter = (filter: string) => {
+      if (activeFilters.includes(filter))
+        setActiveFilters(activeFilters.filter(f => f !== filter));
+      else 
+        setActiveFilters([...activeFilters, filter]);
+    }
+
+    const filteredRooms = (rooms || []).filter(room => {
+      // Filter by search
+      if (search && !room.number.toLowerCase().includes(search.toLowerCase())) return false
+
+      // Filter by chips
+      if (activeFilters.length > 0) {
+        if (activeFilters.includes('Available') && room.status !== 'available') return false
+        if (activeFilters.includes('Occupied') && room.status !== 'occupied') return false
+        if (activeFilters.includes('Maintenance') && room.status !== 'maintenance') return false
+      }
+
+      return true
+    })
+
+
     return (
       <div className="p-8 max-w-6xl mx-auto space-y-6">
         {/* Search and Action */}
@@ -39,7 +62,7 @@ export default function RoomInventory() {
             <input
               type="text"
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Search tenants"
+              placeholder="Search rooms"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -53,15 +76,38 @@ export default function RoomInventory() {
           </button>
         </div>
 
+        {/* Filter Chips */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex gap-2 items-baseline font-bold">
+            <span>Filter:</span>
+            {['Available', 'Occupied', 'Maintenance'].map((filter) => (
+              <button
+                key={filter}
+                onClick={() => toggleFilter(filter as 'Available' | 'Occupied' | 'Maintenance')}
+                className={`
+                  whitespace-nowrap py-1 px-4 border-2 text-sm
+                  ${activeFilters.includes(filter)
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-gray-300 text-gray-500 hover:text-gray-700 hover:border-gray-400'
+                  }
+                  rounded-full
+                `}
+              >
+                {filter}
+              </button>
+            ))}
+          </nav>
+        </div>
+
         <div>
           {
             isLoading ? (
               <div className="p-8">Loading rooms...</div>
-            ): rooms?.length === 0 ? (
+            ): filteredRooms?.length === 0 ? (
               <div className="p-8 text-red-500">No rooms found</div>
             ) : (
               <div className="grid grid-cols-3 gap-2">
-                {rooms?.map((room) => {
+                {filteredRooms?.map((room) => {
                   return <div className="cursor-pointer" key={room.id} onClick={() => selectId(room.id)}>
                     <RoomCard {...room} />
                   </div>
