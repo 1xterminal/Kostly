@@ -13,6 +13,14 @@ const onboardSchema = z.object({
   start_date: z.string().min(1, 'Start date is required'),
   end_date: z.string().min(1, 'End date is required'),
   monthly_rate: z.number().min(1, 'Monthly rate is required'),
+}).refine((data) => {
+  if (!data.start_date || !data.end_date) return true
+  const start = new Date(data.start_date)
+  const end = new Date(data.end_date)
+  return end > start
+}, {
+  message: "End date must be strictly after start date",
+  path: ["end_date"],
 })
 
 type OnboardFormData = z.infer<typeof onboardSchema>

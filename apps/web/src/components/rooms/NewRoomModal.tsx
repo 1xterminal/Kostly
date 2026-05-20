@@ -109,7 +109,7 @@ export default function NewRoomModal({
                 Cancel
               </button>
               <button type="submit" disabled={isSubmitting} className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-[#3B5998] border border-transparent rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
-                {isSubmitting ? 'Creating...' : 'Create Tenant'}
+                {isSubmitting ? 'Creating...' : 'Create Room'}
               </button>
             </div>
           </form>
