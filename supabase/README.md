@@ -1,144 +1,91 @@
-# Kostly — Supabase Backend
+# Kostly Supabase Backend
 
-This directory contains everything needed to initialize and manage the Kostly backend on Supabase.
+Supabase is the shared backend for the owner web dashboard and tenant mobile app.
 
----
+## Structure
 
-## Directory Structure
-
-```
+```txt
 supabase/
-├── config.toml                   # Supabase CLI project config (local dev settings)
-├── migrations/
-│   ├── 20260428153347_init_schema.sql   # All tables, enums, indexes, and triggers
-│   ├── 20260428153402_rls_policies.sql  # Row-Level Security policies
-│   └── 20260428153410_cron_setup.sql    # pg_cron jobs for automated billing
-└── functions/
-    ├── monthly-report/           # Edge Function: generate a monthly report snapshot
-    │   ├── index.ts
-    │   └── deno.json
-    └── generate-invoices/        # Edge Function: auto-generate monthly invoices
-        ├── index.ts
-        └── deno.json
+  config.toml
+  migrations/
+  functions/
+    create-tenant-account/
+    assign-tenant-room/
+    archive-tenant/
+    submit-payment/
+    generate-invoices/
+    monthly-report/
 ```
 
----
+## Auth And App Users
 
-## Initializing the Database (Fresh Setup)
+`auth.users` is only the Supabase login identity. `public.users` is the trusted app membership row.
 
-> Run these commands from the project root (`/kostly`).
+Tenant accounts are owner-created only:
 
-### 1. Push all migrations to the cloud project
+1. Owner calls `create-tenant-account`.
+2. Function creates the Supabase Auth user.
+3. Function writes `public.users` with `role = 'tenant'`, `tenant_status = 'active'`, and `onboarding = false`.
+4. Tenant logs into mobile with the temporary password and must change it.
+5. Mobile sets `public.users.onboarding = true`.
 
-```bash
-supabase db push --project-ref <your-project-ref>
-```
+The auth trigger `public.handle_new_user()` is intentionally a no-op now. Random Auth signups must not become Kostly tenants.
 
-This runs all SQL files in `migrations/` in chronological order. It is **idempotent** — safe to re-run.
-
-### 2. Deploy Edge Functions
-
-```bash
-supabase functions deploy monthly-report --project-ref <your-project-ref>
-supabase functions deploy generate-invoices --project-ref <your-project-ref>
-```
-
-> Docker is **not** required for cloud deployments. The `WARNING: Docker is not running` message can be ignored.
-
-### 3. Create the first Owner account
-
-After deploying, sign up through the app UI normally. The `on_auth_user_created` trigger (see below) will automatically create the `public.users` row as a tenant.
-
-If you need to manually promote an existing account:
+Owner accounts are still created/promoted manually:
 
 ```sql
-UPDATE public.users SET role = 'owner' WHERE id = '<your-auth-user-id>';
+insert into public.users (id, email, name, role)
+select id, email, split_part(email, '@', 1), 'owner'
+from auth.users
+where id = '<owner-auth-user-id>'
+on conflict (id) do update set role = 'owner';
 ```
 
----
+## Lifecycle Functions
 
-## Key Design Decisions
-
-### `auth.users` vs `public.users`
-
-Supabase manages authentication in the `auth` schema (not accessible via the public API). Our application data lives in `public.users`.
-
-| Table | Managed by | Contains |
-|---|---|---|
-| `auth.users` | Supabase Auth | Login credentials, OAuth tokens, email verification |
-| `public.users` | Our migrations | Name, phone, role, onboarding status |
-
-The two are linked by `public.users.id = auth.users.id` (FK with `ON DELETE CASCADE`).
-
-### The `handle_new_user` Trigger
-
-**Every** table in this schema ultimately references `public.users` through a foreign key chain. If `public.users` doesn't have a row for a user, **all** writes (rooms, contracts, invoices, reports) will fail with a FK violation.
-
-The trigger solves this automatically:
-
-```sql
--- Fires AFTER INSERT on auth.users
--- Works for: email/password, OAuth (Google, etc.), magic links, invites
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-```
-
-The function reads safe profile fields from `raw_user_meta_data` in the auth signup payload:
-- `name` → used as the user's display name (falls back to email prefix)
-
-Authorization role is stored in `public.users.role`, not trusted from user-editable auth metadata. New signups default to tenant; owner accounts are promoted manually or by an existing trusted owner/admin flow.
-
-### Row-Level Security (RLS)
-
-All tables have RLS enabled. The general pattern is:
-
-- **Owners** can read/write all owner dashboard rows for the single-owner MVP
-- **Tenants** can only read their own rows (matched via `tenant_id = auth.uid()`)
-- **Edge Functions** that need to write across ownership boundaries use `SUPABASE_SERVICE_ROLE_KEY` (bypasses RLS)
-
-### Edge Functions
-
-| Function | Trigger | What it does |
-|---|---|---|
-| `monthly-report` | Manual (button in UI) | Aggregates rooms + paid invoices into a `reports` snapshot for a given month |
-| `generate-invoices` | pg_cron (1st of month) | Creates `invoices` rows for all active contracts |
-
-Both functions:
-1. Verify the caller's JWT via `auth.getUser()`
-2. Use the **service role key** for writes (to bypass RLS on internal tables)
-3. Use the **user client** for reads (so RLS naturally scopes data to the owner)
-
----
-
-## Environment Variables
-
-These are **automatically injected** by Supabase into every Edge Function — no manual secret setup needed:
-
-| Variable | Description |
+| Function | Purpose |
 |---|---|
-| `SUPABASE_URL` | Project API URL |
-| `SUPABASE_ANON_KEY` | Public anon key (use for user-scoped reads) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Full-access key (use for internal writes only, never expose to client) |
-| `SUPABASE_DB_URL` | Direct Postgres connection string |
+| `create-tenant-account` | Owner-only. Creates tenant Auth account + `public.users` profile. |
+| `assign-tenant-room` | Owner-only. Calls `assign_tenant_room_tx` to create contract and occupy room atomically. |
+| `archive-tenant` | Owner-only. Calls `archive_tenant_tx` to terminate active contracts, release rooms, and archive tenant atomically. |
+| `submit-payment` | Tenant-only. Calls `submit_payment_tx` to create payment and set invoice pending atomically. |
+| `generate-invoices` | Cron/service-role billing generation. |
+| `monthly-report` | Owner-only report snapshot generation. |
+| `create-tenant` | Retired legacy endpoint. Returns `410`. |
 
----
+## Storage
 
-## Common Issues
+Payment proof files use the private `payment-proofs` bucket.
 
-### FK violation: `Key (owner_id)=(...) is not present in table "users"`
-Your `auth.users` account exists but `public.users` is missing a row. Either:
-- The `on_auth_user_created` trigger wasn't deployed when you signed up
-- You manually created the auth user without going through the signup flow
+Stored paths must follow:
 
-**Fix:** Run the INSERT manually in SQL Editor:
-```sql
-INSERT INTO public.users (id, email, name, role)
-SELECT id, email, split_part(email, '@', 1), 'owner'
-FROM auth.users
-WHERE id = '<your-user-id>'
-ON CONFLICT (id) DO NOTHING;
+```txt
+payments/{tenant-auth-uid}/{filename}
 ```
 
-### Edge Function returns 400
-Check the function logs in Supabase Dashboard → Edge Functions → [function] → Logs. The functions emit `[function-name] Step X:` log lines at each stage to pinpoint the failure.
+The `payments.proof_images` column stores that object path, not a public URL. Web/mobile generate signed URLs when reading proofs.
+
+## RLS
+
+All public tables have RLS enabled.
+
+- Owners manage dashboard data through `private.is_owner()`.
+- Tenants read their own rows only.
+- Tenant profile updates cannot change `role`, `email`, or `tenant_status`.
+- Archived tenants are blocked in the mobile auth service.
+- Cross-row lifecycle writes use Edge Functions with service role plus SQL transaction functions.
+
+## Deploy
+
+```bash
+supabase db push --project-ref <project-ref>
+
+supabase functions deploy create-tenant-account --project-ref <project-ref> --no-verify-jwt
+supabase functions deploy assign-tenant-room --project-ref <project-ref> --no-verify-jwt
+supabase functions deploy archive-tenant --project-ref <project-ref> --no-verify-jwt
+supabase functions deploy submit-payment --project-ref <project-ref> --no-verify-jwt
+supabase functions deploy generate-invoices --project-ref <project-ref>
+supabase functions deploy monthly-report --project-ref <project-ref>
+```
+
+`--no-verify-jwt` is used only for functions that perform their own caller verification and CORS handling.

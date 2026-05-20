@@ -51,33 +51,34 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
 
       final invoiceId = _selectedInvoice!['id'] as String;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_proof.jpg';
-      final storagePath = '$userId/$fileName';
+      final storagePath = 'payments/$userId/$fileName';
 
       // 1. Upload to Storage
       final bytes = await _selectedImage!.readAsBytes();
       await supabase.storage
-          .from('payments')
+          .from('payment-proofs')
           .uploadBinary(
             storagePath,
             bytes,
             fileOptions: const FileOptions(contentType: 'image/jpeg'),
           );
 
-      // 2. Insert payment record
-      await supabase.from('payments').insert({
-        'invoice_id': invoiceId,
-        'tenant_id': userId,
-        'proof_images': storagePath,
-        'transaction_date': DateTime.now().toIso8601String().split('T').first,
-        'status': 'not_verified',
-        'is_verified': false,
-      });
-
-      // 3. Update invoice to pending
-      await supabase
-          .from('invoices')
-          .update({'status': 'pending'})
-          .eq('id', invoiceId);
+      // 2. Insert payment + mark invoice pending through trusted transaction
+      final response = await supabase.functions.invoke(
+        'submit-payment',
+        body: {
+          'invoice_id': invoiceId,
+          'proof_images': storagePath,
+          'transaction_date': DateTime.now().toIso8601String().split('T').first,
+        },
+      );
+      if (response.status >= 400) {
+        final body = response.data;
+        final message = body is Map && body['error'] != null
+            ? body['error'].toString()
+            : 'Payment submission failed';
+        throw Exception(message);
+      }
 
       ref.invalidate(tenantPaymentsProvider);
       ref.invalidate(unpaidInvoicesProvider);
@@ -274,14 +275,17 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
             child: ElevatedButton.icon(
               onPressed:
                   (_selectedInvoice == null ||
-                          _selectedImage == null ||
-                          _isUploading)
-                      ? null
-                      : _submit,
+                      _selectedImage == null ||
+                      _isUploading)
+                  ? null
+                  : _submit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2E41A2),
                 disabledBackgroundColor: Colors.grey.shade300,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
