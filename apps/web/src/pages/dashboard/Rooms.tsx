@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useRooms } from "../../hooks/useRooms"
-import { Search, Plus, MessageCircle, Mail, MoreVertical, Archive, Bell } from 'lucide-react'
+import { Search, Plus } from 'lucide-react'
 
 import NewRoomModal from "@/components/rooms/NewRoomModal";
 import { RoomCard } from "@/components/rooms/RoomCard";

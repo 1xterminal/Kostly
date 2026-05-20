@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Room } from '@/types'
+import type { Room, RoomWithRelations } from '@/types'
 
 // ─── Query Key Factory ────────────────────────────────────────────────────────
 
@@ -10,27 +10,65 @@ export const roomKeys = {
 
 // ─── Read ─────────────────────────────────────────────────────────────────────
 
-/** Fetch all rooms belonging to the authenticated owner. */
-export async function getRooms(): Promise<Room[]> {
+/** Fetch all rooms belonging to the authenticated owner with tenant + maintenance context. */
+export async function getRooms(): Promise<RoomWithRelations[]> {
   const { data, error } = await supabase
     .from('rooms')
-    .select('*')
+    .select(`
+      *,
+      contracts:contracts!contracts_room_id_fkey (
+        id,
+        tenant_id,
+        start_date,
+        end_date,
+        monthly_rate,
+        status,
+        tenant:users!contracts_tenant_id_fkey ( id, name, email, phone_number )
+      ),
+      maintenance_tickets:maintenance_tickets!maintenance_tickets_room_id_fkey (
+        id,
+        description,
+        ticket_status,
+        date_created,
+        created_at,
+        resolved_at
+      )
+    `)
     .order('number', { ascending: true })
 
   if (error) throw error
-  return data
+  return data as RoomWithRelations[]
 }
 
-/** Fetch a single room by ID. */
-export async function getRoomById(id: string): Promise<Room> {
+/** Fetch a single room by ID with tenant + maintenance context. */
+export async function getRoomById(id: string): Promise<RoomWithRelations> {
   const { data, error } = await supabase
     .from('rooms')
-    .select('*')
+    .select(`
+      *,
+      contracts:contracts!contracts_room_id_fkey (
+        id,
+        tenant_id,
+        start_date,
+        end_date,
+        monthly_rate,
+        status,
+        tenant:users!contracts_tenant_id_fkey ( id, name, email, phone_number )
+      ),
+      maintenance_tickets:maintenance_tickets!maintenance_tickets_room_id_fkey (
+        id,
+        description,
+        ticket_status,
+        date_created,
+        created_at,
+        resolved_at
+      )
+    `)
     .eq('id', id)
     .single()
 
   if (error) throw error
-  return data
+  return data as RoomWithRelations
 }
 
 // ─── Write ────────────────────────────────────────────────────────────────────

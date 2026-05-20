@@ -7,7 +7,6 @@ import { PageWrapper } from './components/ui/ErrorBoundary'
 import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-import TenantsPage from './pages/dashboard/Tenants'
 
 // ─── Auth Guard ───────────────────────────────────────────────────────────────
 // Runs before any /dashboard/* route renders.
@@ -40,18 +39,19 @@ const _Placeholder = ({ name }: { name: string }) => (
   </div>
 )
 
-// Swap each lazy() import with the real page as your team builds them:
-const Overview = () => <PageWrapper><_Placeholder name="Overview" /></PageWrapper>
-const Rooms = lazy(() => import('./pages/dashboard/Rooms'))
 const TenantsPage = lazy(() => import('./pages/dashboard/Tenants'))
 const OverviewPage = lazy(() => import('./pages/dashboard/Overview'))
+const RoomsPage = lazy(() => import('./pages/dashboard/Rooms'))
+const ReportsPage = lazy(() => import('./pages/dashboard/reports/Reports'))
+const ReportDetailsPage = lazy(() => import('./pages/dashboard/reports/ReportDetails'))
+
 const Overview = () => <PageWrapper><OverviewPage /></PageWrapper>
-const Rooms = () => <PageWrapper><_Placeholder name="Rooms" /></PageWrapper>
+const Rooms = () => <PageWrapper><RoomsPage /></PageWrapper>
 const Tenants = () => <PageWrapper><TenantsPage /></PageWrapper>
 const Payments = () => <PageWrapper><_Placeholder name="Payments" /></PageWrapper>
 const Tickets = () => <PageWrapper><_Placeholder name="Maintenance" /></PageWrapper>
-const Reports = lazy(() => import('./pages/dashboard/reports/Reports'))
-const ReportDetails = lazy(() => import('./pages/dashboard/reports/ReportDetails'))
+const Reports = () => <PageWrapper><ReportsPage /></PageWrapper>
+const ReportDetails = () => <PageWrapper><ReportDetailsPage /></PageWrapper>
 const Profile = () => <PageWrapper><_Placeholder name="Profile" /></PageWrapper>
 
 // Example of how to swap in a real page (uncomment when ready):
