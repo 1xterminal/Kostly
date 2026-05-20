@@ -18,18 +18,18 @@ export async function getReports(): Promise<Report[]> {
   const { data, error } = await supabase
     .from('reports')
     .select('*')
-    .order('month_year', { ascending: false })
+    .order('created_at', { ascending: false })
 
   if (error) throw error
   return data
 }
 
-/** Fetch a single report by its month_year (e.g. '2026-05-01'). */
-export async function getReportByMonth(monthYear: string): Promise<Report> {
+/** Fetch a single report by ID. */
+export async function getReportById(id: string): Promise<Report> {
   const { data, error } = await supabase
     .from('reports')
     .select('*')
-    .eq('month_year', monthYear)
+    .eq('id', id)
     .single()
 
   if (error) throw error

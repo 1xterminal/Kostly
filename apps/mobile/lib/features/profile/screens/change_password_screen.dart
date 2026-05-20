@@ -171,8 +171,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           ),
           validator: (val) {
             if (val == null || val.isEmpty) return 'Required';
-            if (isConfirm && val != _newPasswordController.text)
+            if (isConfirm && val != _newPasswordController.text) {
               return 'Passwords do not match';
+            }
             return null;
           },
         ),

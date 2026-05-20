@@ -42,6 +42,7 @@ const _Placeholder = ({ name }: { name: string }) => (
 const TenantsPage = lazy(() => import('./pages/dashboard/Tenants'))
 const OverviewPage = lazy(() => import('./pages/dashboard/Overview'))
 const RoomsPage = lazy(() => import('./pages/dashboard/Rooms'))
+const TicketsPage = lazy(() => import('./pages/dashboard/Tickets'))
 const ReportsPage = lazy(() => import('./pages/dashboard/reports/Reports'))
 const ReportDetailsPage = lazy(() => import('./pages/dashboard/reports/ReportDetails'))
 
@@ -49,7 +50,7 @@ const Overview = () => <PageWrapper><OverviewPage /></PageWrapper>
 const Rooms = () => <PageWrapper><RoomsPage /></PageWrapper>
 const Tenants = () => <PageWrapper><TenantsPage /></PageWrapper>
 const Payments = () => <PageWrapper><_Placeholder name="Payments" /></PageWrapper>
-const Tickets = () => <PageWrapper><_Placeholder name="Maintenance" /></PageWrapper>
+const Tickets = () => <PageWrapper><TicketsPage /></PageWrapper>
 const Reports = () => <PageWrapper><ReportsPage /></PageWrapper>
 const ReportDetails = () => <PageWrapper><ReportDetailsPage /></PageWrapper>
 const Profile = () => <PageWrapper><_Placeholder name="Profile" /></PageWrapper>
@@ -77,7 +78,7 @@ export const router = createBrowserRouter([
       { path: 'payments', element: <Payments /> },
       { path: 'maintenance', element: <Tickets /> },
       { path: 'reports', element: <Reports /> },
-      { path: 'reports/:monthYear', element: <ReportDetails /> },
+      { path: 'reports/:reportId', element: <ReportDetails /> },
       { path: 'profile', element: <Profile /> },
     ],
   },

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/profile_providers.dart';
-import 'edit-profile_screen.dart';
+import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {

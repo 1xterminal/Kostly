@@ -19,7 +19,7 @@ type InvoiceLogRow = {
 }
 
 export default function ReportDetails() {
-    const { monthYear } = useParams<{ monthYear: string }>()
+    const { reportId } = useParams<{ reportId: string }>()
     const navigate = useNavigate()
     const [activeTab, setActiveTab] = useState<'transactions' | 'occupancy'>('transactions')
 
@@ -27,14 +27,15 @@ export default function ReportDetails() {
     const { data: reportsList } = useQuery({
         queryKey: ['reports', 'list'],
         queryFn: async () => {
-            const { data, error } = await supabase.from('reports').select('*').order('month_year', { ascending: false })
+            const { data, error } = await supabase.from('reports').select('*').order('created_at', { ascending: false })
             if (error) throw error
             return data
         }
     })
 
     // Identify the currently viewed report
-    const report = reportsList?.find(r => r.month_year === monthYear)
+    const report = reportsList?.find(r => r.id === reportId)
+    const monthYear = report?.month_year
 
     // Generate historical data spanning the 5 months PRIOR to the monthYear being viewed
     const generateHistoricalData = (reports: Report[] | undefined, targetMonthYear: string | undefined) => {
