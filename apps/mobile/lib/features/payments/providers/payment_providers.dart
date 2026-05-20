@@ -55,7 +55,19 @@ final paymentDetailProvider =
         .maybeSingle();
 
     if (response == null) throw Exception('Payment not found or access denied.');
-    return Map<String, dynamic>.from(response);
+    
+    final payment = Map<String, dynamic>.from(response);
+    final proofPath = payment['proof_images'] as String?;
+    if (proofPath != null && proofPath.isNotEmpty) {
+      try {
+        payment['proof_signed_url'] = await supabase.storage
+            .from('payments')
+            .createSignedUrl(proofPath, 60);
+      } catch (e) {
+        // ignore error, url will be null
+      }
+    }
+    return payment;
   },
 );
 

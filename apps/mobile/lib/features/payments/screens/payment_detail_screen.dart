@@ -81,11 +81,7 @@ class PaymentDetailScreen extends ConsumerWidget {
         statusLabel = 'UNVERIFIED';
     }
 
-    // Build public URL from storage path
-    String? proofUrl;
-    if (proofPath != null && proofPath.isNotEmpty) {
-      proofUrl = supabase.storage.from('payments').getPublicUrl(proofPath);
-    }
+    String? proofUrl = payment['proof_signed_url'] as String?;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),

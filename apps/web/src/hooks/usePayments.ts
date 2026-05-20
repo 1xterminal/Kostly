@@ -172,10 +172,10 @@ export function usePayments() {
 
   // ── Proof URL ────────────────────────────────────────────────────────────────
   // proof_images stores the Supabase Storage object path, not a public URL.
-  const getProofUrl = (storagePath: string): string => {
+  const getProofUrl = async (storagePath: string): Promise<string> => {
     if (!storagePath) return ''
-    const { data } = supabase.storage.from('payments').getPublicUrl(storagePath)
-    return data.publicUrl
+    const { data } = await supabase.storage.from('payments').createSignedUrl(storagePath, 60)
+    return data?.signedUrl || ''
   }
 
   useEffect(() => {

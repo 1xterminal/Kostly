@@ -17,7 +17,7 @@ export default function Payments() {
   const { data: payments, isLoading, error, approvePayment, rejectPayment, getProofUrl } = usePayments()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<'Unverified' | 'Verified' | 'Rejected'>('Unverified')
-  const [selectedProof, setSelectedProof] = useState<string | null>(null)
+  const [selectedProof, setSelectedProof] = useState<{ url: string; payment: PaymentWithDetails } | null>(null)
   const [rejectModal, setRejectModal] = useState<PaymentWithDetails | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -187,7 +187,10 @@ export default function Payments() {
                           {/* Check proof → opens modal */}
                           <button
                             id={`check-proof-${p.id}`}
-                            onClick={() => setSelectedProof(getProofUrl(p.proof_images))}
+                            onClick={async () => {
+                              const url = await getProofUrl(p.proof_images)
+                              if (url) setSelectedProof({ url, payment: p })
+                            }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
                           >
                             <svg className="h-3.5 w-3.5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -228,7 +231,7 @@ export default function Payments() {
             </div>
             <div className="p-5 bg-gray-50 flex justify-center">
               <img
-                src={selectedProof}
+                src={selectedProof.url}
                 alt="Payment Proof"
                 className="max-h-[55vh] object-contain rounded-lg"
                 onError={(e) => { (e.target as HTMLImageElement).alt = 'Could not load image' }}
@@ -236,7 +239,7 @@ export default function Payments() {
             </div>
             {/* Find the payment matching this proof */}
             {(() => {
-              const current = filtered.find(p => getProofUrl(p.proof_images) === selectedProof)
+              const current = selectedProof.payment
               if (!current || current.status !== 'not_verified') return null
               const busy = actionLoading === current.id
               return (
