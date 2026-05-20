@@ -4,6 +4,7 @@ import { Search, Plus, MessageCircle, Mail, MoreVertical, Archive, Bell } from '
 
 import NewRoomModal from "@/components/rooms/NewRoomModal";
 import { RoomCard } from "@/components/rooms/RoomCard";
+import EditRoomModal from "@/components/rooms/EditRoomModal";
 
 
 export default function RoomInventory() {
@@ -12,12 +13,20 @@ export default function RoomInventory() {
     const [search, setSearch] = useState('');
 
     const [isNewRoomOpen, setIsNewRoomOpen] = useState(false);
+    const [isSetStatusOpen, setIsSetStatusOpen] = useState(false);
+
+    const [selectedId, setSelectedId] = useState("0");
 
     if (error) {
         return <div className="p-8 text-red-500">Error loading rooms: {(error as Error).message}</div>
     }
     
     console.log(rooms);
+
+    const selectId = (id: string) => {
+      setSelectedId(id);
+      setIsSetStatusOpen(true);
+    }
 
     return (
       <div className="p-8 max-w-6xl mx-auto space-y-6">
@@ -53,7 +62,7 @@ export default function RoomInventory() {
             ) : (
               <div className="grid grid-cols-3 gap-2">
                 {rooms?.map((room) => {
-                  return <div key={room.id}>
+                  return <div className="cursor-pointer" key={room.id} onClick={() => selectId(room.id)}>
                     <RoomCard {...room} />
                   </div>
                 })}
@@ -65,6 +74,15 @@ export default function RoomInventory() {
         <NewRoomModal
           isOpen={isNewRoomOpen}
           onClose={() => setIsNewRoomOpen(false)}
+          onSuccess={() => {
+            refetch()
+          }}
+        />
+
+        <EditRoomModal
+          id={selectedId}
+          isOpen={isSetStatusOpen}
+          onClose={() => setIsSetStatusOpen(false)}
           onSuccess={() => {
             refetch()
           }}
