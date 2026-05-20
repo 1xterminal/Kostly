@@ -1,55 +1,62 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/supabase_client.dart';
 
-final mockInvoices = [
-  {
-    'id': 'inv-1',
-    'total_amount': 1500000,
-    'billing_month': '2026-05-01',
-    'due_date': '2026-05-05',
-    'invoice_date': '2026-05-01',
-    'status': 'unpaid',
-    'payments': [
-      {
-        'id': 'pay-1',
-        'status': 'not_verified',
-        'created_at': DateTime.now().toIso8601String(),
-        'rejection_reason': null,
-      }
-    ]
-  },
-  {
-    'id': 'inv-2',
-    'total_amount': 2000000,
-    'billing_month': '2026-04-01',
-    'due_date': '2026-04-05',
-    'invoice_date': '2026-04-01',
-    'status': 'paid',
-    'payments': [
-      {
-        'id': 'pay-2',
-        'status': 'verified',
-        'created_at': DateTime.now().subtract(const Duration(days: 30)).toIso8601String(),
-        'rejection_reason': null,
-      }
-    ]
-  },
-  {
-    'id': 'inv-3',
-    'total_amount': 1500000,
-    'billing_month': '2026-06-01',
-    'due_date': '2026-06-05',
-    'invoice_date': '2026-06-01',
-    'status': 'unpaid',
-    'payments': []
-  }
-];
+// ── Tenant's submitted payments (Payments List screen) ─────────────────────────
+final tenantPaymentsProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final userId = supabase.auth.currentUser?.id;
+  if (userId == null) throw Exception('Not logged in');
 
-final invoicesProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
-  await Future.delayed(const Duration(milliseconds: 500));
-  return mockInvoices;
+  final response = await supabase
+      .from('payments')
+      .select('*, invoices(id, total_amount, billing_month)')
+      .eq('tenant_id', userId)
+      .order('created_at', ascending: false);
+
+  return List<Map<String, dynamic>>.from(response as List);
 });
 
-final invoiceDetailProvider = FutureProvider.family.autoDispose<Map<String, dynamic>, String>((ref, invoiceId) async {
-  await Future.delayed(const Duration(milliseconds: 500));
-  return mockInvoices.firstWhere((inv) => inv['id'] == invoiceId, orElse: () => mockInvoices.first);
+// ── Unpaid invoices with no pending payment (for "New Payment" dropdown) ────────
+final unpaidInvoicesProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final userId = supabase.auth.currentUser?.id;
+  if (userId == null) throw Exception('Not logged in');
+
+  // Get invoices that are unpaid and don't have a not_verified payment already
+  final response = await supabase
+      .from('invoices')
+      .select('*, payments(status)')
+      .eq('tenant_id', userId)
+      .eq('status', 'unpaid')
+      .order('billing_month', ascending: false);
+
+  final invoices = List<Map<String, dynamic>>.from(response as List);
+
+  // Filter out invoices that already have a pending (not_verified) payment
+  return invoices.where((inv) {
+    final payments = List<Map<String, dynamic>>.from(inv['payments'] ?? []);
+    final hasPending = payments.any((p) => p['status'] == 'not_verified');
+    return !hasPending;
+  }).toList();
 });
+
+// ── Single payment detail ───────────────────────────────────────────────────────
+final paymentDetailProvider =
+    FutureProvider.family.autoDispose<Map<String, dynamic>, String>(
+  (ref, paymentId) async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not logged in');
+
+    final response = await supabase
+        .from('payments')
+        .select('*, invoices(id, total_amount, billing_month, status)')
+        .eq('id', paymentId)
+        .eq('tenant_id', userId)
+        .maybeSingle();
+
+    if (response == null) throw Exception('Payment not found or access denied.');
+    return Map<String, dynamic>.from(response);
+  },
+);
+
+

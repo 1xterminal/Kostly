@@ -11,9 +11,9 @@ import 'features/auth/services/auth_service.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/contracts/screens/contract_screen.dart';
 import 'features/contracts/screens/extend_contract_screen.dart';
-import 'features/payments/screens/invoices_screen.dart';
-import 'features/payments/screens/invoice_detail_screen.dart';
-import 'features/payments/screens/pay_invoice_screen.dart';
+import 'features/payments/screens/payments_list_screen.dart';
+import 'features/payments/screens/new_payment_screen.dart';
+import 'features/payments/screens/payment_detail_screen.dart';
 
 
 // ─── Placeholder screen ───────────────────────────────────────────────────────
@@ -73,20 +73,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/forgot-password', builder: (_, _) => const ForgotPasswordScreen()),
       GoRoute(path: '/reset-password',  builder: (_, _) => const ResetPasswordScreen()),
 
-      // ── Full-screen flows (no bottom nav) ─────────────────────────────────
       GoRoute(
-        path: '/pay/:invoiceId',
-        builder: (_, state) => PayInvoiceScreen(invoiceId: state.pathParameters['invoiceId']!),
+        path: '/payments/new',
+        builder: (_, _) => const NewPaymentScreen(),
+      ),
+      GoRoute(
+        path: '/payments/:id',
+        builder: (_, state) => PaymentDetailScreen(paymentId: state.pathParameters['id']!),
       ),
       GoRoute(path: '/extend', builder: (_, _) => const ExtendContractScreen()),
       GoRoute(path: '/maintenance/new', builder: (_, _) => const _Placeholder('New Ticket')),
       GoRoute(
         path: '/maintenance/:id',
         builder: (_, state) => _Placeholder('Ticket ${state.pathParameters['id']}'),
-      ),
-      GoRoute(
-        path: '/invoices/:id',
-        builder: (_, state) => InvoiceDetailScreen(invoiceId: state.pathParameters['id']!),
       ),
 
       // ── Main shell with bottom nav ─────────────────────────────────────────
@@ -97,9 +96,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
           ]),
-          // Tab 1 — Payments / Invoices list
+          // Tab 1 — Payments list
           StatefulShellBranch(routes: [
-            GoRoute(path: '/invoices', builder: (_, _) => const InvoicesScreen()),
+            GoRoute(path: '/payments', builder: (_, _) => const PaymentsListScreen()),
           ]),
           // Tab 2 — Maintenance
           StatefulShellBranch(routes: [
