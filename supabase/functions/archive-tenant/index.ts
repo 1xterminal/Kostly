@@ -43,7 +43,7 @@ async function assertOwner(req: Request) {
     .single()
 
   if (profileError || profile?.role !== 'owner') {
-    throw new Error('Forbidden: Only owners can assign tenant rooms')
+    throw new Error('Forbidden: Only owners can archive tenants')
   }
 }
 
@@ -59,10 +59,8 @@ Deno.serve(async (req) => {
   try {
     await assertOwner(req)
 
-    const { tenant_id, room_id, start_date, end_date } = await req.json()
-    if (!tenant_id || !room_id || !start_date || !end_date) {
-      throw new Error('Tenant, room, start date, and end date are required')
-    }
+    const { tenant_id } = await req.json()
+    if (!tenant_id) throw new Error('Tenant is required')
 
     const serviceRoleKey = getServiceRoleKey()
     if (!serviceRoleKey) throw new Error('Missing service role key')
@@ -72,17 +70,12 @@ Deno.serve(async (req) => {
       serviceRoleKey,
     )
 
-    const { data: contract, error: contractError } = await supabaseAdmin
-      .rpc('assign_tenant_room_tx', {
-        p_tenant_id: tenant_id,
-        p_room_id: room_id,
-        p_start_date: start_date,
-        p_end_date: end_date,
-      })
+    const { data: tenant, error: archiveError } = await supabaseAdmin
+      .rpc('archive_tenant_tx', { p_tenant_id: tenant_id })
 
-    if (contractError) throw contractError
+    if (archiveError) throw archiveError
 
-    return json({ success: true, contract })
+    return json({ success: true, tenant })
   } catch (error: unknown) {
     return json({ error: (error as Error).message }, 400)
   }

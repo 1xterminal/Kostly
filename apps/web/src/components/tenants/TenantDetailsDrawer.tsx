@@ -1,4 +1,4 @@
-import { Archive, Home, Mail, MessageCircle, RotateCcw, X } from 'lucide-react'
+import { Archive, Home, Mail, MessageCircle, Pencil, RotateCcw, X } from 'lucide-react'
 import type { TenantWithDetails } from '../../hooks/useTenants'
 
 const formatCurrency = (value?: number) =>
@@ -12,12 +12,14 @@ export default function TenantDetailsDrawer({
   onClose,
   onAssignRoom,
   onArchive,
+  onEdit,
   onSendReset,
 }: {
   tenant: TenantWithDetails | null
   onClose: () => void
   onAssignRoom: (tenant: TenantWithDetails) => void
   onArchive: (tenant: TenantWithDetails) => void
+  onEdit: (tenant: TenantWithDetails) => void
   onSendReset: (tenant: TenantWithDetails) => void
 }) {
   if (!tenant) return null
@@ -112,6 +114,9 @@ export default function TenantDetailsDrawer({
             <a href={`https://wa.me/${tenant.phone_number ?? ''}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
               <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
             </a>
+            <button onClick={() => onEdit(tenant)} className="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+              <Pencil className="mr-2 h-4 w-4" /> Edit Info
+            </button>
             {!tenant.activeContract && tenant.tenant_status !== 'archived' && (
               <button onClick={() => onAssignRoom(tenant)} className="inline-flex items-center justify-center rounded-md border border-blue-200 px-3 py-2 text-sm font-semibold text-[#3B5998] hover:bg-blue-50">
                 <Home className="mr-2 h-4 w-4" /> Assign

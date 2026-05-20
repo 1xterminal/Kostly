@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'core/supabase_client.dart';
@@ -18,45 +17,6 @@ import 'features/maintenance/screens/new_ticket_screen.dart';
 import 'features/maintenance/screens/ticket_details_screen.dart';
 import 'features/maintenance/screens/tickets_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
-
-// ─── Placeholder screen ───────────────────────────────────────────────────────
-class _Placeholder extends StatelessWidget {
-  final String name;
-  const _Placeholder(this.name);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.construction_rounded,
-              size: 48,
-              color: Color(0xFF9CA3AF),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF111827),
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Coming soon',
-              style: TextStyle(color: Color(0xFF9CA3AF)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
@@ -108,7 +68,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/payments/:id',
-        builder: (_, state) => PaymentDetailScreen(paymentId: state.pathParameters['id']!),
+        builder: (_, state) =>
+            PaymentDetailScreen(paymentId: state.pathParameters['id']!),
       ),
       GoRoute(path: '/extend', builder: (_, _) => const ExtendContractScreen()),
       GoRoute(
@@ -120,7 +81,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) =>
             TicketDetailsScreen(ticketId: state.pathParameters['id']!),
       ),
-
 
       // ── Main shell with bottom nav ─────────────────────────────────────────
       StatefulShellRoute.indexedStack(

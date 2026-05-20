@@ -22,7 +22,7 @@ class AuthService {
 
     final profile = await supabase
         .from('users')
-        .select('role, onboarding')
+        .select('role, onboarding, tenant_status')
         .eq('id', userId)
         .maybeSingle();
 
@@ -33,11 +33,16 @@ class AuthService {
       );
     }
 
-    if (profile == null || profile['role'] != 'tenant') {
+    if (profile['role'] != 'tenant') {
       await supabase.auth.signOut();
       throw Exception(
         'This app is for tenants only. Property owners use the Kostly web dashboard.',
       );
+    }
+
+    if (profile['tenant_status'] == 'archived') {
+      await supabase.auth.signOut();
+      throw Exception('This tenant account has been archived.');
     }
 
     _mustChangePasswordOverride =

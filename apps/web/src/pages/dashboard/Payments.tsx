@@ -146,7 +146,6 @@ export default function Payments() {
               </tr>
             ) : (
               filtered.map((p) => {
-                const isActioning = actionLoading === p.id
                 return (
                   <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
                     {/* Invoice ID */}

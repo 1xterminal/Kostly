@@ -32,13 +32,6 @@ async function requireOwner() {
 // Each route chunk is downloaded only when first visited.
 // PageWrapper provides Suspense skeleton + ErrorBoundary for each page.
 
-const _Placeholder = ({ name }: { name: string }) => (
-  <div style={{ padding: 32, fontFamily: 'sans-serif' }}>
-    <h2>{name}</h2>
-    <p>This page is not built yet.</p>
-  </div>
-)
-
 const TenantsPage = lazy(() => import('./pages/dashboard/Tenants'))
 const OverviewPage = lazy(() => import('./pages/dashboard/Overview'))
 const RoomsPage = lazy(() => import('./pages/dashboard/Rooms'))
@@ -46,6 +39,7 @@ const PaymentsPage = lazy(() => import('./pages/dashboard/Payments'))
 const TicketsPage = lazy(() => import('./pages/dashboard/Tickets'))
 const ReportsPage = lazy(() => import('./pages/dashboard/reports/Reports'))
 const ReportDetailsPage = lazy(() => import('./pages/dashboard/reports/ReportDetails'))
+const ProfilePage = lazy(() => import('./pages/dashboard/Profile'))
 
 const Overview = () => <PageWrapper><OverviewPage /></PageWrapper>
 const Rooms = () => <PageWrapper><RoomsPage /></PageWrapper>
@@ -54,7 +48,7 @@ const Payments = () => <PageWrapper><PaymentsPage /></PageWrapper>
 const Tickets = () => <PageWrapper><TicketsPage /></PageWrapper>
 const Reports = () => <PageWrapper><ReportsPage /></PageWrapper>
 const ReportDetails = () => <PageWrapper><ReportDetailsPage /></PageWrapper>
-const Profile = () => <PageWrapper><_Placeholder name="Profile" /></PageWrapper>
+const Profile = () => <PageWrapper><ProfilePage /></PageWrapper>
 
 // Example of how to swap in a real page (uncomment when ready):
 // const Overview = lazy(() => import('./pages/dashboard/Overview'))

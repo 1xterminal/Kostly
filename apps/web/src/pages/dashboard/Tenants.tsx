@@ -6,16 +6,19 @@ import {
   Mail,
   MessageCircle,
   MoreVertical,
+  Pencil,
   RotateCcw,
   Search,
   UserPlus,
 } from 'lucide-react'
 import { useTenants, type TenantWithDetails } from '../../hooks/useTenants'
 import AssignTenantRoomModal from '../../components/tenants/AssignTenantRoomModal'
+import EditTenantModal from '../../components/tenants/EditTenantModal'
 import ExtendRequestsModal from '../../components/tenants/ExtendRequestsModal'
 import TenantAccountModal from '../../components/tenants/TenantAccountModal'
 import TenantDetailsDrawer from '../../components/tenants/TenantDetailsDrawer'
 import { supabase } from '../../lib/supabase'
+import { callEdgeFunction } from '../../lib/edgeFunctions'
 
 type TenantTab = 'All' | 'Needs Onboarding' | 'Assigned' | 'Unassigned' | 'Archived'
 
@@ -62,6 +65,7 @@ export default function Tenants() {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null)
   const [selectedTenant, setSelectedTenant] = useState<TenantWithDetails | null>(null)
   const [assignTarget, setAssignTarget] = useState<TenantWithDetails | null>(null)
+  const [editTarget, setEditTarget] = useState<TenantWithDetails | null>(null)
 
   const counts = useMemo(() => ({
     All: tenants.length,
@@ -118,24 +122,7 @@ export default function Tenants() {
     if (!confirm(`Archive ${tenant.name}? Active contracts will be terminated and the room will be released.`)) return
 
     try {
-      if (tenant.activeContract) {
-        await supabase
-          .from('contracts')
-          .update({ status: 'terminated' })
-          .eq('id', tenant.activeContract.id)
-
-        if (tenant.activeContract.room?.id) {
-          await supabase
-            .from('rooms')
-            .update({ status: 'available' })
-            .eq('id', tenant.activeContract.room.id)
-        }
-      }
-
-      await supabase
-        .from('users')
-        .update({ tenant_status: 'archived' })
-        .eq('id', tenant.id)
+      await callEdgeFunction('archive-tenant', { tenant_id: tenant.id })
 
       setActiveMenuId(null)
       setSelectedTenant(null)
@@ -156,6 +143,22 @@ export default function Tenants() {
     }
 
     alert(`Password reset email sent to ${tenant.email}`)
+  }
+
+  const handleEditTenant = (tenant: TenantWithDetails) => {
+    setEditTarget(tenant)
+    setActiveMenuId(null)
+  }
+
+  const handleSaveTenantInfo = async (tenantId: string, input: { name: string; phone_number: string | null }) => {
+    const { error: updateError } = await supabase
+      .from('users')
+      .update(input)
+      .eq('id', tenantId)
+
+    if (updateError) throw updateError
+    setSelectedTenant((current) => current?.id === tenantId ? { ...current, ...input } : current)
+    await refetch()
   }
 
   return (
@@ -310,6 +313,9 @@ export default function Tenants() {
                                 <Home className="mr-2 h-4 w-4" /> Assign Room
                               </button>
                             )}
+                            <button onClick={() => handleEditTenant(tenant)} className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">
+                              <Pencil className="mr-2 h-4 w-4" /> Edit Info
+                            </button>
                             <button onClick={() => handleSendReset(tenant)} className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">
                               <RotateCcw className="mr-2 h-4 w-4" /> Send Reset Link
                             </button>
@@ -358,7 +364,15 @@ export default function Tenants() {
         onClose={() => setSelectedTenant(null)}
         onAssignRoom={(tenant) => handleAssignRoom(tenant)}
         onArchive={(tenant) => handleArchive(tenant)}
+        onEdit={(tenant) => handleEditTenant(tenant)}
         onSendReset={(tenant) => handleSendReset(tenant)}
+      />
+
+      <EditTenantModal
+        tenant={editTarget}
+        isOpen={Boolean(editTarget)}
+        onClose={() => setEditTarget(null)}
+        onSave={handleSaveTenantInfo}
       />
     </div>
   )
