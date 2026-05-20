@@ -107,13 +107,12 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
     ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
   }
 
-  // ── Build ───────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final asyncInvoices = ref.watch(unpaidInvoicesProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F4F4),
       appBar: AppBar(
         title: const Text(
           'New payment',
@@ -123,8 +122,9 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF4F4F4),
         elevation: 0,
+        centerTitle: false,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: asyncInvoices.when(
@@ -153,6 +153,7 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
+              color: Colors.white,
               border: Border.all(color: const Color(0xFFD1D5DB)),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -205,7 +206,7 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
             ),
             const SizedBox(height: 12),
             _infoRow('PAYMENT AMOUNT', amount ?? '-'),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             _infoRow('PAYMENT TARGET', 'Rental Room Cloud'),
           ],
 
@@ -224,7 +225,7 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
               decoration: BoxDecoration(
                 border: Border.all(
                   color: _selectedImage != null
-                      ? const Color(0xFF3B5998)
+                      ? const Color(0xFF2E41A2)
                       : const Color(0xFFD1D5DB),
                 ),
                 borderRadius: BorderRadius.circular(8),
@@ -268,19 +269,19 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
           const SizedBox(height: 48),
 
           // ── Submit button ───────────────────────────────────────────────────
-          SizedBox(
-            width: double.infinity,
+          Align(
+            alignment: Alignment.center,
             child: ElevatedButton.icon(
               onPressed:
                   (_selectedInvoice == null ||
-                      _selectedImage == null ||
-                      _isUploading)
-                  ? null
-                  : _submit,
+                          _selectedImage == null ||
+                          _isUploading)
+                      ? null
+                      : _submit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B5998),
-                disabledBackgroundColor: Colors.grey.shade200,
-                padding: const EdgeInsets.symmetric(vertical: 15),
+                backgroundColor: const Color(0xFF2E41A2),
+                disabledBackgroundColor: Colors.grey.shade300,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -298,7 +299,7 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
               label: Text(
                 _isUploading ? 'Uploading…' : 'Submit',
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),

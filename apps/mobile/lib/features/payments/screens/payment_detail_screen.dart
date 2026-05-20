@@ -13,15 +13,16 @@ class PaymentDetailScreen extends ConsumerWidget {
     final asyncPayment = ref.watch(paymentDetailProvider(paymentId));
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F4F4),
       appBar: AppBar(
         title: const Text(
           'Payment Details',
           style: TextStyle(
               color: Colors.black, fontSize: 18, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF4F4F4),
         elevation: 0,
+        centerTitle: false,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: asyncPayment.when(
@@ -69,7 +70,7 @@ class PaymentDetailScreen extends ConsumerWidget {
     String statusLabel;
     switch (status) {
       case 'verified':
-        statusColor = const Color(0xFF3B5998);
+        statusColor = const Color(0xFF16A34A);
         statusLabel = 'VERIFIED';
         break;
       case 'rejected':
@@ -77,7 +78,7 @@ class PaymentDetailScreen extends ConsumerWidget {
         statusLabel = 'REJECTED';
         break;
       default:
-        statusColor = const Color(0xFF3B5998);
+        statusColor = const Color(0xFF2E41A2);
         statusLabel = 'UNVERIFIED';
     }
 
@@ -95,20 +96,12 @@ class PaymentDetailScreen extends ConsumerWidget {
                 fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: statusColor),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              statusLabel,
-              style: TextStyle(
-                  color: statusColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12),
-            ),
+          Text(
+            statusLabel,
+            style: TextStyle(
+                color: statusColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 12),
           ),
 
           const SizedBox(height: 24),
