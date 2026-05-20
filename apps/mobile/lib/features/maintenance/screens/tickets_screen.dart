@@ -5,12 +5,13 @@ import 'package:intl/intl.dart';
 import '../providers/maintenance_providers.dart';
 import '../repositories/maintenance_repository.dart';
 
-const _kBg = Color(0xFFEBEBEB);
+const _kBg = Color(0xFFF1F1F1);
 const _kPrimary = Color(0xFF3341A5);
-const _kText = Color(0xFF111827);
-const _kMuted = Color(0xFF6B7280);
+const _kText = Color(0xFF111111);
+const _kMuted = Color(0xFF858585);
+const _kOrange = Color(0xFFD44B14);
 
-final _dateFormat = DateFormat('d MMM yyyy');
+final _timeFormat = DateFormat('h:mm a');
 
 class TicketsScreen extends ConsumerWidget {
   const TicketsScreen({super.key});
@@ -21,110 +22,81 @@ class TicketsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: _kBg,
-      appBar: AppBar(
-        title: const Text('Maintenance', style: TextStyle(fontWeight: FontWeight.w700)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () => context.push('/maintenance/new'),
-            icon: const Icon(Icons.add_circle_outline),
-            tooltip: 'New ticket',
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        color: _kPrimary,
-        onRefresh: () async => ref.invalidate(maintenanceTicketsProvider),
-        child: ticketsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(20),
-            children: [_MessageCard(message: error.toString(), isError: true)],
-          ),
-          data: (tickets) {
-            if (tickets.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
-                children: const [
-                  _MessageCard(message: 'No maintenance tickets yet.'),
-                ],
-              );
-            }
-
-            return ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-              itemCount: tickets.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final ticket = tickets[index];
-                return _TicketCard(
-                  ticket: ticket,
-                  onTap: () => context.push('/maintenance/${ticket.id}'),
-                );
-              },
-            );
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: _kPrimary,
-        foregroundColor: Colors.white,
-        onPressed: () => context.push('/maintenance/new'),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
-
-class _TicketCard extends StatelessWidget {
-  final MaintenanceTicket ticket;
-  final VoidCallback onTap;
-
-  const _TicketCard({required this.ticket, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _statusColor(ticket.ticketStatus);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFDDDDDD)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: Stack(
           children: [
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(28, 34, 28, 36),
                   child: Text(
-                    ticket.room == null ? 'Maintenance Ticket' : 'Room #${ticket.room!.number}',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _kText),
+                    'Maintenance Center',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      color: _kText,
+                      letterSpacing: -0.4,
+                    ),
                   ),
                 ),
-                _StatusChip(status: ticket.ticketStatus, color: color),
+                Expanded(
+                  child: RefreshIndicator(
+                    color: _kPrimary,
+                    onRefresh: () async => ref.invalidate(maintenanceTicketsProvider),
+                    child: ticketsAsync.when(
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (error, _) => ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [_MessageRow(message: error.toString(), isError: true)],
+                      ),
+                      data: (tickets) {
+                        if (tickets.isEmpty) {
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: const [_MessageRow(message: 'No maintenance tickets yet.')],
+                          );
+                        }
+
+                        return ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(bottom: 180),
+                          itemCount: tickets.length,
+                          separatorBuilder: (_, _) => const Divider(height: 1, color: Color(0xFFD7D7D7)),
+                          itemBuilder: (context, index) {
+                            final ticket = tickets[index];
+                            return _TicketRow(
+                              ticket: ticket,
+                              onTap: () => context.push('/maintenance/${ticket.id}'),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              ticket.description,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 14, color: _kMuted),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _dateFormat.format(ticket.createdAt),
-              style: const TextStyle(fontSize: 12, color: _kMuted),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 86,
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => context.push('/maintenance/new'),
+                  icon: const Icon(Icons.report_problem_outlined, size: 30),
+                  label: const Text('Report a problem'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _kPrimary,
+                    foregroundColor: Colors.white,
+                    elevation: 12,
+                    shadowColor: Colors.black.withValues(alpha: 0.35),
+                    padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                    textStyle: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -133,54 +105,97 @@ class _TicketCard extends StatelessWidget {
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  final String status;
-  final Color color;
+class _TicketRow extends StatelessWidget {
+  final MaintenanceTicket ticket;
+  final VoidCallback onTap;
 
-  const _StatusChip({required this.status, required this.color});
+  const _TicketRow({required this.ticket, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.45)),
-      ),
-      child: Text(
-        status.toUpperCase().replaceAll('_', ' '),
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: color),
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        color: const Color(0xFFF8F8F8),
+        padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    _ticketTitle(ticket),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w800, color: _kText),
+                  ),
+                ),
+                const SizedBox(width: 18),
+                Text(
+                  _timeFormat.format(ticket.createdAt),
+                  style: const TextStyle(fontSize: 22, color: _kMuted),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Text(
+              _statusLabel(ticket.ticketStatus),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2,
+                color: _statusColor(ticket.ticketStatus),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              ticket.description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 23, height: 1.15, color: _kText),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _MessageCard extends StatelessWidget {
+class _MessageRow extends StatelessWidget {
   final String message;
   final bool isError;
 
-  const _MessageCard({required this.message, this.isError = false});
+  const _MessageRow({required this.message, this.isError = false});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isError ? const Color(0xFFFEF2F2) : const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isError ? const Color(0xFFFECACA) : const Color(0xFFDDDDDD)),
+    return Padding(
+      padding: const EdgeInsets.all(28),
+      child: Text(
+        message,
+        style: TextStyle(color: isError ? const Color(0xFFDC2626) : _kMuted),
       ),
-      child: Text(message, style: TextStyle(color: isError ? const Color(0xFFDC2626) : _kMuted)),
     );
   }
 }
 
+String _ticketTitle(MaintenanceTicket ticket) {
+  final firstLine = ticket.description.split(RegExp(r'\r?\n')).first;
+  final firstSentence = firstLine.split(RegExp(r'[.!?]')).first.trim();
+  if (firstSentence.length <= 24) return firstSentence;
+  return '${firstSentence.substring(0, 24)}...';
+}
+
+String _statusLabel(String status) {
+  if (status == 'reported' || status == 'in_progress') return 'UNRESOLVED';
+  if (status == 'resolved') return 'RESOLVED';
+  return 'CLOSED';
+}
+
 Color _statusColor(String status) {
-  return switch (status) {
-    'in_progress' => const Color(0xFF2563EB),
-    'resolved' => const Color(0xFF059669),
-    'closed' => const Color(0xFF6B7280),
-    _ => const Color(0xFFD97706),
-  };
+  if (status == 'reported' || status == 'in_progress') return _kOrange;
+  if (status == 'resolved') return const Color(0xFF059669);
+  return _kMuted;
 }

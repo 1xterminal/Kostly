@@ -66,16 +66,17 @@ Deno.serve(async (req) => {
       email_confirm: true,
       user_metadata: {
         role: 'tenant',
-        name: name
+        name,
+        full_name: name,
+        must_change_password: true,
       }
     })
 
     if (authError) throw authError
     const newUserId = authData.user.id
 
-    // 2. The `users` table row is usually created via trigger in Supabase, 
-    // but if it's not, we manually insert/update it.
-    // Wait, let's just attempt an upsert or update to ensure details are populated.
+    // 2. The app profile is the trusted membership record.
+    // Auth users without this row cannot enter the tenant app.
     const { error: upsertProfileError } = await supabaseAdmin.from('users').upsert({
       id: newUserId,
       name,

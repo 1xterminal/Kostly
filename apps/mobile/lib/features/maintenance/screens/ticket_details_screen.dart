@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/maintenance_providers.dart';
+import '../repositories/maintenance_repository.dart';
 
-const _kPrimary = Color(0xFF3341A5);
-const _kText = Color(0xFF111827);
-const _kMuted = Color(0xFF6B7280);
+const _kBg = Color(0xFFF1F1F1);
+const _kText = Color(0xFF111111);
+const _kMuted = Color(0xFF7F7F7F);
+const _kOrange = Color(0xFFD44B14);
 
-final _detailDateFormat = DateFormat('d MMM yyyy, HH:mm');
+final _reportedFormat = DateFormat('EEE, d MMM \'at\' h:mm a');
 
 class TicketDetailsScreen extends ConsumerStatefulWidget {
   final String ticketId;
@@ -34,142 +37,170 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
     final ticketAsync = ref.watch(maintenanceTicketProvider(widget.ticketId));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEBEBEB),
-      appBar: AppBar(
-        title: const Text('Ticket Details', style: TextStyle(fontWeight: FontWeight.w700)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: ticketAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => _Message(message: error.toString(), isError: true),
-        data: (ticket) {
-          if (ticket == null) return const _Message(message: 'Ticket not found.');
+      backgroundColor: _kBg,
+      body: SafeArea(
+        child: ticketAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => _Message(message: error.toString(), isError: true),
+          data: (ticket) {
+            if (ticket == null) return const _Message(message: 'Ticket not found.');
 
-          return Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFDDDDDD)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(28, 28, 28, 28),
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  ticket.room == null ? 'Maintenance Ticket' : 'Room #${ticket.room!.number}',
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _kText),
-                                ),
-                              ),
-                              _StatusChip(status: ticket.ticketStatus),
-                            ],
+                          IconButton(
+                            onPressed: () => context.pop(),
+                            icon: const Icon(Icons.arrow_back, size: 34),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
                           ),
-                          const SizedBox(height: 12),
-                          Text(ticket.description, style: const TextStyle(fontSize: 15, color: _kText)),
-                          const SizedBox(height: 10),
-                          Text(_detailDateFormat.format(ticket.createdAt), style: const TextStyle(fontSize: 12, color: _kMuted)),
-                          if (ticket.resolvedMessage != null && ticket.resolvedMessage!.isNotEmpty) ...[
-                            const SizedBox(height: 14),
-                            const Divider(height: 1),
-                            const SizedBox(height: 12),
-                            const Text('Resolution', style: TextStyle(fontWeight: FontWeight.w700, color: _kText)),
-                            const SizedBox(height: 4),
-                            Text(ticket.resolvedMessage!, style: const TextStyle(color: _kMuted)),
-                          ],
+                          const SizedBox(width: 26),
+                          const Text(
+                            'Ticket Details',
+                            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: _kText),
+                          ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Replies', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _kText)),
-                    const SizedBox(height: 10),
-                    if (ticket.replies.isEmpty)
-                      const Text('No replies yet.', style: TextStyle(color: _kMuted))
-                    else
-                      ...ticket.replies.map((reply) => Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: const Color(0xFFE5E7EB)),
-                            ),
-                            child: Column(
+                      const SizedBox(height: 34),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: _StatusPill(status: ticket.ticketStatus),
+                      ),
+                      const SizedBox(height: 34),
+                      Row(
+                        children: [
+                          const Icon(Icons.confirmation_number_outlined, size: 31),
+                          const SizedBox(width: 10),
+                          Text(
+                            '#${_shortTicketId(ticket.id)}',
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: _kText),
+                          ),
+                          const SizedBox(width: 28),
+                          const Icon(Icons.bed_outlined, size: 31),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Room #${ticket.room?.number ?? '-'}',
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: _kText),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 36),
+                      Text(
+                        _ticketTitle(ticket),
+                        style: const TextStyle(fontSize: 46, fontWeight: FontWeight.w500, color: _kText, letterSpacing: -1.2),
+                      ),
+                      const SizedBox(height: 18),
+                      Text.rich(
+                        TextSpan(
+                          text: 'Reported by ',
+                          children: [
+                            const TextSpan(text: 'You', style: TextStyle(fontWeight: FontWeight.w800)),
+                            TextSpan(text: '\non ${_reportedFormat.format(ticket.createdAt)}'),
+                          ],
+                        ),
+                        style: const TextStyle(fontSize: 22, height: 1.28, color: _kText),
+                      ),
+                      const SizedBox(height: 26),
+                      Text(
+                        ticket.description,
+                        style: const TextStyle(fontSize: 24, height: 1.16, color: _kText),
+                      ),
+                      if (ticket.resolvedMessage != null && ticket.resolvedMessage!.isNotEmpty) ...[
+                        const SizedBox(height: 22),
+                        Text(ticket.resolvedMessage!, style: const TextStyle(fontSize: 20, color: _kMuted)),
+                      ],
+                      const SizedBox(height: 26),
+                      Text(
+                        '${ticket.replies.length} RESPONSE${ticket.replies.length == 1 ? '' : 'S'}',
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: _kText),
+                      ),
+                      const SizedBox(height: 24),
+                      ...ticket.replies.map((reply) => Padding(
+                            padding: const EdgeInsets.only(bottom: 22),
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        '${reply.sender?.name ?? 'Unknown'} (${reply.sender?.role ?? 'user'})',
-                                        style: const TextStyle(fontWeight: FontWeight.w700, color: _kText),
+                                const CircleAvatar(radius: 32, backgroundColor: Color(0xFFD9D9D9)),
+                                const SizedBox(width: 22),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text.rich(
+                                        TextSpan(
+                                          text: reply.sender?.name ?? 'Unknown',
+                                          style: const TextStyle(fontWeight: FontWeight.w800),
+                                          children: [
+                                            TextSpan(
+                                              text: ' • ${_relativeTime(reply.createdAt)}',
+                                              style: const TextStyle(fontWeight: FontWeight.w400),
+                                            ),
+                                          ],
+                                        ),
+                                        style: const TextStyle(fontSize: 21, color: _kText),
                                       ),
-                                    ),
-                                    Text(_detailDateFormat.format(reply.createdAt), style: const TextStyle(fontSize: 11, color: _kMuted)),
-                                  ],
+                                      const SizedBox(height: 10),
+                                      Text(reply.message, style: const TextStyle(fontSize: 24, height: 1.15, color: _kText)),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(reply.message, style: const TextStyle(color: _kText)),
                               ],
                             ),
                           )),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Container(
-                padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + MediaQuery.of(context).padding.bottom),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF5F5F5),
-                  border: Border(top: BorderSide(color: Color(0xFFDDDDDD))),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(_error!, style: const TextStyle(color: Color(0xFFDC2626))),
-                      ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _replyController,
-                            minLines: 1,
-                            maxLines: 4,
-                            decoration: InputDecoration(
-                              hintText: 'Write a reply...',
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                Container(
+                  padding: EdgeInsets.fromLTRB(28, 14, 28, 14 + MediaQuery.of(context).padding.bottom),
+                  decoration: const BoxDecoration(
+                    color: _kBg,
+                    border: Border(top: BorderSide(color: Color(0xFFCFCFCF))),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(_error!, style: const TextStyle(color: Color(0xFFDC2626))),
+                        ),
+                      Row(
+                        children: [
+                          const CircleAvatar(radius: 32, backgroundColor: Color(0xFFD9D9D9)),
+                          const SizedBox(width: 22),
+                          Expanded(
+                            child: TextField(
+                              controller: _replyController,
+                              minLines: 1,
+                              maxLines: 4,
+                              style: const TextStyle(fontSize: 24),
+                              decoration: const InputDecoration(
+                                hintText: 'Enter message',
+                                hintStyle: TextStyle(color: Color(0xFF8F8F8F)),
+                                border: InputBorder.none,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        IconButton.filled(
-                          onPressed: _isSending ? null : _sendReply,
-                          icon: _isSending
-                              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Icon(Icons.send),
-                          style: IconButton.styleFrom(backgroundColor: _kPrimary, foregroundColor: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ],
+                          IconButton(
+                            onPressed: _isSending ? null : _sendReply,
+                            icon: _isSending
+                                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                                : const Icon(Icons.send_outlined, size: 34, color: _kMuted),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -199,30 +230,24 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
   }
 }
 
-class _StatusChip extends StatelessWidget {
+class _StatusPill extends StatelessWidget {
   final String status;
 
-  const _StatusChip({required this.status});
+  const _StatusPill({required this.status});
 
   @override
   Widget build(BuildContext context) {
-    final color = switch (status) {
-      'in_progress' => const Color(0xFF2563EB),
-      'resolved' => const Color(0xFF059669),
-      'closed' => const Color(0xFF6B7280),
-      _ => const Color(0xFFD97706),
-    };
-
+    final color = _statusColor(status);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.45)),
+        border: Border.all(color: color.withValues(alpha: 0.55)),
       ),
       child: Text(
-        status.toUpperCase().replaceAll('_', ' '),
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: color),
+        _statusLabel(status),
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 2, color: color),
       ),
     );
   }
@@ -238,7 +263,7 @@ class _Message extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(28),
         child: Text(
           message,
           textAlign: TextAlign.center,
@@ -247,4 +272,31 @@ class _Message extends StatelessWidget {
       ),
     );
   }
+}
+
+String _ticketTitle(MaintenanceTicket ticket) {
+  final firstLine = ticket.description.split(RegExp(r'\r?\n')).first;
+  final firstSentence = firstLine.split(RegExp(r'[.!?]')).first.trim();
+  return firstSentence.isEmpty ? 'Maintenance Ticket' : firstSentence;
+}
+
+String _shortTicketId(String id) => id.replaceAll('-', '').substring(0, 4).toUpperCase();
+
+String _statusLabel(String status) {
+  if (status == 'reported' || status == 'in_progress') return 'UNRESOLVED';
+  if (status == 'resolved') return 'RESOLVED';
+  return 'CLOSED';
+}
+
+Color _statusColor(String status) {
+  if (status == 'reported' || status == 'in_progress') return _kOrange;
+  if (status == 'resolved') return const Color(0xFF059669);
+  return _kMuted;
+}
+
+String _relativeTime(DateTime value) {
+  final diff = DateTime.now().difference(value);
+  if (diff.inMinutes < 60) return '${diff.inMinutes.clamp(1, 59)} min ago';
+  if (diff.inHours < 24) return '${diff.inHours} hr ago';
+  return '${diff.inDays} d ago';
 }

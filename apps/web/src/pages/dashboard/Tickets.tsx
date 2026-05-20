@@ -1,37 +1,16 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, CheckCircle2, Clock3, MessageSquare, Send, Wrench } from 'lucide-react'
+import { BedDouble, Search, Send, Ticket as TicketIcon } from 'lucide-react'
 import { getTicketById, getTickets, replyToTicket, ticketKeys, updateTicketStatus } from '@/api/maintenance'
 import type { Enums, TicketWithRelations } from '@/types'
 
 type TicketStatus = Enums<'ticket_status_enum'>
 
-const statusLabels: Record<TicketStatus, string> = {
-  reported: 'Reported',
-  in_progress: 'In Progress',
-  resolved: 'Resolved',
-  closed: 'Closed',
-}
-
-const statusStyles: Record<TicketStatus, string> = {
-  reported: 'border-amber-200 bg-amber-50 text-amber-700',
-  in_progress: 'border-blue-200 bg-blue-50 text-blue-700',
-  resolved: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  closed: 'border-gray-200 bg-gray-50 text-gray-600',
-}
-
-const statusIcons: Record<TicketStatus, typeof AlertCircle> = {
-  reported: AlertCircle,
-  in_progress: Wrench,
-  resolved: CheckCircle2,
-  closed: Clock3,
-}
-
-const statusOptions = Object.keys(statusLabels) as TicketStatus[]
+const statusOptions: TicketStatus[] = ['reported', 'in_progress', 'resolved', 'closed']
 
 export default function Tickets() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [filter, setFilter] = useState<'all' | TicketStatus>('all')
+  const [search, setSearch] = useState('')
 
   const ticketsQuery = useQuery({
     queryKey: ticketKeys.all,
@@ -40,99 +19,82 @@ export default function Tickets() {
 
   const tickets = useMemo(() => ticketsQuery.data ?? [], [ticketsQuery.data])
   const selectedTicketId = selectedId ?? tickets[0]?.id ?? null
-
-  const filteredTickets = useMemo(() => (
-    filter === 'all' ? tickets : tickets.filter(ticket => ticket.ticket_status === filter)
-  ), [filter, tickets])
+  const filteredTickets = useMemo(() => {
+    const needle = search.toLowerCase().trim()
+    if (!needle) return tickets
+    return tickets.filter(ticket => {
+      return [
+        ticket.description,
+        ticket.reporter?.name,
+        ticket.room?.number,
+        shortTicketId(ticket.id),
+      ].some(value => value?.toLowerCase().includes(needle))
+    })
+  }, [search, tickets])
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Maintenance Center</h1>
-          <p className="mt-1 text-sm text-gray-500">Track tenant tickets, update status, and keep reply history in one place.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <FilterButton active={filter === 'all'} onClick={() => setFilter('all')}>All</FilterButton>
-          {statusOptions.map(status => (
-            <FilterButton key={status} active={filter === status} onClick={() => setFilter(status)}>
-              {statusLabels[status]}
-            </FilterButton>
-          ))}
-        </div>
-      </div>
+    <div className="h-full overflow-hidden bg-[#f1f1f1] px-6 py-4 text-[#111111]">
+      <div className="mx-auto h-full max-w-7xl">
+        <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-[340px_1fr]">
+          <aside>
+            <label className="relative block">
+              <Search className="absolute left-4 top-1/2 h-6 w-6 -translate-y-1/2 text-[#151515]" strokeWidth={2.5} />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search tickets"
+                className="h-12 w-full rounded-lg border border-[#9b9b9b] bg-white pl-14 pr-4 text-base outline-none placeholder:text-[#8b8b8b] focus:border-[#3341A5] focus:ring-2 focus:ring-[#3341A5]/20"
+              />
+            </label>
 
-      {ticketsQuery.isLoading ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-sm text-gray-500">Loading tickets...</div>
-      ) : ticketsQuery.error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-sm text-red-700">
-          {(ticketsQuery.error as Error).message}
-        </div>
-      ) : (
-        <div className="grid min-h-[560px] grid-cols-1 gap-5 lg:grid-cols-[380px_1fr]">
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-            <div className="border-b border-gray-200 px-5 py-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-700">Tickets</h2>
-            </div>
-            <div className="max-h-[640px] overflow-y-auto">
-              {filteredTickets.length === 0 ? (
+            <div className="mt-6 h-[calc(100%-72px)] overflow-hidden rounded-lg border border-[#b7b7b7] bg-white shadow-[0_8px_16px_rgba(0,0,0,0.16)]">
+              {ticketsQuery.isLoading ? (
+                <div className="p-6 text-sm text-gray-500">Loading tickets...</div>
+              ) : ticketsQuery.error ? (
+                <div className="p-6 text-sm text-red-700">{(ticketsQuery.error as Error).message}</div>
+              ) : filteredTickets.length === 0 ? (
                 <div className="p-6 text-sm text-gray-500">No tickets found.</div>
-              ) : filteredTickets.map(ticket => (
-                <TicketListItem
-                  key={ticket.id}
-                  ticket={ticket}
-                  active={ticket.id === selectedTicketId}
-                  onClick={() => setSelectedId(ticket.id)}
-                />
-              ))}
+              ) : (
+                filteredTickets.map(ticket => (
+                  <TicketListItem
+                    key={ticket.id}
+                    ticket={ticket}
+                    active={ticket.id === selectedTicketId}
+                    onClick={() => setSelectedId(ticket.id)}
+                  />
+                ))
+              )}
             </div>
-          </div>
+          </aside>
 
           <TicketDetail ticketId={selectedTicketId} />
         </div>
-      )}
+      </div>
     </div>
   )
 }
 
-function FilterButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-        active ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-      }`}
-    >
-      {children}
-    </button>
-  )
-}
-
 function TicketListItem({ ticket, active, onClick }: { ticket: TicketWithRelations; active: boolean; onClick: () => void }) {
-  const Icon = statusIcons[ticket.ticket_status]
-
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`block w-full border-b border-gray-100 px-5 py-4 text-left transition ${
-        active ? 'bg-blue-50/70' : 'bg-white hover:bg-gray-50'
-      }`}
+      className={`block w-full border-b border-[#d8d8d8] px-5 py-4 text-left transition ${active ? 'bg-[#ededed]' : 'bg-white hover:bg-[#f7f7f7]'}`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${statusStyles[ticket.ticket_status]}`}>
-              <Icon className="h-3.5 w-3.5" />
-              {statusLabels[ticket.ticket_status]}
-            </span>
-            <span className="text-xs text-gray-400">Room #{ticket.room?.number ?? '-'}</span>
-          </div>
-          <p className="mt-2 line-clamp-2 text-sm font-medium text-gray-900">{ticket.description}</p>
-          <p className="mt-1 text-xs text-gray-500">{ticket.reporter?.name ?? 'Unknown tenant'}</p>
+          <h2 className="truncate text-xl font-bold tracking-tight">{ticketTitle(ticket)}</h2>
+          <p className="mt-0.5 truncate text-base">
+            Reported by <span className="font-bold">{ticket.reporter?.name ?? 'Unknown'}</span>
+          </p>
+          <p className={`mt-2 text-xs font-extrabold tracking-[0.12em] ${isUnresolved(ticket.ticket_status) ? 'text-[#d44b14]' : 'text-[#4f6f52]'}`}>
+            {statusLabel(ticket.ticket_status)}
+          </p>
         </div>
-        <span className="shrink-0 text-xs text-gray-400">{formatDate(ticket.created_at)}</span>
+        <div className="shrink-0 text-right">
+          <p className="text-base text-[#888888]">{relativeTime(ticket.created_at)}</p>
+          <p className="mt-10 text-base font-bold text-[#7c7c7c]">#{shortTicketId(ticket.id)}</p>
+        </div>
       </div>
     </button>
   )
@@ -146,20 +108,10 @@ function TicketDetail({ ticketId }: { ticketId: string | null }) {
     enabled: Boolean(ticketId),
   })
 
-  if (!ticketId) {
-    return <div className="rounded-lg border border-gray-200 bg-white p-8 text-sm text-gray-500">Select a ticket.</div>
-  }
-
-  if (ticketQuery.isLoading) {
-    return <div className="rounded-lg border border-gray-200 bg-white p-8 text-sm text-gray-500">Loading ticket detail...</div>
-  }
-
+  if (!ticketId) return <main className="pt-24 text-lg text-[#777777]">Select a ticket.</main>
+  if (ticketQuery.isLoading) return <main className="pt-24 text-lg text-[#777777]">Loading ticket detail...</main>
   if (ticketQuery.error || !ticketQuery.data) {
-    return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-8 text-sm text-red-700">
-        {(ticketQuery.error as Error)?.message ?? 'Ticket not found'}
-      </div>
-    )
+    return <main className="pt-24 text-lg text-red-700">{(ticketQuery.error as Error)?.message ?? 'Ticket not found'}</main>
   }
 
   return (
@@ -175,12 +127,11 @@ function TicketDetail({ ticketId }: { ticketId: string | null }) {
 }
 
 function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelations; onChanged: () => void }) {
-  const [status, setStatus] = useState<TicketStatus>(ticket.ticket_status)
-  const [resolution, setResolution] = useState(ticket.resolved_message ?? '')
   const [reply, setReply] = useState('')
+  const [status, setStatus] = useState<TicketStatus>(ticket.ticket_status)
 
   const updateMutation = useMutation({
-    mutationFn: () => updateTicketStatus(ticket.id, status, resolution.trim() || undefined),
+    mutationFn: (nextStatus: TicketStatus) => updateTicketStatus(ticket.id, nextStatus),
     onSuccess: onChanged,
   })
 
@@ -195,121 +146,120 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
   const replies = ticket.replies ?? []
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-6 py-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusStyles[ticket.ticket_status]}`}>
-                {statusLabels[ticket.ticket_status]}
-              </span>
-              <span className="text-sm text-gray-500">Room #{ticket.room?.number ?? '-'}</span>
-            </div>
-            <h2 className="mt-3 text-xl font-semibold text-gray-900">{ticket.description}</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Reported by {ticket.reporter?.name ?? 'Unknown tenant'} on {formatDate(ticket.created_at)}
-            </p>
-          </div>
+    <main className="overflow-y-auto pt-10">
+      <div className="flex items-start justify-between gap-6">
+        <div className="flex flex-wrap items-center gap-8 text-xl font-bold">
+          <span className="inline-flex items-center gap-2">
+            <TicketIcon className="h-7 w-7" strokeWidth={2.5} />
+            #{shortTicketId(ticket.id)}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <BedDouble className="h-7 w-7" strokeWidth={2.5} />
+            Room #{ticket.room?.number ?? '-'}
+          </span>
         </div>
-      </div>
 
-      <div className="grid gap-0 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-5 p-6">
-          <div>
-            <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-700">
-              <MessageSquare className="h-4 w-4" />
-              Replies
-            </h3>
-            <div className="mt-4 space-y-3">
-              {replies.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-gray-200 p-5 text-sm text-gray-500">No replies yet.</div>
-              ) : replies.map(replyItem => (
-                <div key={replyItem.id} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-gray-900">
-                      {replyItem.sender?.name ?? 'Unknown'} <span className="font-normal text-gray-500">({replyItem.sender?.role ?? 'user'})</span>
-                    </p>
-                    <span className="text-xs text-gray-400">{formatDate(replyItem.created_at)}</span>
-                  </div>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">{replyItem.message}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <form
-            className="space-y-3"
-            onSubmit={(event) => {
-              event.preventDefault()
-              if (reply.trim()) replyMutation.mutate()
+        <label className="relative">
+          <select
+            value={status}
+            onChange={(event) => {
+              const nextStatus = event.target.value as TicketStatus
+              setStatus(nextStatus)
+              updateMutation.mutate(nextStatus)
             }}
+            className="appearance-none rounded-full border border-[#e89573] bg-[#fff1ea] px-5 py-2 pr-10 text-sm font-extrabold uppercase tracking-[0.12em] text-[#d44b14] outline-none"
           >
-            <textarea
-              value={reply}
-              onChange={(event) => setReply(event.target.value)}
-              rows={3}
-              placeholder="Write a reply to the tenant..."
-              className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-            <button
-              type="submit"
-              disabled={!reply.trim() || replyMutation.isPending}
-              className="inline-flex items-center gap-2 rounded-md bg-[#3045AF] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
-            >
-              <Send className="h-4 w-4" />
-              {replyMutation.isPending ? 'Sending...' : 'Send Reply'}
-            </button>
-            {replyMutation.error && <p className="text-sm text-red-600">{(replyMutation.error as Error).message}</p>}
-          </form>
+            {statusOptions.map(option => (
+              <option key={option} value={option}>{statusLabel(option)}</option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#d44b14]">⌄</span>
+        </label>
+      </div>
+
+      <h2 className="mt-6 max-w-4xl text-5xl font-medium tracking-tight">{ticketTitle(ticket)}</h2>
+      <p className="mt-4 text-xl">
+        Reported by <span className="font-bold">{ticket.reporter?.name ?? 'Unknown'}</span> on {formatFullDate(ticket.created_at)}
+      </p>
+      <p className="mt-6 max-w-4xl text-2xl leading-snug">{ticket.description}</p>
+
+      <section className="mt-8 max-w-5xl">
+        <h3 className="text-xl font-extrabold uppercase tracking-wide">{replies.length} Response{replies.length === 1 ? '' : 's'}</h3>
+        <div className="mt-6 space-y-5">
+          {replies.map(replyItem => (
+            <div key={replyItem.id} className="flex gap-5">
+              <div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9]" />
+              <div>
+                <p className="text-xl">
+                  <span className="font-bold">{replyItem.sender?.name ?? 'Unknown'}</span>
+                  <span className="text-[#555555]"> • {relativeTime(replyItem.created_at)}</span>
+                </p>
+                <p className="mt-2 text-2xl leading-snug">{replyItem.message}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <aside className="border-t border-gray-200 bg-gray-50 p-6 lg:border-l lg:border-t-0">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">Ticket Status</h3>
-          <div className="mt-4 space-y-4">
-            <label className="block">
-              <span className="text-sm font-medium text-gray-700">State</span>
-              <select
-                value={status}
-                onChange={(event) => setStatus(event.target.value as TicketStatus)}
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                {statusOptions.map(option => (
-                  <option key={option} value={option}>{statusLabels[option]}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="block">
-              <span className="text-sm font-medium text-gray-700">Resolution note</span>
-              <textarea
-                value={resolution}
-                onChange={(event) => setResolution(event.target.value)}
-                rows={4}
-                placeholder="Used when resolving the ticket"
-                className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </label>
-
-            <button
-              type="button"
-              onClick={() => updateMutation.mutate()}
-              disabled={updateMutation.isPending}
-              className="w-full rounded-md bg-[#3045AF] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
-            >
-              {updateMutation.isPending ? 'Updating...' : 'Update Status'}
-            </button>
-            {updateMutation.error && <p className="text-sm text-red-600">{(updateMutation.error as Error).message}</p>}
-          </div>
-        </aside>
-      </div>
-    </div>
+        <form
+          className="mt-8 flex h-20 items-center gap-5 rounded-lg border border-[#8f8f8f] bg-white px-4"
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (reply.trim()) replyMutation.mutate()
+          }}
+        >
+          <div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9]" />
+          <input
+            value={reply}
+            onChange={(event) => setReply(event.target.value)}
+            placeholder="Enter message"
+            className="min-w-0 flex-1 bg-transparent text-2xl outline-none placeholder:text-[#8d8d8d]"
+          />
+          <button type="submit" disabled={!reply.trim() || replyMutation.isPending} className="text-[#777777] disabled:opacity-40">
+            <Send className="h-8 w-8" strokeWidth={2.5} />
+          </button>
+        </form>
+        {replyMutation.error && <p className="mt-3 text-sm text-red-600">{(replyMutation.error as Error).message}</p>}
+        {updateMutation.error && <p className="mt-3 text-sm text-red-600">{(updateMutation.error as Error).message}</p>}
+      </section>
+    </main>
   )
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString('en-US', {
-    month: 'short',
+function ticketTitle(ticket: TicketWithRelations) {
+  const firstLine = ticket.description.split(/\r?\n/)[0]
+  const firstSentence = firstLine.split(/[.!?]/)[0]
+  return firstSentence.length > 44 ? `${firstSentence.slice(0, 44)}...` : firstSentence
+}
+
+function shortTicketId(id: string) {
+  return id.replaceAll('-', '').slice(0, 4).toUpperCase()
+}
+
+function isUnresolved(status: TicketStatus) {
+  return status === 'reported' || status === 'in_progress'
+}
+
+function statusLabel(status: TicketStatus) {
+  if (status === 'reported' || status === 'in_progress') return 'Unresolved'
+  if (status === 'resolved') return 'Resolved'
+  return 'Closed'
+}
+
+function relativeTime(value: string) {
+  const diff = Date.now() - new Date(value).getTime()
+  const minutes = Math.max(1, Math.round(diff / 60000))
+  if (minutes < 60) return `${minutes} min ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours} hr ago`
+  return `${Math.round(hours / 24)} d ago`
+}
+
+function formatFullDate(value: string) {
+  return new Date(value).toLocaleString('en-US', {
+    weekday: 'short',
     day: 'numeric',
-    year: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
   })
 }
