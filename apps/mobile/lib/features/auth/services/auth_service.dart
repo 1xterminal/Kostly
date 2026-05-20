@@ -22,9 +22,9 @@ class AuthService {
         .from('users')
         .select('role')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-    if (profile['role'] != 'tenant') {
+    if (profile == null || profile['role'] != 'tenant') {
       await supabase.auth.signOut();
       throw Exception(
         'This app is for tenants only. Property owners use the Kostly web dashboard.',
