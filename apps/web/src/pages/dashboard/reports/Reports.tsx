@@ -149,7 +149,7 @@ export default function Reports() {
                     <div className="text-center text-sm text-gray-500 py-10">No reports found. Generate one to get started.</div>
                 ) : (
                     displayedReports.map((report) => (
-                        <div key={report.id} onClick={() => navigate(`/dashboard/reports/${report.month_year}`)} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer">
+                        <div key={report.id} onClick={() => navigate(`/dashboard/reports/${report.id}`)} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-gray-100 rounded-full flex-shrink-0 flex items-center justify-center">
                                     <span className="text-[12px] font-bold text-gray-500">{new Date(report.month_year).toLocaleDateString('en-GB', { month: 'short' })}</span>

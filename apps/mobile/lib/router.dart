@@ -11,6 +11,9 @@ import 'features/auth/services/auth_service.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/contracts/screens/contract_screen.dart';
 import 'features/contracts/screens/extend_contract_screen.dart';
+import 'features/maintenance/screens/new_ticket_screen.dart';
+import 'features/maintenance/screens/ticket_details_screen.dart';
+import 'features/maintenance/screens/tickets_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
 
 // ─── Placeholder screen ───────────────────────────────────────────────────────
@@ -105,12 +108,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/extend', builder: (_, _) => const ExtendContractScreen()),
       GoRoute(
         path: '/maintenance/new',
-        builder: (_, _) => const _Placeholder('New Ticket'),
+        builder: (_, _) => const NewTicketScreen(),
       ),
       GoRoute(
         path: '/maintenance/:id',
         builder: (_, state) =>
-            _Placeholder('Ticket ${state.pathParameters['id']}'),
+            TicketDetailsScreen(ticketId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/invoices/:id',
@@ -142,7 +145,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/maintenance',
-                builder: (_, _) => const _Placeholder('Maintenance Tickets'),
+                builder: (_, _) => const TicketsScreen(),
               ),
             ],
           ),

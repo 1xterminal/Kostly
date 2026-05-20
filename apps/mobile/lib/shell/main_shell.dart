@@ -13,7 +13,7 @@ class _NavItem {
 const _navItems = [
   _NavItem(Icons.grid_view_rounded,          'Home'),      // 4-square grid
   _NavItem(Icons.credit_card_outlined,       'Payments'),  // credit card
-  _NavItem(Icons.confirmation_number_outlined,'Invoices'), // ticket/coupon
+  _NavItem(Icons.confirmation_number_outlined,'Maintenance'), // ticket/coupon
   _NavItem(Icons.receipt_outlined,           'Contracts'), // receipt/doc
   _NavItem(Icons.account_circle_outlined,    'Profile'),   // person circle
 ];
