@@ -28,7 +28,16 @@ class ActiveContract {
   }
 
   factory ActiveContract.fromJson(Map<String, dynamic> json) {
-    final room = json['room'] as Map<String, dynamic>;
+    // Supabase PostgREST can return the join as a Map or a List
+    final rawRoom = json['room'];
+    final Map<String, dynamic> room;
+    if (rawRoom is Map<String, dynamic>) {
+      room = rawRoom;
+    } else if (rawRoom is List && rawRoom.isNotEmpty) {
+      room = rawRoom.first as Map<String, dynamic>;
+    } else {
+      throw Exception('Contract is missing room data');
+    }
     return ActiveContract(
       id: json['id'] as String,
       roomNumber: room['number'] as String,
@@ -39,6 +48,7 @@ class ActiveContract {
     );
   }
 }
+
 
 class PendingInvoice {
   final String id;
