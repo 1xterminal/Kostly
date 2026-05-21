@@ -41,7 +41,7 @@ class ExtendRequestService {
     await supabase.from('extend_requests').insert({
       'contract_id': contractId,
       'tenant_id': userId,
-      'requested_end_date': requestedEndDate.toIso8601String(),
+      'requested_end_date': requestedEndDate.toIso8601String().split('T').first,
       'note': note,
       'status': 'pending',
     });

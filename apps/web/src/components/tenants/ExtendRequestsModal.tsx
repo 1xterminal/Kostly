@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Check, XCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { callEdgeFunction } from '../../lib/edgeFunctions'
 
 type ExtendRequest = {
   id: string
@@ -68,33 +69,14 @@ export default function ExtendRequestsModal({
     }
   }, [isOpen])
 
-  const handleAction = async (requestId: string, contractId: string, requestedDate: string, action: 'approved' | 'rejected') => {
+  const handleAction = async (requestId: string, action: 'approved' | 'rejected') => {
     setProcessingId(requestId)
     setError(null)
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id
-      if (!userId) throw new Error('Not authenticated')
-
-      if (action === 'approved') {
-        // Update contract end date
-        const { error: contractError } = await supabase
-          .from('contracts')
-          .update({ end_date: requestedDate })
-          .eq('id', contractId)
-        if (contractError) throw contractError
-      }
-
-      // Update request status
-      const { error: reqError } = await supabase
-        .from('extend_requests')
-        .update({
-          status: action,
-          reviewed_by: userId,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq('id', requestId)
-      
-      if (reqError) throw reqError
+      await callEdgeFunction('review-extend-request', {
+        request_id: requestId,
+        action,
+      })
 
       // Refresh list
       await fetchRequests()
@@ -165,14 +147,14 @@ export default function ExtendRequestsModal({
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-2">
                           <button
-                            onClick={() => handleAction(req.id, req.contracts.id, req.requested_end_date, 'approved')}
+                            onClick={() => handleAction(req.id, 'approved')}
                             disabled={processingId === req.id}
                             className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                           >
                             <Check className="h-4 w-4 mr-1" /> Approve
                           </button>
                           <button
-                            onClick={() => handleAction(req.id, req.contracts.id, req.requested_end_date, 'rejected')}
+                            onClick={() => handleAction(req.id, 'rejected')}
                             disabled={processingId === req.id}
                             className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
                           >

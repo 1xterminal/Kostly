@@ -57,6 +57,12 @@ export async function resetPassword(email: string) {
  * Used on the /reset-password page after arriving from the email link.
  */
 export async function updatePassword(password: string) {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+  if (sessionError) throw sessionError
+  if (!sessionData.session) {
+    throw new Error('Reset link is expired or invalid. Request a new password reset email.')
+  }
+
   const { data, error } = await supabase.auth.updateUser({ password })
   if (error) throw error
   return data

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile/core/validators.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_widgets.dart';
 
@@ -83,8 +84,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   label: 'Username or email',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Required' : null,
+                  validator: validateEmail,
                 ),
                 const SizedBox(height: 16),
 
@@ -98,7 +98,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       setState(() => _obscurePassword = !_obscurePassword),
                   onFieldSubmitted: (_) => _submit(),
                   validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Required' : null,
+                      validateRequired(v, field: 'Password'),
                 ),
                 const SizedBox(height: 12),
 

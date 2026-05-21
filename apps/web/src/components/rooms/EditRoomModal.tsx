@@ -5,11 +5,12 @@ import z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getRoomById, updateRoom } from '@/api/rooms'
 import type { RoomWithRelations } from '@/types'
+import { requiredText } from '@/lib/validation'
 
 const roomStatusSchema = z.object({
-  number: z.string().min(1, 'Room number is required'),
-  price: z.number().min(1, 'Price is required'),
-  wifi_password: z.string().min(1, 'Wifi password is required')
+  number: requiredText('Room number'),
+  price: z.number({ error: 'Price is required' }).finite('Price must be a number').positive('Price must be greater than 0'),
+  wifi_password: z.string().trim(),
 })
 
 type RoomStatusFormData = z.infer<typeof roomStatusSchema>
@@ -61,7 +62,10 @@ export default function EditRoomModal({
     setIsSubmitting(true)
     setError(null)
     try {
-      await updateRoom(id, data);
+      await updateRoom(id, {
+        ...data,
+        wifi_password: data.wifi_password || null,
+      });
 
       reset()
       selectData(null)

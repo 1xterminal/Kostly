@@ -4,20 +4,18 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { supabase } from '../../lib/supabase'
+import { emailSchema, isEndAfterStart, requiredPhoneSchema, requiredText } from '../../lib/validation'
 
 const onboardSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  phone_number: z.string().min(1, 'Phone number is required'),
-  room_id: z.string().min(1, 'Room is required'),
-  start_date: z.string().min(1, 'Start date is required'),
-  end_date: z.string().min(1, 'End date is required'),
+  name: requiredText('Name'),
+  email: emailSchema,
+  phone_number: requiredPhoneSchema,
+  room_id: requiredText('Room'),
+  start_date: requiredText('Start date'),
+  end_date: requiredText('End date'),
   monthly_rate: z.number().min(1, 'Monthly rate is required'),
 }).refine((data) => {
-  if (!data.start_date || !data.end_date) return true
-  const start = new Date(data.start_date)
-  const end = new Date(data.end_date)
-  return end > start
+  return isEndAfterStart(data.start_date, data.end_date)
 }, {
   message: "End date must be strictly after start date",
   path: ["end_date"],

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Pencil, X } from 'lucide-react'
 import type { TenantWithDetails } from '../../hooks/useTenants'
+import { phonePattern } from '../../lib/validation'
 
 export default function EditTenantModal({
   tenant,
@@ -29,6 +30,9 @@ export default function EditTenantModal({
       const nextName = String(formData.get('name') ?? '').trim()
       const nextPhone = String(formData.get('phone_number') ?? '').trim()
       if (!nextName) throw new Error('Name is required')
+      if (nextPhone && !phonePattern.test(nextPhone)) {
+        throw new Error('Enter a valid phone number')
+      }
 
       await onSave(tenant.id, {
         name: nextName,

@@ -13,6 +13,8 @@ supabase/
     assign-tenant-room/
     archive-tenant/
     submit-payment/
+    review-payment/
+    review-extend-request/
     generate-invoices/
     monthly-report/
 ```
@@ -49,6 +51,8 @@ on conflict (id) do update set role = 'owner';
 | `assign-tenant-room` | Owner-only. Calls `assign_tenant_room_tx` to create contract and occupy room atomically. |
 | `archive-tenant` | Owner-only. Calls `archive_tenant_tx` to terminate active contracts, release rooms, and archive tenant atomically. |
 | `submit-payment` | Tenant-only. Calls `submit_payment_tx` to create payment and set invoice pending atomically. |
+| `review-payment` | Owner-only. Calls `review_payment_tx` to approve/reject payment and update invoice status atomically. |
+| `review-extend-request` | Owner-only. Calls `review_extend_request_tx` to approve/reject extend requests and update contract end date atomically. |
 | `generate-invoices` | Cron/service-role billing generation. |
 | `monthly-report` | Owner-only report snapshot generation. |
 | `create-tenant` | Retired legacy endpoint. Returns `410`. |
@@ -56,6 +60,12 @@ on conflict (id) do update set role = 'owner';
 ## Storage
 
 Payment proof files use the private `payment-proofs` bucket.
+
+Bucket restrictions:
+
+- `public = false`
+- `file_size_limit = 5242880`
+- `allowed_mime_types = image/jpeg, image/png, image/webp, image/heic, image/heif`
 
 Stored paths must follow:
 
@@ -70,9 +80,9 @@ The `payments.proof_images` column stores that object path, not a public URL. We
 All public tables have RLS enabled.
 
 - Owners manage dashboard data through `private.is_owner()`.
-- Tenants read their own rows only.
+- Tenants read their own rows only while `private.is_active_tenant()` is true.
 - Tenant profile updates cannot change `role`, `email`, or `tenant_status`.
-- Archived tenants are blocked in the mobile auth service.
+- Archived tenants are blocked in mobile login and by database policies for app data.
 - Cross-row lifecycle writes use Edge Functions with service role plus SQL transaction functions.
 
 ## Deploy
@@ -80,12 +90,14 @@ All public tables have RLS enabled.
 ```bash
 supabase db push --project-ref <project-ref>
 
-supabase functions deploy create-tenant-account --project-ref <project-ref> --no-verify-jwt
-supabase functions deploy assign-tenant-room --project-ref <project-ref> --no-verify-jwt
-supabase functions deploy archive-tenant --project-ref <project-ref> --no-verify-jwt
-supabase functions deploy submit-payment --project-ref <project-ref> --no-verify-jwt
+supabase functions deploy create-tenant-account --project-ref <project-ref>
+supabase functions deploy assign-tenant-room --project-ref <project-ref>
+supabase functions deploy archive-tenant --project-ref <project-ref>
+supabase functions deploy submit-payment --project-ref <project-ref>
+supabase functions deploy review-payment --project-ref <project-ref>
+supabase functions deploy review-extend-request --project-ref <project-ref>
 supabase functions deploy generate-invoices --project-ref <project-ref>
 supabase functions deploy monthly-report --project-ref <project-ref>
 ```
 
-`--no-verify-jwt` is used only for functions that perform their own caller verification and CORS handling.
+All active app functions should keep JWT verification enabled. The retired `create-tenant` endpoint may stay deployed only as a compatibility `410` response.

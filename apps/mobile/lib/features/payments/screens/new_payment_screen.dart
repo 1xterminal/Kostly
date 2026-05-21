@@ -17,6 +17,9 @@ class NewPaymentScreen extends ConsumerStatefulWidget {
 }
 
 class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
+  static const _maxProofBytes = 5 * 1024 * 1024;
+  static const _allowedProofExtensions = {'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'};
+
   Map<String, dynamic>? _selectedInvoice;
   XFile? _selectedImage;
   bool _isUploading = false;
@@ -36,13 +39,25 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
       imageQuality: 80,
     );
     if (image != null) {
+      final validationError = await _validateProofImage(image);
+      if (validationError != null) {
+        _showError(validationError);
+        return;
+      }
       setState(() => _selectedImage = image);
     }
   }
 
   // ── Submit ──────────────────────────────────────────────────────────────────
   Future<void> _submit() async {
-    if (_selectedInvoice == null || _selectedImage == null) return;
+    if (_selectedInvoice == null) {
+      _showError('Select an invoice first.');
+      return;
+    }
+    if (_selectedImage == null) {
+      _showError('Upload a payment proof image first.');
+      return;
+    }
 
     setState(() => _isUploading = true);
     try {
@@ -50,17 +65,23 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
       if (userId == null) throw Exception('Not logged in');
 
       final invoiceId = _selectedInvoice!['id'] as String;
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_proof.jpg';
+      final proofExtension = _proofExtension(_selectedImage!);
+      final contentType = _proofContentType(proofExtension);
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_proof.$proofExtension';
       final storagePath = 'payments/$userId/$fileName';
 
       // 1. Upload to Storage
       final bytes = await _selectedImage!.readAsBytes();
+      if (bytes.length > _maxProofBytes) {
+        throw Exception('Payment proof must be 5 MB or smaller.');
+      }
       await supabase.storage
           .from('payment-proofs')
           .uploadBinary(
             storagePath,
             bytes,
-            fileOptions: const FileOptions(contentType: 'image/jpeg'),
+            fileOptions: FileOptions(contentType: contentType),
           );
 
       // 2. Insert payment + mark invoice pending through trusted transaction
@@ -106,6 +127,37 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+  }
+
+  Future<String?> _validateProofImage(XFile image) async {
+    final extension = _proofExtension(image);
+    if (!_allowedProofExtensions.contains(extension)) {
+      return 'Upload JPG, PNG, WEBP, HEIC, or HEIF image only.';
+    }
+
+    final length = await image.length();
+    if (length > _maxProofBytes) {
+      return 'Payment proof must be 5 MB or smaller.';
+    }
+
+    return null;
+  }
+
+  String _proofExtension(XFile image) {
+    final path = image.name.isNotEmpty ? image.name : image.path;
+    final parts = path.split('.');
+    if (parts.length < 2) return 'jpg';
+    return parts.last.toLowerCase();
+  }
+
+  String _proofContentType(String extension) {
+    return switch (extension) {
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      'heic' => 'image/heic',
+      'heif' => 'image/heif',
+      _ => 'image/jpeg',
+    };
   }
 
   @override

@@ -191,7 +191,7 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
               <div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9]" />
               <div>
                 <p className="text-xl">
-                  <span className="font-bold">{replyItem.sender?.name ?? 'Unknown'}</span>
+                  <span className="font-bold">{replySenderName(replyItem, ticket)}</span>
                   <span className="text-[#555555]"> • {relativeTime(replyItem.created_at)}</span>
                 </p>
                 <p className="mt-2 text-2xl leading-snug">{replyItem.message}</p>
@@ -243,6 +243,12 @@ function statusLabel(status: TicketStatus) {
   if (status === 'reported' || status === 'in_progress') return 'Unresolved'
   if (status === 'resolved') return 'Resolved'
   return 'Closed'
+}
+
+function replySenderName(reply: NonNullable<TicketWithRelations['replies']>[number], ticket: TicketWithRelations) {
+  if (reply.sender?.name) return reply.sender.name
+  if (reply.sender_id === ticket.reported_by_user_id) return ticket.reporter?.name ?? 'Tenant'
+  return 'Owner'
 }
 
 function relativeTime(value: string) {

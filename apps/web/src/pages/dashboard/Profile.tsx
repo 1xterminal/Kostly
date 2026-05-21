@@ -4,6 +4,8 @@ import { KeyRound, LogOut, Mail, Phone, Save, UserRound } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSignOut, authKeys } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import { useSidebarHeader } from '../../components/layout/sidebar-context'
+import { passwordSchema, phonePattern } from '../../lib/validation'
 
 type OwnerProfile = {
   id: string
@@ -16,9 +18,11 @@ type OwnerProfile = {
 export default function Profile() {
   const queryClient = useQueryClient()
   const { mutate: signOut, isPending: isSigningOut } = useSignOut()
+  const { setActions } = useSidebarHeader()
   const [profile, setProfile] = useState<OwnerProfile | null>(null)
   const [name, setName] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -26,6 +30,21 @@ export default function Profile() {
   const [isSavingPassword, setIsSavingPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  useEffect(() => {
+    setActions(
+      <button
+        onClick={() => signOut()}
+        disabled={isSigningOut}
+        className="inline-flex items-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+      >
+        <LogOut className="mr-2 h-4 w-4" />
+        {isSigningOut ? 'Signing out...' : 'Sign Out'}
+      </button>,
+    )
+
+    return () => setActions(null)
+  }, [isSigningOut, setActions, signOut])
 
   useEffect(() => {
     let isMounted = true
@@ -77,6 +96,9 @@ export default function Profile() {
       const nextPhone = phoneNumber.trim() || null
 
       if (!nextName) throw new Error('Name is required')
+      if (nextPhone && !phonePattern.test(nextPhone)) {
+        throw new Error('Enter a valid phone number')
+      }
 
       const { data, error: updateError } = await supabase
         .from('users')
@@ -111,8 +133,17 @@ export default function Profile() {
     setSuccess(null)
 
     try {
-      if (newPassword.length < 6) throw new Error('Password must be at least 6 characters')
+      if (!profile?.email) throw new Error('Profile email is missing')
+      if (!currentPassword) throw new Error('Current password is required')
+      const parsedPassword = passwordSchema.safeParse(newPassword)
+      if (!parsedPassword.success) throw new Error(parsedPassword.error.issues[0]?.message ?? 'Invalid password')
       if (newPassword !== confirmPassword) throw new Error('Passwords do not match')
+
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: profile.email,
+        password: currentPassword,
+      })
+      if (verifyError) throw new Error('Current password is incorrect')
 
       const { error: passwordError } = await supabase.auth.updateUser({
         password: newPassword,
@@ -120,6 +151,7 @@ export default function Profile() {
 
       if (passwordError) throw passwordError
 
+      setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
       setSuccess('Password changed.')
@@ -136,24 +168,6 @@ export default function Profile() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-950">Profile</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage owner account information and password.
-          </p>
-        </div>
-
-        <button
-          onClick={() => signOut()}
-          disabled={isSigningOut}
-          className="inline-flex items-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          {isSigningOut ? 'Signing out...' : 'Sign Out'}
-        </button>
-      </div>
-
       {(error || success) && (
         <div className={`rounded-md border px-4 py-3 text-sm ${error ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>
           {error ?? success}
@@ -239,13 +253,24 @@ export default function Profile() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="block text-sm font-semibold text-gray-800">Current Password</label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(event) => setCurrentPassword(event.target.value)}
+              autoComplete="current-password"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
           <div>
             <label className="block text-sm font-semibold text-gray-800">New Password</label>
             <input
               type="password"
               value={newPassword}
               onChange={(event) => setNewPassword(event.target.value)}
+              autoComplete="new-password"
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
@@ -255,6 +280,7 @@ export default function Profile() {
               type="password"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
+              autoComplete="new-password"
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>

@@ -4,11 +4,12 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { callEdgeFunction } from '../../lib/edgeFunctions'
+import { emailSchema, requiredPhoneSchema, requiredText } from '../../lib/validation'
 
 const tenantAccountSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  phone_number: z.string().min(1, 'Phone number is required'),
+  name: requiredText('Name'),
+  email: emailSchema,
+  phone_number: requiredPhoneSchema,
 })
 
 type TenantAccountFormData = z.infer<typeof tenantAccountSchema>

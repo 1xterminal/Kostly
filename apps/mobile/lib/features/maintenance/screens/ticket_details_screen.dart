@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/supabase_client.dart';
 import '../providers/maintenance_providers.dart';
 import '../repositories/maintenance_repository.dart';
 
@@ -133,7 +134,7 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
                                     children: [
                                       Text.rich(
                                         TextSpan(
-                                          text: reply.sender?.name ?? 'Unknown',
+                                          text: _replySenderName(reply),
                                           style: const TextStyle(fontWeight: FontWeight.w800),
                                           children: [
                                             TextSpan(
@@ -299,4 +300,12 @@ String _relativeTime(DateTime value) {
   if (diff.inMinutes < 60) return '${diff.inMinutes.clamp(1, 59)} min ago';
   if (diff.inHours < 24) return '${diff.inHours} hr ago';
   return '${diff.inDays} d ago';
+}
+
+String _replySenderName(TicketReply reply) {
+  final sender = reply.sender;
+  if (sender != null) return sender.name;
+
+  if (reply.senderId == supabase.auth.currentUser?.id) return 'You';
+  return 'Owner';
 }

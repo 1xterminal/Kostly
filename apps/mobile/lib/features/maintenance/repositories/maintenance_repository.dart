@@ -26,22 +26,25 @@ class TicketSender {
   });
 
   factory TicketSender.fromJson(Map<String, dynamic> json) {
+    final role = json['role'] as String? ?? 'user';
     return TicketSender(
       id: json['id'] as String,
-      name: json['name'] as String? ?? 'Unknown',
-      role: json['role'] as String? ?? 'user',
+      name: json['name'] as String? ?? (role == 'owner' ? 'Owner' : 'Tenant'),
+      role: role,
     );
   }
 }
 
 class TicketReply {
   final String id;
+  final String senderId;
   final String message;
   final DateTime createdAt;
   final TicketSender? sender;
 
   const TicketReply({
     required this.id,
+    required this.senderId,
     required this.message,
     required this.createdAt,
     this.sender,
@@ -51,6 +54,7 @@ class TicketReply {
     final sender = json['sender'] as Map<String, dynamic>?;
     return TicketReply(
       id: json['id'] as String,
+      senderId: json['sender_id'] as String,
       message: json['message'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
       sender: sender == null ? null : TicketSender.fromJson(sender),
@@ -133,7 +137,7 @@ class MaintenanceRepository {
           id, description, ticket_status, date_created, created_at, resolved_message, resolved_at,
           room:rooms(id, number),
           replies:ticket_replies(
-            id, message, created_at,
+            id, sender_id, message, created_at,
             sender:users!ticket_replies_sender_id_fkey(id, name, role)
           )
         ''')

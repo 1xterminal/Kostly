@@ -52,6 +52,8 @@ class ProfileRepository {
   Future<void> updateProfile(String name, String email, String phone) async {
     final user = supabase.auth.currentUser;
     if (user == null) throw Exception('User not logged in');
+    final cleanName = name.trim();
+    final cleanPhone = phone.trim();
 
     final existing = await supabase
         .from('users')
@@ -63,14 +65,14 @@ class ProfileRepository {
       await supabase.from('users').insert({
         'id': user.id,
         'email': user.email ?? email,
-        'name': name,
-        'phone_number': phone,
+        'name': cleanName,
+        'phone_number': cleanPhone,
         'role': 'tenant',
       });
     } else {
       await supabase
           .from('users')
-          .update({'name': name, 'phone_number': phone})
+          .update({'name': cleanName, 'phone_number': cleanPhone})
           .eq('id', user.id);
     }
   }

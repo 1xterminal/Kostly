@@ -55,7 +55,10 @@ export default function Payments() {
   // ── Reject ──────────────────────────────────────────────────────────────────
   const handleRejectSubmit = async () => {
     if (!rejectModal) return
-    if (!rejectReason.trim()) { alert('Please enter a rejection reason'); return }
+    if (rejectReason.trim().length < 3) {
+      alert('Please enter a rejection reason of at least 3 characters')
+      return
+    }
     setActionLoading(rejectModal.id)
     try {
       await rejectPayment(rejectModal.id, rejectModal.invoice_id, rejectReason.trim())

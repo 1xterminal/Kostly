@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Archive,
   Bell,
@@ -19,6 +19,7 @@ import TenantAccountModal from '../../components/tenants/TenantAccountModal'
 import TenantDetailsDrawer from '../../components/tenants/TenantDetailsDrawer'
 import { supabase } from '../../lib/supabase'
 import { callEdgeFunction } from '../../lib/edgeFunctions'
+import { useSidebarHeader } from '../../components/layout/sidebar-context'
 
 type TenantTab = 'All' | 'Needs Onboarding' | 'Assigned' | 'Unassigned' | 'Archived'
 
@@ -57,6 +58,7 @@ function getLifecycleKey(tenant: TenantWithDetails) {
 
 export default function Tenants() {
   const { data: tenants = [], isLoading, error, refetch } = useTenants()
+  const { setActions } = useSidebarHeader()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<TenantTab>('All')
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false)
@@ -107,6 +109,40 @@ export default function Tenants() {
       return true
     })
   }, [activeTab, search, tenants])
+
+  useEffect(() => {
+    setActions(
+      <>
+        <button
+          onClick={() => setIsExtendModalOpen(true)}
+          className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          <Bell className="mr-2 h-4 w-4" />
+          Extend Requests
+        </button>
+        <button
+          onClick={() => {
+            setAssignTarget(null)
+            setIsAssignModalOpen(true)
+            setActiveMenuId(null)
+          }}
+          className="inline-flex items-center rounded-md border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-[#3B5998] hover:bg-blue-50"
+        >
+          <Home className="mr-2 h-4 w-4" />
+          Assign Room
+        </button>
+        <button
+          onClick={() => setIsAccountModalOpen(true)}
+          className="inline-flex items-center rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+        >
+          <UserPlus className="mr-2 h-4 w-4" />
+          Add Account
+        </button>
+      </>,
+    )
+
+    return () => setActions(null)
+  }, [setActions])
 
   if (error) {
     return <div className="p-8 text-red-500">Error loading tenants: {(error as Error).message}</div>
@@ -163,39 +199,6 @@ export default function Tenants() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-950">Tenants</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage tenant accounts, onboarding, room placement, and lifecycle status.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => setIsExtendModalOpen(true)}
-            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-          >
-            <Bell className="mr-2 h-4 w-4" />
-            Extend Requests
-          </button>
-          <button
-            onClick={() => handleAssignRoom()}
-            className="inline-flex items-center rounded-md border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-[#3B5998] hover:bg-blue-50"
-          >
-            <Home className="mr-2 h-4 w-4" />
-            Assign Room
-          </button>
-          <button
-            onClick={() => setIsAccountModalOpen(true)}
-            className="inline-flex items-center rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add Account
-          </button>
-        </div>
-      </div>
-
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {tabs.map((tab) => (
           <button

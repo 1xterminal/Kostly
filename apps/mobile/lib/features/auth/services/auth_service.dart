@@ -10,7 +10,7 @@ class AuthService {
     required String password,
   }) async {
     final response = await supabase.auth.signInWithPassword(
-      email: email,
+      email: email.trim().toLowerCase(),
       password: password,
     );
 
@@ -74,11 +74,20 @@ class AuthService {
 
   /// Sends a password reset email (forgot password flow).
   Future<void> forgotPassword(String email) async {
-    await supabase.auth.resetPasswordForEmail(email);
+    await supabase.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      redirectTo: 'com.kostly.mobile://reset-password',
+    );
   }
 
   /// Used on /reset-password after arriving from the email deep link.
   Future<void> resetPassword(String newPassword) async {
+    if (supabase.auth.currentSession == null) {
+      throw Exception(
+        'Reset link is expired or invalid. Request a new password reset email.',
+      );
+    }
+
     await supabase.auth.updateUser(UserAttributes(password: newPassword));
   }
 

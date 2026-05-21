@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile/core/validators.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_widgets.dart';
 
@@ -103,8 +104,7 @@ class _ForgotPasswordScreenState
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _submit(),
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Required' : null,
+                    validator: validateEmail,
                   ),
                   const SizedBox(height: 28),
 

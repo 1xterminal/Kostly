@@ -2,12 +2,13 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useUpdatePassword } from '@/hooks/useAuth'
+import { passwordSchema } from '@/lib/validation'
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
 const schema = z
   .object({
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: passwordSchema,
     confirm:  z.string(),
   })
   .refine((d) => d.password === d.confirm, {

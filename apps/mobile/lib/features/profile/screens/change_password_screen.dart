@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/core/validators.dart';
 import '../providers/profile_providers.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
@@ -80,14 +81,26 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildTextField('Old password', _oldPasswordController),
+                _buildTextField(
+                  'Old password',
+                  _oldPasswordController,
+                  validator: (value) =>
+                      validateRequired(value, field: 'Old password'),
+                ),
                 const SizedBox(height: 20),
-                _buildTextField('Password', _newPasswordController),
+                _buildTextField(
+                  'Password',
+                  _newPasswordController,
+                  validator: validatePassword,
+                ),
                 const SizedBox(height: 20),
                 _buildTextField(
                   'Confirm password',
                   _confirmPasswordController,
-                  isConfirm: true,
+                  validator: (value) => validateConfirmPassword(
+                    value,
+                    _newPasswordController.text,
+                  ),
                 ),
 
                 const Spacer(),
@@ -136,7 +149,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   Widget _buildTextField(
     String label,
     TextEditingController controller, {
-    bool isConfirm = false,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,13 +182,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               borderSide: const BorderSide(color: Color(0xFF3341A5)),
             ),
           ),
-          validator: (val) {
-            if (val == null || val.isEmpty) return 'Required';
-            if (isConfirm && val != _newPasswordController.text) {
-              return 'Passwords do not match';
-            }
-            return null;
-          },
+          validator: validator,
         ),
       ],
     );

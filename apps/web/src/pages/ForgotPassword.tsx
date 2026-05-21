@@ -4,11 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from 'react-router'
 import { useResetPassword } from '@/hooks/useAuth'
+import { emailSchema } from '@/lib/validation'
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
 const schema = z.object({
-  email: z.string().email('Enter a valid email address'),
+  email: emailSchema,
 })
 
 type ForgotPasswordForm = z.infer<typeof schema>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile/core/validators.dart';
 import '../providers/profile_providers.dart';
 import '../repositories/profile_repository.dart';
 
@@ -86,19 +87,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildTextField('Full name', _nameController),
+                _buildTextField(
+                  'Full name',
+                  _nameController,
+                  validator: (value) =>
+                      validateRequired(value, field: 'Full name'),
+                ),
                 const SizedBox(height: 20),
                 _buildTextField(
                   'Email',
                   _emailController,
                   keyboardType: TextInputType.emailAddress,
                   enabled: false,
+                  validator: validateEmail,
                 ),
                 const SizedBox(height: 20),
                 _buildTextField(
                   'Phone number',
                   _phoneController,
                   keyboardType: TextInputType.phone,
+                  validator: validateOptionalPhone,
                 ),
 
                 const Spacer(),
@@ -151,6 +159,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     TextEditingController controller, {
     TextInputType? keyboardType,
     bool enabled = true,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +193,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               borderSide: const BorderSide(color: Color(0xFF3341A5)),
             ),
           ),
-          validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+          validator: validator,
         ),
       ],
     );

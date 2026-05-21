@@ -6,12 +6,16 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { supabase } from '../../lib/supabase'
 import { callEdgeFunction } from '../../lib/edgeFunctions'
 import type { TenantWithDetails } from '../../hooks/useTenants'
+import { isEndAfterStart } from '../../lib/validation'
 
 const assignSchema = z.object({
   tenant_id: z.string().min(1, 'Tenant is required'),
   room_id: z.string().min(1, 'Room is required'),
   start_date: z.string().min(1, 'Start date is required'),
   end_date: z.string().min(1, 'End date is required'),
+}).refine((data) => isEndAfterStart(data.start_date, data.end_date), {
+  message: 'End date must be after start date',
+  path: ['end_date'],
 })
 
 type AssignFormData = z.infer<typeof assignSchema>

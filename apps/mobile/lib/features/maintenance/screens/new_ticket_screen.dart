@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile/core/validators.dart';
 import '../providers/maintenance_providers.dart';
 
 const _kPrimary = Color(0xFF3341A5);
@@ -100,8 +101,9 @@ class _NewTicketScreenState extends ConsumerState<NewTicketScreen> {
 
   Future<void> _submit(String roomId) async {
     final description = _descriptionController.text.trim();
-    if (description.isEmpty) {
-      setState(() => _error = 'Description is required.');
+    final validationError = validateMaintenanceDescription(description);
+    if (validationError != null) {
+      setState(() => _error = validationError);
       return;
     }
 
