@@ -12,6 +12,7 @@ import {
   UserPlus,
 } from 'lucide-react'
 import { useTenants, type TenantWithDetails } from '../../hooks/useTenants'
+import { usePendingExtendCount } from '../../hooks/useExtendRequests'
 import AssignTenantRoomModal from '../../components/tenants/AssignTenantRoomModal'
 import EditTenantModal from '../../components/tenants/EditTenantModal'
 import ExtendRequestsModal from '../../components/tenants/ExtendRequestsModal'
@@ -59,6 +60,7 @@ function getLifecycleKey(tenant: TenantWithDetails) {
 export default function Tenants() {
   const { data: tenants = [], isLoading, error, refetch } = useTenants()
   const { setActions } = useSidebarHeader()
+  const pendingExtendCount = usePendingExtendCount()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<TenantTab>('All')
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false)
