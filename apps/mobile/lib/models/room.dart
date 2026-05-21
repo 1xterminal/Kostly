@@ -7,7 +7,7 @@ part 'room.g.dart';
 abstract class Room with _$Room {
   const factory Room({
     required String id,
-    @JsonKey(name: 'owner_id') required String ownerId,
+    @JsonKey(name: 'owner_id') String? ownerId,
     required String number,
     required double price,
     required String status,

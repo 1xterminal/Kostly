@@ -8,7 +8,7 @@ part of 'room.dart';
 
 _Room _$RoomFromJson(Map<String, dynamic> json) => _Room(
   id: json['id'] as String,
-  ownerId: json['owner_id'] as String,
+  ownerId: json['owner_id'] as String?,
   number: json['number'] as String,
   price: (json['price'] as num).toDouble(),
   status: json['status'] as String,

@@ -12,6 +12,7 @@ import {
   UserPlus,
 } from 'lucide-react'
 import { useTenants, type TenantWithDetails } from '../../hooks/useTenants'
+import { usePendingExtendCount } from '../../hooks/useExtendRequests'
 import AssignTenantRoomModal from '../../components/tenants/AssignTenantRoomModal'
 import EditTenantModal from '../../components/tenants/EditTenantModal'
 import ExtendRequestsModal from '../../components/tenants/ExtendRequestsModal'
@@ -59,6 +60,7 @@ function getLifecycleKey(tenant: TenantWithDetails) {
 export default function Tenants() {
   const { data: tenants = [], isLoading, error, refetch } = useTenants()
   const { setActions } = useSidebarHeader()
+  const pendingExtendCount = usePendingExtendCount()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<TenantTab>('All')
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false)
@@ -115,10 +117,15 @@ export default function Tenants() {
       <>
         <button
           onClick={() => setIsExtendModalOpen(true)}
-          className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors duration-150"
         >
           <Bell className="mr-2 h-4 w-4" />
           Extend Requests
+          {pendingExtendCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+              {pendingExtendCount > 9 ? '9+' : pendingExtendCount}
+            </span>
+          )}
         </button>
         <button
           onClick={() => {
@@ -142,7 +149,7 @@ export default function Tenants() {
     )
 
     return () => setActions(null)
-  }, [setActions])
+  }, [setActions, pendingExtendCount])
 
   if (error) {
     return <div className="p-8 text-red-500">Error loading tenants: {(error as Error).message}</div>
@@ -199,6 +206,14 @@ export default function Tenants() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-950">Tenants</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Manage tenant accounts, onboarding, room placement, and lifecycle status.
+          </p>
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {tabs.map((tab) => (
           <button

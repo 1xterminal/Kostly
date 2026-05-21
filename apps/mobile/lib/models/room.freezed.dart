@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Room {
 
- String get id;@JsonKey(name: 'owner_id') String get ownerId; String get number; double get price; String get status;@JsonKey(name: 'wifi_password') String? get wifiPassword;
+ String get id;@JsonKey(name: 'owner_id') String? get ownerId; String get number; double get price; String get status;@JsonKey(name: 'wifi_password') String? get wifiPassword;
 /// Create a copy of Room
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $RoomCopyWith<$Res>  {
   factory $RoomCopyWith(Room value, $Res Function(Room) _then) = _$RoomCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'owner_id') String ownerId, String number, double price, String status,@JsonKey(name: 'wifi_password') String? wifiPassword
+ String id,@JsonKey(name: 'owner_id') String? ownerId, String number, double price, String status,@JsonKey(name: 'wifi_password') String? wifiPassword
 });
 
 
@@ -65,11 +65,11 @@ class _$RoomCopyWithImpl<$Res>
 
 /// Create a copy of Room
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? ownerId = null,Object? number = null,Object? price = null,Object? status = null,Object? wifiPassword = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? ownerId = freezed,Object? number = null,Object? price = null,Object? status = null,Object? wifiPassword = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,ownerId: null == ownerId ? _self.ownerId : ownerId // ignore: cast_nullable_to_non_nullable
-as String,number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
+as String,ownerId: freezed == ownerId ? _self.ownerId : ownerId // ignore: cast_nullable_to_non_nullable
+as String?,number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,wifiPassword: freezed == wifiPassword ? _self.wifiPassword : wifiPassword // ignore: cast_nullable_to_non_nullable
@@ -158,7 +158,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'owner_id')  String ownerId,  String number,  double price,  String status, @JsonKey(name: 'wifi_password')  String? wifiPassword)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'owner_id')  String? ownerId,  String number,  double price,  String status, @JsonKey(name: 'wifi_password')  String? wifiPassword)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Room() when $default != null:
 return $default(_that.id,_that.ownerId,_that.number,_that.price,_that.status,_that.wifiPassword);case _:
@@ -179,7 +179,7 @@ return $default(_that.id,_that.ownerId,_that.number,_that.price,_that.status,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'owner_id')  String ownerId,  String number,  double price,  String status, @JsonKey(name: 'wifi_password')  String? wifiPassword)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'owner_id')  String? ownerId,  String number,  double price,  String status, @JsonKey(name: 'wifi_password')  String? wifiPassword)  $default,) {final _that = this;
 switch (_that) {
 case _Room():
 return $default(_that.id,_that.ownerId,_that.number,_that.price,_that.status,_that.wifiPassword);case _:
@@ -199,7 +199,7 @@ return $default(_that.id,_that.ownerId,_that.number,_that.price,_that.status,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'owner_id')  String ownerId,  String number,  double price,  String status, @JsonKey(name: 'wifi_password')  String? wifiPassword)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'owner_id')  String? ownerId,  String number,  double price,  String status, @JsonKey(name: 'wifi_password')  String? wifiPassword)?  $default,) {final _that = this;
 switch (_that) {
 case _Room() when $default != null:
 return $default(_that.id,_that.ownerId,_that.number,_that.price,_that.status,_that.wifiPassword);case _:
@@ -214,11 +214,11 @@ return $default(_that.id,_that.ownerId,_that.number,_that.price,_that.status,_th
 @JsonSerializable()
 
 class _Room implements Room {
-  const _Room({required this.id, @JsonKey(name: 'owner_id') required this.ownerId, required this.number, required this.price, required this.status, @JsonKey(name: 'wifi_password') this.wifiPassword});
+  const _Room({required this.id, @JsonKey(name: 'owner_id') this.ownerId, required this.number, required this.price, required this.status, @JsonKey(name: 'wifi_password') this.wifiPassword});
   factory _Room.fromJson(Map<String, dynamic> json) => _$RoomFromJson(json);
 
 @override final  String id;
-@override@JsonKey(name: 'owner_id') final  String ownerId;
+@override@JsonKey(name: 'owner_id') final  String? ownerId;
 @override final  String number;
 @override final  double price;
 @override final  String status;
@@ -257,7 +257,7 @@ abstract mixin class _$RoomCopyWith<$Res> implements $RoomCopyWith<$Res> {
   factory _$RoomCopyWith(_Room value, $Res Function(_Room) _then) = __$RoomCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'owner_id') String ownerId, String number, double price, String status,@JsonKey(name: 'wifi_password') String? wifiPassword
+ String id,@JsonKey(name: 'owner_id') String? ownerId, String number, double price, String status,@JsonKey(name: 'wifi_password') String? wifiPassword
 });
 
 
@@ -274,11 +274,11 @@ class __$RoomCopyWithImpl<$Res>
 
 /// Create a copy of Room
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? ownerId = null,Object? number = null,Object? price = null,Object? status = null,Object? wifiPassword = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? ownerId = freezed,Object? number = null,Object? price = null,Object? status = null,Object? wifiPassword = freezed,}) {
   return _then(_Room(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,ownerId: null == ownerId ? _self.ownerId : ownerId // ignore: cast_nullable_to_non_nullable
-as String,number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
+as String,ownerId: freezed == ownerId ? _self.ownerId : ownerId // ignore: cast_nullable_to_non_nullable
+as String?,number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,wifiPassword: freezed == wifiPassword ? _self.wifiPassword : wifiPassword // ignore: cast_nullable_to_non_nullable
