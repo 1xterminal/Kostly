@@ -15,7 +15,22 @@ final activeContractProvider = FutureProvider.autoDispose<Contract?>((ref) async
         .maybeSingle();
 
     if (response == null) return null;
-    return Contract.fromJson(response);
+
+    // Safely handle the room join — Supabase PostgREST can return
+    // the nested relation as either a Map or a List depending on
+    // the query planner. We normalise it here before passing to Freezed.
+    final rawRoom = response['room'];
+    Map<String, dynamic>? roomMap;
+    if (rawRoom is Map<String, dynamic>) {
+      roomMap = rawRoom;
+    } else if (rawRoom is List && rawRoom.isNotEmpty) {
+      roomMap = rawRoom.first as Map<String, dynamic>;
+    }
+
+    final contractData = Map<String, dynamic>.from(response);
+    contractData['room'] = roomMap;
+
+    return Contract.fromJson(contractData);
   } catch (e) {
     throw Exception('Failed to load active contract: $e');
   }

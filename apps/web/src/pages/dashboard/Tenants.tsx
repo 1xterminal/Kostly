@@ -12,6 +12,7 @@ import {
   UserPlus,
 } from 'lucide-react'
 import { useTenants, type TenantWithDetails } from '../../hooks/useTenants'
+import { usePendingExtendCount } from '../../hooks/useExtendRequests'
 import AssignTenantRoomModal from '../../components/tenants/AssignTenantRoomModal'
 import EditTenantModal from '../../components/tenants/EditTenantModal'
 import ExtendRequestsModal from '../../components/tenants/ExtendRequestsModal'
@@ -57,6 +58,7 @@ function getLifecycleKey(tenant: TenantWithDetails) {
 
 export default function Tenants() {
   const { data: tenants = [], isLoading, error, refetch } = useTenants()
+  const pendingExtendCount = usePendingExtendCount()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<TenantTab>('All')
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false)
@@ -174,10 +176,15 @@ export default function Tenants() {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => setIsExtendModalOpen(true)}
-            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors duration-150"
           >
             <Bell className="mr-2 h-4 w-4" />
             Extend Requests
+            {pendingExtendCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                {pendingExtendCount > 9 ? '9+' : pendingExtendCount}
+              </span>
+            )}
           </button>
           <button
             onClick={() => handleAssignRoom()}
