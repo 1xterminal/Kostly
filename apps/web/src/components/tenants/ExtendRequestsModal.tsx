@@ -9,6 +9,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { callEdgeFunction } from '../../lib/edgeFunctions'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -95,33 +96,16 @@ export default function ExtendRequestsModal({
     if (isOpen) fetchRequests()
   }, [isOpen, fetchRequests])
 
-  const handleAction = async (requestId: string, contractId: string, requestedDate: string, action: 'approved' | 'rejected') => {
+  const handleAction = async (requestId: string, action: 'approved' | 'rejected') => {
     setProcessingId(requestId)
     setError(null)
     try {
-      const userId = (await supabase.auth.getUser()).data.user?.id
-      if (!userId) throw new Error('Not authenticated')
+      await callEdgeFunction('review-extend-request', {
+        request_id: requestId,
+        action,
+      })
 
-      if (action === 'approved') {
-        // Update contract end date
-        const { error: contractError } = await supabase
-          .from('contracts')
-          .update({ end_date: requestedDate })
-          .eq('id', contractId)
-        if (contractError) throw contractError
-      }
-
-      // Update request status
-      const { error: reqError } = await supabase
-        .from('extend_requests')
-        .update({
-          status: action,
-          reviewed_by: userId,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq('id', requestId)
-      
-      if (reqError) throw reqError
+      if (reqErr) throw reqErr
 
       // Auto-refresh the list immediately
       await fetchRequests()
@@ -238,16 +222,63 @@ export default function ExtendRequestsModal({
                       </span>
                     </div>
 
-                    {/* Dates block */}
-                    <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-100 bg-white p-3">
-                      <div className="text-center">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-0.5">Current end</p>
-                        <p className="text-gray-700">{fmt(req.contracts.end_date)}</p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-gray-300 mx-1" />
-                      <div className="text-center">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-blue-400 mb-0.5">Requested</p>
-                        <p className="font-bold text-[#3B5998]">{fmt(req.requested_end_date)}</p>
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Tenant</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Room</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Current End Date</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Requested Date</th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Action</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">Loading requests...</td>
+                  </tr>
+                ) : requests.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No pending requests.</td>
+                  </tr>
+                ) : (
+                  requests.map((req) => (
+                    <tr key={req.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {req.contracts?.users?.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        #{req.contracts?.rooms?.number}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(req.contracts?.end_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
+                        {new Date(req.requested_end_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => handleAction(req.id, 'approved')}
+                            disabled={processingId === req.id}
+                            className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                          >
+                            <Check className="h-4 w-4 mr-1" /> Approve
+                          </button>
+                          <button
+                            onClick={() => handleAction(req.id, 'rejected')}
+                            disabled={processingId === req.id}
+                            className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                          >
+                            <XCircle className="h-4 w-4 mr-1" /> Reject
+                          </button>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-gray-300 mx-1" />
+                        <div className="text-center">
+                          <p className="text-[10px] font-bold uppercase tracking-wide text-blue-400 mb-0.5">Requested</p>
+                          <p className="font-bold text-[#3B5998]">{fmt(req.requested_end_date)}</p>
+                        </div>
                       </div>
                     </div>
 
