@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 /**
@@ -9,17 +9,19 @@ import { supabase } from '../lib/supabase'
 export function usePendingExtendCount() {
   const [count, setCount] = useState(0)
 
-  const fetchCount = async () => {
+  const fetchCount = useCallback(async () => {
     const { count: n } = await supabase
       .from('extend_requests')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'pending')
     setCount(n ?? 0)
-  }
+  }, [])
 
   useEffect(() => {
     // Initial fetch
-    fetchCount()
+    queueMicrotask(() => {
+      void fetchCount()
+    })
 
     // Subscribe to inserts / updates on extend_requests
     const channel = supabase
@@ -32,7 +34,7 @@ export function usePendingExtendCount() {
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [])
+  }, [fetchCount])
 
   return count
 }

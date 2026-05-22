@@ -121,6 +121,11 @@ export default function Tenants() {
         >
           <Bell className="mr-2 h-4 w-4" />
           Extend Requests
+          {pendingExtendCount > 0 && (
+            <span className="ml-2 rounded-full bg-[#D6420F] px-2 py-0.5 text-xs font-bold text-white">
+              {pendingExtendCount}
+            </span>
+          )}
         </button>
         <button
           onClick={() => {
@@ -144,7 +149,7 @@ export default function Tenants() {
     )
 
     return () => setActions(null)
-  }, [setActions])
+  }, [pendingExtendCount, setActions])
 
   if (error) {
     return <div className="p-8 text-red-500">Error loading tenants: {(error as Error).message}</div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   X,
   CheckCircle2,
@@ -10,8 +10,6 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { callEdgeFunction } from '../../lib/edgeFunctions'
-
-// ─── Types ─────────────────────────────────────────────────────────────────────
 
 type ExtendRequest = {
   id: string
@@ -28,17 +26,23 @@ type ExtendRequest = {
   }
 }
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
+type ExtendRequestRow = Omit<ExtendRequest, 'contracts'> & {
+  contracts: ExtendRequest['contracts'] | ExtendRequest['contracts'][] | null
+}
 
-const fmt = (d: string) =>
-  new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+const fmt = (date: string) =>
+  new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
 
 const daysDiff = (from: string, to: string) => {
   const ms = new Date(to).getTime() - new Date(from).getTime()
   return Math.round(ms / (1000 * 60 * 60 * 24))
 }
 
-// ─── Modal ─────────────────────────────────────────────────────────────────────
+function normalizeRequest(row: ExtendRequestRow): ExtendRequest | null {
+  const contract = Array.isArray(row.contracts) ? row.contracts[0] : row.contracts
+  if (!contract) return null
+  return { ...row, contracts: contract }
+}
 
 export default function ExtendRequestsModal({
   isOpen,
@@ -57,7 +61,7 @@ export default function ExtendRequestsModal({
 
   const showToast = useCallback((message: string, type: 'success' | 'error') => {
     setToast({ message, type })
-    setTimeout(() => setToast(null), 3000)
+    window.setTimeout(() => setToast(null), 3000)
   }, [])
 
   const fetchRequests = useCallback(async () => {
@@ -84,16 +88,19 @@ export default function ExtendRequestsModal({
         .order('created_at', { ascending: false })
 
       if (fetchErr) throw fetchErr
-      setRequests(data || [])
-    } catch (e: unknown) {
-      setError((e as Error).message)
+      setRequests(((data ?? []) as ExtendRequestRow[]).map(normalizeRequest).filter(Boolean) as ExtendRequest[])
+    } catch (caught) {
+      setError((caught as Error).message)
     } finally {
       setIsLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    if (isOpen) fetchRequests()
+    if (!isOpen) return
+    queueMicrotask(() => {
+      void fetchRequests()
+    })
   }, [isOpen, fetchRequests])
 
   const handleAction = async (requestId: string, action: 'approved' | 'rejected') => {
@@ -105,21 +112,16 @@ export default function ExtendRequestsModal({
         action,
       })
 
-      if (reqErr) throw reqErr
-
-      // Auto-refresh the list immediately
       await fetchRequests()
       onSuccess()
-
-      // Show success toast
       showToast(
         action === 'approved'
-          ? '✓ Request approved — contract end date updated.'
-          : '✗ Request rejected.',
+          ? 'Request approved. Contract end date updated.'
+          : 'Request rejected.',
         action === 'approved' ? 'success' : 'error',
       )
-    } catch (e: unknown) {
-      setError((e as Error).message)
+    } catch (caught) {
+      setError((caught as Error).message)
       showToast('Something went wrong. Please try again.', 'error')
     } finally {
       setProcessingId(null)
@@ -130,17 +132,10 @@ export default function ExtendRequestsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Panel */}
-      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 flex flex-col max-h-[85vh]">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+      <div className="relative flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50">
               <ClipboardList className="h-5 w-5 text-[#3B5998]" />
@@ -148,41 +143,35 @@ export default function ExtendRequestsModal({
             <div>
               <h2 className="text-base font-bold text-gray-900">Extend Requests</h2>
               <p className="text-xs text-gray-500">
-                {isLoading
-                  ? 'Loading…'
-                  : requests.length === 0
-                  ? 'No pending requests'
-                  : `${requests.length} pending`}
+                {isLoading ? 'Loading...' : requests.length === 0 ? 'No pending requests' : `${requests.length} pending`}
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors duration-150"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            aria-label="Close extend requests"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Error Banner */}
         {error && (
-          <div className="mx-6 mt-4 flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-            <XCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <div className="mx-6 mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <XCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {isLoading ? (
-            /* Skeleton */
             <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-28 rounded-xl bg-gray-100 animate-pulse" />
+              {[1, 2].map((index) => (
+                <div key={index} className="h-28 animate-pulse rounded-xl bg-gray-100" />
               ))}
             </div>
           ) : requests.length === 0 ? (
-            /* Empty state */
             <div className="flex flex-col items-center justify-center py-14 text-center">
               <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
                 <CalendarDays className="h-7 w-7 text-gray-400" />
@@ -191,128 +180,67 @@ export default function ExtendRequestsModal({
               <p className="mt-1 text-xs text-gray-400">No pending extension requests right now.</p>
             </div>
           ) : (
-            /* Request cards */
             <div className="space-y-3">
-              {requests.map((req) => {
-                const extra = daysDiff(req.contracts.end_date, req.requested_end_date)
-                const isProcessing = processingId === req.id
+              {requests.map((request) => {
+                const extraDays = daysDiff(request.contracts.end_date, request.requested_end_date)
+                const isProcessing = processingId === request.id
+
                 return (
-                  <div
-                    key={req.id}
-                    className="rounded-xl border border-gray-200 bg-gray-50 p-4 transition-shadow hover:shadow-sm"
-                  >
-                    {/* Top row — avatar + name + room */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                  <div key={request.id} className="rounded-xl border border-gray-200 bg-gray-50 p-4 transition-shadow hover:shadow-sm">
+                    <div className="mb-3 flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white text-sm font-bold shadow-sm">
-                          {req.contracts.users?.name?.charAt(0).toUpperCase() ?? '?'}
+                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-sm font-bold text-white shadow-sm">
+                          {request.contracts.users?.name?.charAt(0).toUpperCase() ?? '?'}
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-gray-900">
-                            {req.contracts.users?.name ?? '—'}
+                            {request.contracts.users?.name ?? '-'}
                           </p>
                           <p className="text-xs text-gray-500">
-                            Room #{req.contracts.rooms?.number ?? '—'}
+                            Room #{request.contracts.rooms?.number ?? '-'}
                           </p>
                         </div>
                       </div>
-                      {/* Extension duration badge */}
                       <span className="flex-shrink-0 rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-bold text-[#3B5998]">
-                        +{extra} days
+                        +{extraDays} days
                       </span>
                     </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Tenant</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Room</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Current End Date</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Requested Date</th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Action</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {isLoading ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">Loading requests...</td>
-                  </tr>
-                ) : requests.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No pending requests.</td>
-                  </tr>
-                ) : (
-                  requests.map((req) => (
-                    <tr key={req.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {req.contracts?.users?.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        #{req.contracts?.rooms?.number}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(req.contracts?.end_date).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
-                        {new Date(req.requested_end_date).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-2">
-                          <button
-                            onClick={() => handleAction(req.id, 'approved')}
-                            disabled={processingId === req.id}
-                            className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-                          >
-                            <Check className="h-4 w-4 mr-1" /> Approve
-                          </button>
-                          <button
-                            onClick={() => handleAction(req.id, 'rejected')}
-                            disabled={processingId === req.id}
-                            className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-                          >
-                            <XCircle className="h-4 w-4 mr-1" /> Reject
-                          </button>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-gray-300 mx-1" />
-                        <div className="text-center">
-                          <p className="text-[10px] font-bold uppercase tracking-wide text-blue-400 mb-0.5">Requested</p>
-                          <p className="font-bold text-[#3B5998]">{fmt(req.requested_end_date)}</p>
-                        </div>
+                    <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-100 bg-white p-3">
+                      <div className="text-center">
+                        <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-400">Current end</p>
+                        <p className="text-sm text-gray-700">{fmt(request.contracts.end_date)}</p>
+                      </div>
+                      <ChevronRight className="mx-1 h-4 w-4 text-gray-300" />
+                      <div className="text-center">
+                        <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-400">Requested</p>
+                        <p className="text-sm font-bold text-[#3B5998]">{fmt(request.requested_end_date)}</p>
                       </div>
                     </div>
 
-                    {/* Note (if any) */}
-                    {req.note && (
-                      <p className="mb-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 italic">
-                        "{req.note}"
+                    {request.note && (
+                      <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs italic text-amber-800">
+                        "{request.note}"
                       </p>
                     )}
 
-                    {/* Action buttons */}
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleAction(req.id, req.contracts.id, req.requested_end_date, 'approved')}
+                        type="button"
+                        onClick={() => handleAction(request.id, 'approved')}
                         disabled={isProcessing}
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50 transition-all duration-150"
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
                       >
-                        {isProcessing ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                        )}
+                        {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                         Approve
                       </button>
                       <button
-                        onClick={() => handleAction(req.id, req.contracts.id, req.requested_end_date, 'rejected')}
+                        type="button"
+                        onClick={() => handleAction(request.id, 'rejected')}
                         disabled={isProcessing}
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 active:scale-95 disabled:opacity-50 transition-all duration-150"
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-600 transition-all hover:bg-red-50 active:scale-95 disabled:opacity-50"
                       >
-                        {isProcessing ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <XCircle className="h-3.5 w-3.5" />
-                        )}
+                        {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
                         Reject
                       </button>
                     </div>
@@ -323,24 +251,19 @@ export default function ExtendRequestsModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+        <div className="rounded-b-2xl border-t border-gray-100 bg-gray-50 px-6 py-4">
           <p className="text-center text-xs text-gray-400">
-            Approving will update the contract's end date automatically.
+            Approving uses the review transaction and updates the contract end date.
           </p>
         </div>
 
-        {/* Toast notification */}
         {toast && (
           <div
             className={[
-              'absolute bottom-20 left-1/2 -translate-x-1/2 z-10',
+              'absolute bottom-20 left-1/2 z-10 -translate-x-1/2',
               'flex items-center gap-2 rounded-full px-4 py-2.5 shadow-lg',
-              'text-sm font-semibold whitespace-nowrap',
-              'animate-in fade-in slide-in-from-bottom-2 duration-200',
-              toast.type === 'success'
-                ? 'bg-emerald-600 text-white'
-                : 'bg-gray-900 text-white',
+              'whitespace-nowrap text-sm font-semibold',
+              toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-gray-900 text-white',
             ].join(' ')}
           >
             {toast.type === 'success' ? (
