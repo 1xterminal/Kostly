@@ -16,7 +16,8 @@ type TenantAccountFormData = z.infer<typeof tenantAccountSchema>
 
 type CreateTenantAccountResponse = {
   tenant_id: string
-  temporary_password: string
+  temporary_password: string | null
+  repaired?: boolean
 }
 
 export default function TenantAccountModal({
@@ -31,6 +32,7 @@ export default function TenantAccountModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [createdPassword, setCreatedPassword] = useState<string | null>(null)
+  const [repairMessage, setRepairMessage] = useState<string | null>(null)
 
   const {
     register,
@@ -45,6 +47,7 @@ export default function TenantAccountModal({
     reset()
     setError(null)
     setCreatedPassword(null)
+    setRepairMessage(null)
     onClose()
   }
 
@@ -58,6 +61,9 @@ export default function TenantAccountModal({
         data,
       )
       setCreatedPassword(result.temporary_password)
+      setRepairMessage(result.repaired
+        ? 'Existing auth account linked to tenant profile. Send a reset link if the password is unknown.'
+        : null)
       onSuccess()
       reset()
     } catch (e: unknown) {
@@ -93,6 +99,12 @@ export default function TenantAccountModal({
           {createdPassword && (
             <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
               Account created. Temporary password: <span className="font-bold">{createdPassword}</span>
+            </div>
+          )}
+
+          {repairMessage && (
+            <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+              {repairMessage}
             </div>
           )}
 

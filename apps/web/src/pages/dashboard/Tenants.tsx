@@ -223,6 +223,10 @@ export default function Tenants() {
         ))}
       </div>
 
+      <div className="rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-900">
+        Needs Onboarding means the tenant has not finished first mobile login/password setup. Unassigned means the tenant has no active room contract.
+      </div>
+
       <div className="flex items-center gap-3">
         <div className="relative max-w-xl flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />

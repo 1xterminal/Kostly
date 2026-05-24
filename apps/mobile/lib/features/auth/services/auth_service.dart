@@ -29,7 +29,7 @@ class AuthService {
     if (profile == null) {
       await supabase.auth.signOut();
       throw Exception(
-        'This tenant account has not been onboarded by the property owner.',
+        'Tenant profile is missing. Ask owner to repair this account from the web dashboard.',
       );
     }
 

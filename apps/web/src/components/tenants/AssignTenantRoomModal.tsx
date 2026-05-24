@@ -43,6 +43,7 @@ export default function AssignTenantRoomModal({
     () => tenants.filter((tenant) => tenant.tenant_status !== 'archived' && !tenant.activeContract),
     [tenants],
   )
+  const hasAssignableTenants = assignableTenants.length > 0
 
   const {
     register,
@@ -116,7 +117,7 @@ export default function AssignTenantRoomModal({
               </div>
               <h3 className="text-xl font-bold text-gray-950">Assign Room</h3>
               <p className="mt-1 text-sm text-gray-500">
-                Create the active contract using the selected room price.
+                Only active tenants without an active contract appear here.
               </p>
             </div>
             <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
@@ -141,6 +142,11 @@ export default function AssignTenantRoomModal({
                   </option>
                 ))}
               </select>
+              {!hasAssignableTenants && (
+                <p className="mt-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-800">
+                  No unassigned tenant accounts. Tenants that still need onboarding may already have rooms; ask them to log in and set their password.
+                </p>
+              )}
               {errors.tenant_id && <p className="mt-1 text-xs text-red-500">{errors.tenant_id.message}</p>}
             </div>
 
@@ -184,7 +190,7 @@ export default function AssignTenantRoomModal({
               <button type="button" onClick={handleClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                 Cancel
               </button>
-              <button type="submit" disabled={isSubmitting || assignableTenants.length === 0 || rooms.length === 0} className="rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">
+              <button type="submit" disabled={isSubmitting || !hasAssignableTenants || rooms.length === 0} className="rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">
                 {isSubmitting ? 'Assigning...' : 'Assign Room'}
               </button>
             </div>
