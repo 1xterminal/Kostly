@@ -55,7 +55,6 @@ on conflict (id) do update set role = 'owner';
 | `review-extend-request` | Owner-only. Calls `review_extend_request_tx` to approve/reject extend requests and update contract end date atomically. |
 | `generate-invoices` | Cron/service-role billing generation. |
 | `monthly-report` | Owner-only report snapshot generation. |
-| `create-tenant` | Retired legacy endpoint. Returns `410`. |
 
 ## Storage
 
@@ -100,4 +99,4 @@ supabase functions deploy generate-invoices --project-ref <project-ref>
 supabase functions deploy monthly-report --project-ref <project-ref>
 ```
 
-All active app functions should keep JWT verification enabled. The retired `create-tenant` endpoint may stay deployed only as a compatibility `410` response.
+All active app functions should keep JWT verification enabled.

@@ -213,7 +213,7 @@ export default function Overview() {
     setActions(
       <>
         <HeaderButton onClick={() => navigate('/dashboard/reports')}>Generate Report</HeaderButton>
-        <HeaderButton onClick={() => navigate('/dashboard/tenants')}>Onboard Tenant</HeaderButton>
+        <HeaderButton onClick={() => navigate('/dashboard/tenants')}>Add Account</HeaderButton>
       </>,
     )
 

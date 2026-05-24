@@ -34,25 +34,6 @@ export default function NewRoomModal({
     setIsSubmitting(true)
     setError(null)
     try {
-      // const { data: sessionData } = await supabase.auth.getSession()
-      // const token = sessionData.session?.access_token
-
-      // if (!token) throw new Error('Not authenticated')
-
-      // // Ensure URL works locally and in production if deployed
-      // const functionsUrl = import.meta.env.VITE_SUPABASE_URL 
-      //   ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-tenant`
-      //   : 'http://127.0.0.1:54321/functions/v1/create-room'
-
-      // const res = await fetch(functionsUrl, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify(data)
-      // })
-
       await createRoom({
         ...data,
         wifi_password: data.wifi_password || null,
