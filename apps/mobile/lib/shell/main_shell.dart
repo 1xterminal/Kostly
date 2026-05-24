@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../features/contracts/providers/contract_provider.dart';
 
 // ─── Bottom Nav Items ─────────────────────────────────────────────────────────
 
@@ -11,22 +13,26 @@ class _NavItem {
 
 // Icons matched to the mockup image
 const _navItems = [
-  _NavItem(Icons.grid_view_rounded,          'Home'),      // 4-square grid
-  _NavItem(Icons.credit_card_outlined,       'Payments'),  // credit card
-  _NavItem(Icons.confirmation_number_outlined,'Maintenance'), // ticket/coupon
-  _NavItem(Icons.receipt_outlined,           'Contracts'), // receipt/doc
-  _NavItem(Icons.account_circle_outlined,    'Profile'),   // person circle
+  _NavItem(Icons.grid_view_rounded, 'Home'), // 4-square grid
+  _NavItem(Icons.credit_card_outlined, 'Payments'), // credit card
+  _NavItem(Icons.confirmation_number_outlined, 'Maintenance'), // ticket/coupon
+  _NavItem(Icons.receipt_outlined, 'Contracts'), // receipt/doc
+  _NavItem(Icons.account_circle_outlined, 'Profile'), // person circle
 ];
 
 const _kPrimary = Color(0xFF3341A5);
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
 
-class MainShell extends StatelessWidget {
+class MainShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
   const MainShell({super.key, required this.navigationShell});
 
-  void _onTap(int index) {
+  void _onTap(WidgetRef ref, int index) {
+    if (index == 3) {
+      ref.invalidate(activeContractProvider);
+    }
+
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
@@ -34,13 +40,13 @@ class MainShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFFEBEBEB),
       body: navigationShell,
       bottomNavigationBar: _BottomNav(
         currentIndex: navigationShell.currentIndex,
-        onTap: _onTap,
+        onTap: (index) => _onTap(ref, index),
       ),
     );
   }

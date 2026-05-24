@@ -9,10 +9,19 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final response = await supabase.auth.signInWithPassword(
-      email: email.trim().toLowerCase(),
-      password: password,
-    );
+    late final AuthResponse response;
+    try {
+      response = await supabase.auth.signInWithPassword(
+        email: email.trim().toLowerCase(),
+        password: password,
+      );
+    } on AuthException catch (e) {
+      final message = e.message.toLowerCase();
+      if (message.contains('invalid') || message.contains('credentials')) {
+        throw Exception('Invalid email or password.');
+      }
+      throw Exception(e.message);
+    }
 
     final userId = response.user?.id;
     if (userId == null) {

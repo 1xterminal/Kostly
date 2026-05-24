@@ -15,7 +15,13 @@ export type SignInCredentials = {
  */
 export async function signIn({ email, password }: SignInCredentials) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) throw error
+  if (error) {
+    const message = error.message.toLowerCase()
+    if (message.includes('invalid') || message.includes('credentials')) {
+      throw new Error('Invalid email or password.')
+    }
+    throw error
+  }
 
   // Role check — only owners can access the web dashboard.
   // Use public.users as the authorization source of truth, not user_metadata.

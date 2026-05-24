@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/profile_providers.dart';
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
@@ -240,6 +241,7 @@ class ProfileScreen extends ConsumerWidget {
 
     if (confirm == true) {
       await ref.read(profileNotifierProvider.notifier).signOut();
+      if (context.mounted) context.go('/login');
     }
   }
 }

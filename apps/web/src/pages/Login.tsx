@@ -48,7 +48,7 @@ export default function Login() {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-[13px] font-medium text-gray-500 mb-1.5">
-                Username or email
+                Email
               </label>
               <input
                 id="email"

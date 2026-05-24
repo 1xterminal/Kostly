@@ -13,8 +13,7 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
       _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState
-    extends ConsumerState<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _isLoading = false;
@@ -29,12 +28,15 @@ class _ForgotPasswordScreenState
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() { _isLoading = true; _error = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
     try {
-      await ref.read(authServiceProvider).forgotPassword(
-        _emailController.text.trim(),
-      );
+      await ref
+          .read(authServiceProvider)
+          .forgotPassword(_emailController.text.trim());
       if (mounted) setState(() => _sent = true);
     } catch (e) {
       setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
@@ -69,12 +71,8 @@ class _ForgotPasswordScreenState
 
                 // Subtitle
                 const Text(
-                  'If you forget your password, enter your email that we will send you a reset password link to your email inbox.',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: kAuthGray,
-                    height: 1.5,
-                  ),
+                  'Enter the email address for your tenant account. We will send a reset password link to your inbox.',
+                  style: TextStyle(fontSize: 15, color: kAuthGray, height: 1.5),
                 ),
                 const SizedBox(height: 28),
 
@@ -99,7 +97,7 @@ class _ForgotPasswordScreenState
                 ] else ...[
                   // Email field
                   AuthTextField(
-                    label: 'Username or email',
+                    label: 'Email',
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.done,

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'core/supabase_client.dart';
@@ -21,26 +24,40 @@ import 'features/profile/screens/profile_screen.dart';
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final authRefresh = GoRouterRefreshStream(supabase.auth.onAuthStateChange);
+  ref.onDispose(authRefresh.dispose);
+
   return GoRouter(
     initialLocation: '/home',
+    refreshListenable: authRefresh,
 
     // Auth guard — runs on every navigation event
     redirect: (context, state) {
       final session = supabase.auth.currentSession;
       final isLoggedIn = session != null;
       final path = state.matchedLocation;
-      final isOnAuthScreen = [
+      final isOnPublicAuthScreen = [
         '/login',
         '/forgot-password',
         '/reset-password',
       ].contains(path);
 
       // Not logged in → login
-      if (!isLoggedIn && !isOnAuthScreen) return '/login';
+      if (!isLoggedIn && !isOnPublicAuthScreen) return '/login';
 
-      // Logged in but on login → redirect to app (or set-password if first login)
-      if (isLoggedIn && path == '/login') {
-        return AuthService().mustChangePassword ? '/set-password' : '/home';
+      if (isLoggedIn) {
+        final mustChangePassword = AuthService().mustChangePassword;
+
+        // Owner-created tenants must finish onboarding before using the app.
+        if (mustChangePassword && path != '/set-password') {
+          return '/set-password';
+        }
+
+        // Logged in but on login/onboarding after completion → redirect to app.
+        if (!mustChangePassword &&
+            (path == '/login' || path == '/set-password')) {
+          return '/home';
+        }
       }
 
       return null;
@@ -133,3 +150,17 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  late final StreamSubscription<dynamic> _subscription;
+
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}

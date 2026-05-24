@@ -66,8 +66,8 @@ export default function ForgotPassword() {
                 Forgot password?
               </h1>
               <p className="text-[13px] text-gray-500 mb-6 leading-relaxed">
-                If you forget your password, enter your email that we will send you a reset
-                password link to your email inbox.
+                Enter the email address for your owner account. We will send a reset
+                password link to your inbox.
               </p>
 
               {error && (

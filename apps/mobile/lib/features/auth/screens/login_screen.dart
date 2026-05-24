@@ -81,7 +81,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 // Email
                 AuthTextField(
-                  label: 'Username or email',
+                  label: 'Email',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   validator: validateEmail,
@@ -97,8 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onToggleObscure: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
                   onFieldSubmitted: (_) => _submit(),
-                  validator: (v) =>
-                      validateRequired(v, field: 'Password'),
+                  validator: (v) => validateRequired(v, field: 'Password'),
                 ),
                 const SizedBox(height: 12),
 
