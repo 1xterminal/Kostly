@@ -1,3 +1,4 @@
+import 'dart:io';
 import '../../../core/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -6,14 +7,14 @@ class Profile {
   final String name;
   final String email;
   final String phone;
-  final String avatarPath;
+  final String? avatarUrl;
 
   const Profile({
     required this.id,
     required this.name,
     required this.email,
     required this.phone,
-    this.avatarPath = '',
+    this.avatarUrl,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
@@ -22,7 +23,7 @@ class Profile {
       name: json['name'] as String? ?? 'No Name',
       email: json['email'] as String? ?? '',
       phone: json['phone_number'] as String? ?? '',
-      avatarPath: json['avatar_path'] as String? ?? '',
+      avatarUrl: json['avatar_url'] as String?,
     );
   }
 }
@@ -49,7 +50,19 @@ class ProfileRepository {
       );
     }
 
-    return Profile.fromJson(response);
+    final data = Map<String, dynamic>.from(response);
+
+    final path = data['avatar_path'] as String?;
+
+    if (path != null && path.isNotEmpty) {
+      final signedUrl = await supabase.storage
+          .from('profile-pictures')
+          .createSignedUrl(path, 60 * 60 * 24 * 365);
+
+      data['avatar_url'] = signedUrl;
+    }
+
+    return Profile.fromJson(data);
   }
 
   Future<void> updateProfile(String name, String email, String phone) async {
@@ -88,7 +101,6 @@ class ProfileRepository {
     if (email == null) throw Exception('No email associated with this user');
 
     try {
-      // Verify the old password
       await supabase.auth.signInWithPassword(
         email: email,
         password: oldPassword,
@@ -97,8 +109,31 @@ class ProfileRepository {
       throw Exception('Incorrect old password');
     }
 
-    // Update to the new password
     await supabase.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
+  Future<void> uploadProfilePicture(File imageFile) async {
+    final user = supabase.auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+
+    final fileExtension = imageFile.path.split('.').last.toLowerCase();
+    final fileName =
+        '${user.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+
+    final filePath = 'profiles/${user.id}/$fileName';
+
+    await supabase.storage
+        .from('profile-pictures')
+        .upload(
+          filePath,
+          imageFile,
+          fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+        );
+
+    await supabase
+        .from('users')
+        .update({'avatar_path': filePath})
+        .eq('id', user.id);
   }
 
   Future<void> signOut() async {
