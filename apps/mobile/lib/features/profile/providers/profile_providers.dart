@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/profile_repository.dart';
 
@@ -33,6 +34,16 @@ class ProfileNotifier extends AsyncNotifier<Profile> {
   Future<void> signOut() async {
     final repo = ref.read(profileRepositoryProvider);
     await repo.signOut();
+  }
+
+  Future<void> uploadProfilePicture(File imageFile) async {
+    try {
+      final repo = ref.read(profileRepositoryProvider);
+      await repo.uploadProfilePicture(imageFile);
+      state = AsyncValue.data(await repo.fetchProfile());
+    } catch (e) {
+      rethrow;
+    }
   }
 }
 

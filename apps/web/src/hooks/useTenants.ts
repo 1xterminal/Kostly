@@ -8,6 +8,7 @@ export type TenantWithDetails = {
   phone_number: string | null
   tenant_status: string | null
   onboarding: boolean | null
+  avatar_url?: string | null
   lifecycle: 'assigned' | 'needs_onboarding' | 'unassigned' | 'archived'
   activeContract?: {
     id: string
@@ -28,7 +29,7 @@ type InvoiceRow = { id: string; status: string; due_date: string; payments: Paym
 type RoomRow = { id: string; number: string; price: number }
 type TicketRow = { id: string; ticket_status: string }
 type ContractRow = { id: string; start_date: string; end_date: string; monthly_rate: number; status: string; room: RoomRow | null; invoices: InvoiceRow[] | null }
-type UserRow = { id: string; name: string; email: string; phone_number: string | null; tenant_status: string | null; onboarding: boolean | null; contracts: ContractRow[] | null; maintenance_tickets: TicketRow[] | null }
+type UserRow = { id: string; name: string; email: string; phone_number: string | null; tenant_status: string | null; onboarding: boolean | null; avatar_path: string | null; contracts: ContractRow[] | null; maintenance_tickets: TicketRow[] | null }
 
 export function useTenants() {
   return useQuery({
@@ -37,7 +38,7 @@ export function useTenants() {
       const { data, error } = await supabase
         .from('users')
         .select(`
-          id, name, email, phone_number, tenant_status, onboarding,
+          id, name, email, phone_number, tenant_status, onboarding, avatar_path,
           contracts:contracts!contracts_tenant_id_fkey (
             id, start_date, end_date, monthly_rate, status,
             room:rooms!contracts_room_id_fkey ( id, number, price ),
@@ -56,6 +57,21 @@ export function useTenants() {
       if (error) throw error
 
       const users = (data as unknown as UserRow[]) || []
+
+      const pathsToSign = users.map(u => u.avatar_path).filter(Boolean) as string[]
+      const signedUrlsMap: Record<string, string> = {}
+      
+      if (pathsToSign.length > 0) {
+        const { data: signedUrlsData } = await supabase.storage
+          .from('profile-pictures')
+          .createSignedUrls(pathsToSign, 60 * 60 * 24 * 365) // 1 year
+          
+        if (signedUrlsData) {
+          signedUrlsData.forEach(item => {
+            if (item.signedUrl && item.path) signedUrlsMap[item.path] = item.signedUrl
+          })
+        }
+      }
 
       return users.map((user) => {
         // Find the active contract
@@ -100,6 +116,7 @@ export function useTenants() {
           phone_number: user.phone_number,
           tenant_status: user.tenant_status ?? 'active',
           onboarding: user.onboarding,
+          avatar_url: user.avatar_path ? signedUrlsMap[user.avatar_path] : null,
           lifecycle,
           activeContract: activeContract ? {
             id: activeContract.id,
