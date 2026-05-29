@@ -74,6 +74,22 @@ payments/{tenant-auth-uid}/{filename}
 
 The `payments.proof_images` column stores that object path, not a public URL. Web/mobile generate signed URLs when reading proofs.
 
+Profile pictures use the private `profile-pictures` bucket.
+
+Bucket restrictions:
+
+- `public = false`
+- `file_size_limit = 2097152`
+- `allowed_mime_types = image/jpeg, image/png, image/webp, image/heic, image/heif`
+
+Stored paths must follow:
+
+```txt
+profiles/{auth-uid}/{filename}
+```
+
+The `users.avatar_path` column stores that object path. Users can upload, read, update, and delete their own profile picture while active; owners can read all profile pictures.
+
 ## RLS
 
 All public tables have RLS enabled.

@@ -6,12 +6,14 @@ class Profile {
   final String name;
   final String email;
   final String phone;
+  final String avatarPath;
 
   const Profile({
     required this.id,
     required this.name,
     required this.email,
     required this.phone,
+    this.avatarPath = '',
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class Profile {
       name: json['name'] as String? ?? 'No Name',
       email: json['email'] as String? ?? '',
       phone: json['phone_number'] as String? ?? '',
+      avatarPath: json['avatar_path'] as String? ?? '',
     );
   }
 }
