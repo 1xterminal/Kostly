@@ -211,11 +211,10 @@ export default function Tenants() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`rounded-lg border px-4 py-3 text-left transition ${
-              activeTab === tab
+            className={`rounded-lg border px-4 py-3 text-left transition ${activeTab === tab
                 ? 'border-blue-300 bg-blue-50 text-[#3B5998]'
                 : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-            }`}
+              }`}
           >
             <p className="text-xs font-bold uppercase tracking-wide">{tab}</p>
             <p className="mt-1 text-2xl font-bold">{counts[tab]}</p>
@@ -276,13 +275,22 @@ export default function Tenants() {
                   <tr key={tenant.id} className="hover:bg-gray-50">
                     <td className="px-5 py-4">
                       <button onClick={() => setSelectedTenant(tenant)} className="flex items-center text-left">
-                        <span className="h-9 w-9 flex-shrink-0 rounded-full bg-gray-200" />
+                        {tenant.avatar_url ? (
+                          <img
+                            src={tenant.avatar_url}
+                            alt={`${tenant.name}'s profile`}
+                            className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="h-9 w-9 flex-shrink-0 rounded-full bg-gray-200" />
+                        )}
                         <span className="ml-3">
                           <span className="block text-sm font-bold text-gray-950">{tenant.name}</span>
                           <span className="block text-xs text-gray-500">{tenant.email}</span>
                         </span>
                       </button>
                     </td>
+
                     <td className="border-l border-gray-200 px-5 py-4">
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${statusClasses[lifecycleKey]}`}>
                         {getLifecycleLabel(tenant)}
