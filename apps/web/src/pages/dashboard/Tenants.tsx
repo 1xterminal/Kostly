@@ -23,6 +23,7 @@ import { callEdgeFunction } from '../../lib/edgeFunctions'
 import { useSidebarHeader } from '../../components/layout/sidebar-context'
 import Button from "@/components/ui/Button";
 import { Symbols } from "@/components/ui/MaterialSymbols";
+import { Input } from '@/components/ui/Field'
 
 type TenantTab = 'All' | 'Needs Onboarding' | 'Assigned' | 'Unassigned' | 'Archived'
 
@@ -252,8 +253,8 @@ export default function Tenants() {
         Needs Onboarding means the tenant has not finished first mobile login/password setup. Unassigned means the tenant has no active room contract.
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative max-w-xl flex-1">
+      <div className="flex justify-center gap-3 px-20">
+        {/*<div className="relative max-w-xl flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -262,7 +263,13 @@ export default function Tenants() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-        </div>
+        </div>*/}
+        <Input
+          placeholder="Search name, email, phone, or room"
+          leadingIcon={<Symbols name="search" />}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ flex: 1 }}
+        />
         {/*<button
           onClick={() => setActiveTab("All")}
           className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"

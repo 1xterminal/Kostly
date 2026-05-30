@@ -8,6 +8,7 @@ import { callEdgeFunction } from '../../lib/edgeFunctions'
 import type { TenantWithDetails } from '../../hooks/useTenants'
 import { isEndAfterStart } from '../../lib/validation'
 import Button from "../ui/Button";
+import { Input, Select } from '../ui/Field'
 
 const assignSchema = z.object({
   tenant_id: z.string().min(1, 'Tenant is required'),
@@ -134,15 +135,20 @@ export default function AssignTenantRoomModal({
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-800">Tenant</label>
-              <select {...register('tenant_id')} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                <option value="">Select tenant account</option>
+              {/*<label className="block text-sm font-semibold text-gray-800">Tenant</label>
+              <select {...register('tenant_id')} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">*/}
+              <Select
+                label="Room"
+                {...register('room_id', { onChange: (event) => setSelectedRoomId(event.target.value) })}
+              >
+              <option value="">Select tenant account</option>
                 {assignableTenants.map((tenant) => (
                   <option key={tenant.id} value={tenant.id}>
                     {tenant.name} - {tenant.email}
                   </option>
                 ))}
-              </select>
+              </Select>
+              {/*</select>*/}
               {!hasAssignableTenants && (
                 <p className="mt-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-800">
                   No unassigned tenant accounts. Tenants that still need onboarding may already have rooms; ask them to log in and set their password.
@@ -152,7 +158,7 @@ export default function AssignTenantRoomModal({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-800">Room</label>
+              {/*<label className="block text-sm font-semibold text-gray-800">Room</label>
               <select
                 {...register('room_id', { onChange: (event) => setSelectedRoomId(event.target.value) })}
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -163,19 +169,40 @@ export default function AssignTenantRoomModal({
                     Room #{room.number} - IDR {Number(room.price).toLocaleString('id-ID')}
                   </option>
                 ))}
-              </select>
+              </select>*/}
+              <Select
+                label="Room"
+                {...register('room_id', { onChange: (event) => setSelectedRoomId(event.target.value) })}
+              >
+                <option value="">Select available room</option>
+                {rooms.map((room) => (
+                  <option key={room.id} value={room.id}>
+                    Room #{room.number} - IDR {Number(room.price).toLocaleString('id-ID')}
+                  </option>
+                ))}
+              </Select>
               {errors.room_id && <p className="mt-1 text-xs text-red-500">{errors.room_id.message}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-800">Start Date</label>
-                <input type="date" {...register('start_date')} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                {/*<label className="block text-sm font-semibold text-gray-800">Start Date</label>
+                <input type="date" {...register('start_date')} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />*/}
+                <Input
+                  label="Start Date"
+                  type="date"
+                  {...register('start_date')}
+                />
                 {errors.start_date && <p className="mt-1 text-xs text-red-500">{errors.start_date.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-800">End Date</label>
-                <input type="date" {...register('end_date')} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                {/*<label className="block text-sm font-semibold text-gray-800">End Date</label>
+                <input type="date" {...register('end_date')} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />*/}
+                <Input
+                  label="End Date"
+                  type="date"
+                  {...register('end_date')}
+                />
                 {errors.end_date && <p className="mt-1 text-xs text-red-500">{errors.end_date.message}</p>}
               </div>
             </div>
@@ -194,7 +221,12 @@ export default function AssignTenantRoomModal({
               <button type="submit" disabled={isSubmitting || !hasAssignableTenants || rooms.length === 0} className="rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">
                 {isSubmitting ? 'Assigning...' : 'Assign Room'}
               </button>*/}
-              <Button emphasis="outlined" onClick={handleClose}>
+              <Button
+                type="button"
+                emphasis="outlined"
+                disabled={isSubmitting}
+                onClick={handleClose}
+              >
                 Cancel
               </Button>
               <Button

@@ -9,6 +9,7 @@ import { getReports } from '@/api/reports'
 import type { Report } from '@/types'
 import Button from "@/components/ui/Button";
 import { Symbols } from "@/components/ui/MaterialSymbols";
+import { Input } from '@/components/ui/Field'
 
 export default function Reports() {
     const navigate = useNavigate()
@@ -99,7 +100,7 @@ export default function Reports() {
     const sortOptions = ['Date Created', 'Highest Revenue', 'Lowest Revenue', 'Highest Occupancy', 'Lowest Occupancy']
 
     return (
-        <div className="h-[calc(100vh-80px)] flex flex-col px-6 pt-2 pb-6 max-w-7xl w-full mx-auto space-y-4 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="h-[calc(100vh-80px)] flex flex-col px-6 pt-2 pb-6 max-w-7xl w-full mx-auto space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 shrink-0">
                 {reportsLoading ? (
                     <div className="h-[200px] bg-white rounded-xl shadow-sm border border-gray-100 animate-pulse" />
@@ -114,11 +115,17 @@ export default function Reports() {
                 )}
             </div>
 
-            <div className="flex items-center gap-4 shrink-0 mt-2">
-                <div className="relative flex-1">
+            <div className="flex items-center gap-4 shrink-0 mt-2 px-20">
+                {/*<div className="relative flex-1">
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400" />
                     <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search reports by date (e.g. 20 April 2026)" className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-[14px] outline-none focus:ring-2 focus:ring-[#3341A5] focus:border-transparent transition-all" />
-                </div>
+                </div>*/}
+                <Input
+                  placeholder="Search reports by date (e.g. 20 April 2026)"
+                  leadingIcon={<Symbols name="search" />}
+                  value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ flex: 1 }}
+                />
                 {/*<button onClick={() => generateMutation.mutate()} disabled={generateMutation.isPending} className="flex items-center gap-2 bg-[#3341A5] hover:bg-[#283382] disabled:bg-gray-400 text-white px-5 py-2.5 rounded-lg text-[14px] font-medium transition-colors">
                             {generateMutation.isPending ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <Plus className="w-[18px] h-[18px]" />}
                             Generate Report
@@ -155,7 +162,7 @@ export default function Reports() {
                 )}
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-2 space-y-3 pb-8">
+            <div className="flex-1 pr-2 space-y-3 pb-8">
                 {reportsLoading ? (
                     <div className="text-center text-sm text-gray-500 py-10">Loading reports...</div>
                 ) : displayedReports.length === 0 ? (

@@ -33,7 +33,7 @@ function Layout() {
       style={{
         height: '100vh',
         backgroundColor: '#EBEBEB',
-        padding: '24px',
+        paddingInline: '24px',
         boxSizing: 'border-box',
         display: 'flex',
         justifyContent: 'center',
@@ -61,6 +61,7 @@ function Layout() {
         <div
           style={{
             width: isOpen ? 300 : 0,
+            paddingBlock: '24px',
             flexShrink: 0,
             transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
@@ -78,7 +79,16 @@ function Layout() {
         </div>
 
         {/* Main content */}
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%', minHeight: 0 }}>
+        <main style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          paddingTop: '24px',
+          overflow: 'visible',
+          height: '100%',
+          minHeight: 0,
+        }}>
 
           <header
             style={{

@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react"
 import { useRooms } from "../../hooks/useRooms"
-import { Search, Plus } from 'lucide-react'
 
 import Button from "@/components/ui/Button";
-import Field from "@/components/ui/Field";
+import { Input } from "@/components/ui/Field";
 import NewRoomModal from "@/components/rooms/NewRoomModal";
 import { RoomCard } from "@/components/rooms/RoomCard";
 import EditRoomModal from "@/components/rooms/EditRoomModal";
@@ -76,32 +75,29 @@ export default function RoomInventory() {
     return true;
   });
 
-    return (
-      <div className="p-8 max-w-6xl mx-auto space-y-6">
-        {/* Search and Action */}
-        <div className="flex items-center space-x-4">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Search rooms"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+  return (
+    <div className="p-8 max-w-6xl mx-auto space-y-6">
+      {/*<div className="flex items-center space-x-4">
+        <div className="relative flex-1">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
           </div>
-          <button
-            onClick={() => setIsNewRoomOpen(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#3B5998] hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <Plus className="-ml-1 mr-2 h-5 w-5" />
-            New Room
-          </button>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            placeholder="Search rooms"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
+      </div>*/}
+      <div className="flex flex-col px-20 gap-4">
+        <Input
+          placeholder="Search Rooms"
+          leadingIcon={<Symbols name="search" />}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-        {/* Filter Chips */}
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex gap-2 items-baseline font-bold">
             <span>Filter:</span>
@@ -123,41 +119,42 @@ export default function RoomInventory() {
             ))}
           </nav>
         </div>
-
-        <div>
-          {
-            isLoading ? (
-              <div className="p-8">Loading rooms...</div>
-            ): filteredRooms?.length === 0 ? (
-              <div className="p-8 text-red-500">No rooms found</div>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {filteredRooms?.map((room) => {
-                  return <div className="cursor-pointer" key={room.id} onClick={() => selectId(room.id)}>
-                    <RoomCard {...room} />
-                  </div>
-                })}
-              </div>
-            )
-          }
-        </div>
-
-        <NewRoomModal
-          isOpen={isNewRoomOpen}
-          onClose={() => setIsNewRoomOpen(false)}
-          onSuccess={() => {
-            refetch()
-          }}
-        />
-
-        <EditRoomModal
-          id={selectedId}
-          isOpen={isSetStatusOpen}
-          onClose={() => setIsSetStatusOpen(false)}
-          onSuccess={() => {
-            refetch()
-          }}
-        />
       </div>
-    )
+
+      <div>
+        {
+          isLoading ? (
+            <div className="p-8">Loading rooms...</div>
+          ): filteredRooms?.length === 0 ? (
+            <div className="p-8 text-red-500">No rooms found</div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {filteredRooms?.map((room) => {
+                return <div className="cursor-pointer" key={room.id} onClick={() => selectId(room.id)}>
+                  <RoomCard {...room} />
+                </div>
+              })}
+            </div>
+          )
+        }
+      </div>
+
+      <NewRoomModal
+        isOpen={isNewRoomOpen}
+        onClose={() => setIsNewRoomOpen(false)}
+        onSuccess={() => {
+          refetch()
+        }}
+      />
+
+      <EditRoomModal
+        id={selectedId}
+        isOpen={isSetStatusOpen}
+        onClose={() => setIsSetStatusOpen(false)}
+        onSuccess={() => {
+          refetch()
+        }}
+      />
+    </div>
+  )
 }

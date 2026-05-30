@@ -19,10 +19,17 @@ export const ButtonStyles = recipe({
     borderRadius: "8px",
     boxSizing: "border-box",
     cursor: "pointer",
+    whiteSpace: "nowrap",
     position: "relative", // Required to position the background layer
     zIndex: 1, // Ensures content stays above pseudo-elements
     overflow: "hidden", // Keeps the hover effect clipped to border-radius
     transition: "all 0.2s cubic-bezier(0.45, 0, 0.55, 1)",
+
+    ":disabled": {
+      opacity: 0.5,
+      cursor: "not-allowed",
+      vars: { [accentColor]: colors.gray[90] },
+    }
   },
 
   variants: {

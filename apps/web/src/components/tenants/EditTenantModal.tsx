@@ -4,6 +4,7 @@ import { Pencil, X } from 'lucide-react'
 import type { TenantWithDetails } from '../../hooks/useTenants'
 import { phonePattern } from '../../lib/validation'
 import Button from "../ui/Button";
+import { Input } from '../ui/Field'
 // import { Symbols } from "../ui/MaterialSymbols";
 
 export default function EditTenantModal({
@@ -75,19 +76,29 @@ export default function EditTenantModal({
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-800">Full Name</label>
+              {/*<label className="block text-sm font-semibold text-gray-800">Full Name</label>
               <input
                 name="name"
                 defaultValue={tenant.name}
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />*/}
+              <Input
+                label="Full Name"
+                name="name"
+                defaultValue={tenant.name}
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-800">Phone Number</label>
+              {/*<label className="block text-sm font-semibold text-gray-800">Phone Number</label>
               <input
                 name="phone_number"
                 defaultValue={tenant.phone_number ?? ''}
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />*/}
+              <Input
+                label="Phone Number"
+                name="phone_number"
+                defaultValue={tenant.phone_number ?? ''}
               />
             </div>
           </div>
