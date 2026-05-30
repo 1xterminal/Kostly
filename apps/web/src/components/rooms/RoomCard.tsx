@@ -29,7 +29,7 @@ export function RoomCard(roomData: RoomWithRelations) {
 
   return (
     <div key={roomData.id} className={`
-      h-[160px] p-5 rounded-xl
+      h-40 p-5 rounded-lg
       border border-gray-300
       bg-white shadow-sm
       flex flex-col justify-between

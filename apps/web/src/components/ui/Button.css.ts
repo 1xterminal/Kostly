@@ -26,9 +26,10 @@ export const ButtonStyles = recipe({
     transition: "all 0.2s cubic-bezier(0.45, 0, 0.55, 1)",
 
     ":disabled": {
+      vars: { [accentColor]: colors.gray[50] },
       opacity: 0.5,
       cursor: "not-allowed",
-      vars: { [accentColor]: colors.gray[90] },
+      boxShadow: `0 0 0px transparent`,
     }
   },
 
