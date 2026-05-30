@@ -7,12 +7,13 @@ import {
   ClipboardList,
   DoorOpen,
   FileClock,
-  Plus,
   ReceiptText,
   Ticket,
 } from 'lucide-react'
 import { getDashboardSummary, dashboardKeys, type DashboardAlert, type DashboardChartPoint } from '@/api/dashboard'
 import { useSidebarHeader } from '@/components/layout/sidebar-context'
+import Button from "@/components/ui/Button";
+import { Symbols } from "@/components/ui/MaterialSymbols";
 
 const currencyFormatter = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -55,18 +56,24 @@ function formatCompactCurrency(value: number) {
   return `IDR ${compactCurrencyFormatter.format(value / 1_000)}K`
 }
 
-function HeaderButton({ children, onClick }: { children: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="inline-flex h-11 items-center gap-3 rounded-lg border border-[#9AA7DE] bg-transparent px-4 text-[18px] font-bold text-[#3045AF] transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#9AA7DE] focus:ring-offset-2"
-    >
-      <Plus className="h-5 w-5 stroke-[2.5]" />
-      <span>{children}</span>
-    </button>
-  )
-}
+// function HeaderButton({
+//   children,
+//   onClick,
+// }: {
+//   children: string;
+//   onClick: () => void;
+// }) {
+//   return (
+//     <button
+//       type="button"
+//       onClick={onClick}
+//       className="inline-flex h-11 items-center gap-3 rounded-lg border border-[#9AA7DE] bg-transparent px-4 text-[18px] font-bold text-[#3045AF] transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#9AA7DE] focus:ring-offset-2"
+//     >
+//       <Plus className="h-5 w-5 stroke-[2.5]" />
+//       <span>{children}</span>
+//     </button>
+//   );
+// }
 
 function LineChart({
   data,
@@ -212,8 +219,20 @@ export default function Overview() {
   useEffect(() => {
     setActions(
       <>
-        <HeaderButton onClick={() => navigate('/dashboard/reports')}>Generate Report</HeaderButton>
-        <HeaderButton onClick={() => navigate('/dashboard/tenants')}>Add Account</HeaderButton>
+        <Button
+          emphasis="outlined"
+          onClick={() => navigate("/dashboard/reports")}
+        >
+          <Symbols name="add" />
+          Generate Report
+        </Button>
+        <Button
+          emphasis="outlined"
+          onClick={() => navigate("/dashboard/tenants")}
+        >
+          <Symbols name="add" />
+          Add Account
+        </Button>
       </>,
     )
 

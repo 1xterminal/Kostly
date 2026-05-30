@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase'
 import { callEdgeFunction } from '../../lib/edgeFunctions'
 import type { TenantWithDetails } from '../../hooks/useTenants'
 import { isEndAfterStart } from '../../lib/validation'
+import Button from "../ui/Button";
 
 const assignSchema = z.object({
   tenant_id: z.string().min(1, 'Tenant is required'),
@@ -187,16 +188,27 @@ export default function AssignTenantRoomModal({
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
-              <button type="button" onClick={handleClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+              {/*<button type="button" onClick={handleClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                 Cancel
               </button>
               <button type="submit" disabled={isSubmitting || !hasAssignableTenants || rooms.length === 0} className="rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">
                 {isSubmitting ? 'Assigning...' : 'Assign Room'}
-              </button>
+              </button>*/}
+              <Button emphasis="outlined" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  isSubmitting || !hasAssignableTenants || rooms.length === 0
+                }
+              >
+                {isSubmitting ? "Assigning..." : "Assign Room"}
+              </Button>
             </div>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { callEdgeFunction } from '../../lib/edgeFunctions'
 import { emailSchema, requiredPhoneSchema, requiredText } from '../../lib/validation'
+import Button from "../ui/Button";
+// import { Symbols } from "../ui/MaterialSymbols";
 
 const tenantAccountSchema = z.object({
   name: requiredText('Name'),
@@ -134,12 +136,19 @@ export default function TenantAccountModal({
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
-              <button type="button" onClick={handleClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+              {/*<button type="button" onClick={handleClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                 Close
               </button>
               <button type="submit" disabled={isSubmitting} className="rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">
                 {isSubmitting ? 'Creating...' : 'Create Account'}
-              </button>
+              </button>*/}
+
+              <Button emphasis="outlined" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Account"}
+              </Button>
             </div>
           </form>
         </div>

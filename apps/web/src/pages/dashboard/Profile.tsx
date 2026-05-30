@@ -6,6 +6,8 @@ import { useSignOut, authKeys } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useSidebarHeader } from '../../components/layout/sidebar-context'
 import { passwordSchema, phonePattern } from '../../lib/validation'
+import Button from "@/components/ui/Button";
+import { Symbols } from "@/components/ui/MaterialSymbols";
 
 type OwnerProfile = {
   id: string
@@ -33,15 +35,24 @@ export default function Profile() {
 
   useEffect(() => {
     setActions(
-      <button
+      // <button
+      //   onClick={() => signOut()}
+      //   disabled={isSigningOut}
+      //   className="inline-flex items-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+      // >
+      //   <LogOut className="mr-2 h-4 w-4" />
+      //   {isSigningOut ? "Signing out..." : "Sign Out"}
+      // </button>,
+      <Button
+        emphasis="outlined"
+        action="destructive"
         onClick={() => signOut()}
         disabled={isSigningOut}
-        className="inline-flex items-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
       >
-        <LogOut className="mr-2 h-4 w-4" />
-        {isSigningOut ? 'Signing out...' : 'Sign Out'}
-      </button>,
-    )
+        <Symbols name="logout" />
+        {isSigningOut ? "Signing out..." : "Sign Out"}
+      </Button>,
+    );
 
     return () => setActions(null)
   }, [isSigningOut, setActions, signOut])
@@ -214,14 +225,18 @@ export default function Profile() {
           </div>
 
           <div className="mt-6 flex justify-end">
-            <button
+            {/*<button
               type="submit"
               disabled={isSavingProfile}
               className="inline-flex items-center rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
             >
               <Save className="mr-2 h-4 w-4" />
-              {isSavingProfile ? 'Saving...' : 'Save Profile'}
-            </button>
+              {isSavingProfile ? "Saving..." : "Save Profile"}
+            </button>*/}
+            <Button type="submit" disabled={isSavingProfile}>
+              <Symbols name="save" />
+              {isSavingProfile ? "Saving..." : "Save Profile"}
+            </Button>
           </div>
         </form>
 
@@ -287,14 +302,18 @@ export default function Profile() {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button
+          {/*<button
             type="submit"
             disabled={isSavingPassword}
             className="inline-flex items-center rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
           >
             <KeyRound className="mr-2 h-4 w-4" />
-            {isSavingPassword ? 'Changing...' : 'Change Password'}
-          </button>
+            {isSavingPassword ? "Changing..." : "Change Password"}
+          </button>*/}
+          <Button type="submit" disabled={isSavingPassword}>
+            <Symbols name="key" />
+            {isSavingPassword ? "Changing..." : "Change Password"}
+          </Button>
         </div>
       </form>
     </div>

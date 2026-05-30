@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Search, Plus, ChevronDown, Check, Loader2 } from 'lucide-react'
+import { Search, ChevronDown, Check, Loader2 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useNavigate } from 'react-router'
@@ -7,6 +7,8 @@ import { RevenueChart } from '@/components/reports/RevenueChart'
 import { OccupancyPieChart } from '@/components/reports/OccupancyPieChart'
 import { getReports } from '@/api/reports'
 import type { Report } from '@/types'
+import Button from "@/components/ui/Button";
+import { Symbols } from "@/components/ui/MaterialSymbols";
 
 export default function Reports() {
     const navigate = useNavigate()
@@ -117,10 +119,21 @@ export default function Reports() {
                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400" />
                     <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search reports by date (e.g. 20 April 2026)" className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-[14px] outline-none focus:ring-2 focus:ring-[#3341A5] focus:border-transparent transition-all" />
                 </div>
-                <button onClick={() => generateMutation.mutate()} disabled={generateMutation.isPending} className="flex items-center gap-2 bg-[#3341A5] hover:bg-[#283382] disabled:bg-gray-400 text-white px-5 py-2.5 rounded-lg text-[14px] font-medium transition-colors">
-                    {generateMutation.isPending ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <Plus className="w-[18px] h-[18px]" />}
-                    Generate Report
-                </button>
+                {/*<button onClick={() => generateMutation.mutate()} disabled={generateMutation.isPending} className="flex items-center gap-2 bg-[#3341A5] hover:bg-[#283382] disabled:bg-gray-400 text-white px-5 py-2.5 rounded-lg text-[14px] font-medium transition-colors">
+                            {generateMutation.isPending ? <Loader2 className="w-[18px] h-[18px] animate-spin" /> : <Plus className="w-[18px] h-[18px]" />}
+                            Generate Report
+                        </button>*/}
+                <Button
+                  onClick={() => generateMutation.mutate()}
+                  disabled={generateMutation.isPending}
+                >
+                  {generateMutation.isPending ? (
+                    <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                  ) : (
+                    <Symbols name="add" />
+                  )}
+                  Generate Report
+                </Button>
             </div>
 
             <div className="relative shrink-0 z-10" ref={sortRef}>

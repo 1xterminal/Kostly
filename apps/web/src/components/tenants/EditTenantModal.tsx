@@ -3,6 +3,8 @@ import type { FormEvent } from 'react'
 import { Pencil, X } from 'lucide-react'
 import type { TenantWithDetails } from '../../hooks/useTenants'
 import { phonePattern } from '../../lib/validation'
+import Button from "../ui/Button";
+// import { Symbols } from "../ui/MaterialSymbols";
 
 export default function EditTenantModal({
   tenant,
@@ -91,12 +93,18 @@ export default function EditTenantModal({
           </div>
 
           <div className="mt-6 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+            {/*<button type="button" onClick={onClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
               Cancel
-            </button>
-            <button type="submit" disabled={isSaving} className="rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">
+            </button>*/}
+            {/*<button type="submit" disabled={isSaving} className="rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">
               {isSaving ? 'Saving...' : 'Save Changes'}
-            </button>
+            </button>*/}
+            <Button emphasis="outlined" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </form>
       </div>

@@ -1,55 +1,80 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRooms } from "../../hooks/useRooms"
 import { Search, Plus } from 'lucide-react'
 
+import Button from "@/components/ui/Button";
+import Field from "@/components/ui/Field";
 import NewRoomModal from "@/components/rooms/NewRoomModal";
 import { RoomCard } from "@/components/rooms/RoomCard";
 import EditRoomModal from "@/components/rooms/EditRoomModal";
-
+import { useSidebarHeader } from "@/components/layout/sidebar-context";
+import { Symbols } from "@/components/ui/MaterialSymbols";
 
 export default function RoomInventory() {
-    const { data: rooms, isLoading, error, refetch } = useRooms();
+  const { data: rooms, isLoading, error, refetch } = useRooms();
 
-    const [search, setSearch] = useState('');
-    const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const { setActions } = useSidebarHeader();
 
-    const [isNewRoomOpen, setIsNewRoomOpen] = useState(false);
-    const [isSetStatusOpen, setIsSetStatusOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
-    const [selectedId, setSelectedId] = useState("0");
+  const [isNewRoomOpen, setIsNewRoomOpen] = useState(false);
+  const [isSetStatusOpen, setIsSetStatusOpen] = useState(false);
 
-    if (error) {
-        return <div className="p-8 text-red-500">Error loading rooms: {(error as Error).message}</div>
+  const [selectedId, setSelectedId] = useState("0");
+
+  useEffect(() => {
+    setActions(
+      <Button onClick={() => setIsNewRoomOpen(true)}>
+        <Symbols name="add_home" />
+        New Room
+      </Button>,
+    );
+
+    return () => setActions(null);
+  }, [setActions, setIsNewRoomOpen]);
+
+  if (error) {
+    return (
+      <div className="p-8 text-red-500">
+        Error loading rooms: {(error as Error).message}
+      </div>
+    );
+  }
+
+  console.log(rooms);
+
+  const selectId = (id: string) => {
+    setSelectedId(id);
+    setIsSetStatusOpen(true);
+  };
+
+  const toggleFilter = (filter: string) => {
+    if (activeFilters.includes(filter))
+      setActiveFilters(activeFilters.filter((f) => f !== filter));
+    else setActiveFilters([...activeFilters, filter]);
+  };
+
+  const filteredRooms = (rooms || []).filter((room) => {
+    // Filter by search
+    if (search && !room.number.toLowerCase().includes(search.toLowerCase()))
+      return false;
+
+    // Filter by chips
+    if (activeFilters.length > 0) {
+      if (activeFilters.includes("Available") && room.status !== "available")
+        return false;
+      if (activeFilters.includes("Occupied") && room.status !== "occupied")
+        return false;
+      if (
+        activeFilters.includes("Maintenance") &&
+        room.status !== "maintenance"
+      )
+        return false;
     }
-    
-    console.log(rooms);
 
-    const selectId = (id: string) => {
-      setSelectedId(id);
-      setIsSetStatusOpen(true);
-    }
-
-    const toggleFilter = (filter: string) => {
-      if (activeFilters.includes(filter))
-        setActiveFilters(activeFilters.filter(f => f !== filter));
-      else 
-        setActiveFilters([...activeFilters, filter]);
-    }
-
-    const filteredRooms = (rooms || []).filter(room => {
-      // Filter by search
-      if (search && !room.number.toLowerCase().includes(search.toLowerCase())) return false
-
-      // Filter by chips
-      if (activeFilters.length > 0) {
-        if (activeFilters.includes('Available') && room.status !== 'available') return false
-        if (activeFilters.includes('Occupied') && room.status !== 'occupied') return false
-        if (activeFilters.includes('Maintenance') && room.status !== 'maintenance') return false
-      }
-
-      return true
-    })
-
+    return true;
+  });
 
     return (
       <div className="p-8 max-w-6xl mx-auto space-y-6">
