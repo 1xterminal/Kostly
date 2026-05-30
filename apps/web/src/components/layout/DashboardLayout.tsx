@@ -3,6 +3,7 @@ import { useAutoAnimate } from '@formkit/auto-animate/react'
 import Sidebar from './Sidebar'
 import { SidebarProvider } from './SidebarContext'
 import { useSidebar, useSidebarHeader } from './sidebar-context'
+import { lightTheme } from "@/theme/theme.css";
 
 // ─── Page title map ───────────────────────────────────────────────────────────
 const PAGE_TITLES: Record<string, string> = {
@@ -28,6 +29,7 @@ function Layout() {
 
   return (
     <div
+      className={lightTheme}
       style={{
         height: '100vh',
         backgroundColor: '#EBEBEB',

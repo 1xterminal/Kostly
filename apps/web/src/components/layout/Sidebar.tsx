@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router'
 import { useSession, useSignOut } from '@/hooks/useAuth'
-import { Symbols } from '../MaterialSymbols'
-import Avatar from '../Avatar'
+import { Symbols } from '../ui/MaterialSymbols';
+import Avatar from '../ui/Avatar';
 
 // ─── Nav Items Config ─────────────────────────────────────────────────────────
 
@@ -10,39 +10,39 @@ const NAV_ITEMS = [
     to: '/dashboard',
     end: true,
     label: 'Dashboard',
-    icon: <Symbols iconName="dashboard"/>,
+    icon: <Symbols name="dashboard" />,
   },
   {
     to: '/dashboard/rooms',
     label: 'Room Inventory',
-    icon: <Symbols iconName="nest_multi_room"/>,
+    icon: <Symbols name="nest_multi_room"/>,
   },
   {
     to: '/dashboard/tenants',
     label: 'Tenants',
-    icon: <Symbols iconName="group"/>,
+    icon: <Symbols name="group"/>,
   },
   {
     to: '/dashboard/payments',
     label: 'Payments',
-    icon: <Symbols iconName="account_balance_wallet"/>,
+    icon: <Symbols name="account_balance_wallet"/>,
   },
   {
     to: '/dashboard/maintenance',
     label: 'Maintenance Center',
-    icon: <Symbols iconName="build"/>,
+    icon: <Symbols name="build"/>,
   },
   {
     to: '/dashboard/reports',
     label: 'Reports',
-    icon: <Symbols iconName="assignment"/>,
+    icon: <Symbols name="assignment"/>,
   },
   {
     to: '/dashboard/profile',
     label: 'Profile',
-    icon: <Symbols iconName="account_circle"/>,
+    icon: <Symbols name="account_circle"/>,
   },
-]
+];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
