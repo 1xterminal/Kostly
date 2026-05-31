@@ -144,7 +144,7 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
                 const Spacer(),
                 Center(
                   child: GradientFAB(
-                    onPressed: _isLoading ? null : () => _submit(contract.id),
+                    onPressed: (_isLoading || _dateController.text.isEmpty) ? null : () => _submit(contract.id),
                     icon: _isLoading
                         ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.save_outlined),

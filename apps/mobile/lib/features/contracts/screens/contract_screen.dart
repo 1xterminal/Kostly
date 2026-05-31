@@ -62,7 +62,7 @@ class _ContractBody extends StatelessWidget {
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -72,7 +72,7 @@ class _ContractBody extends StatelessWidget {
             'My Contract',
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: _kBodyBlack,
               letterSpacing: -0.3,
             ),
@@ -272,7 +272,7 @@ class _SectionCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _kCardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: _kBorder),
       ),
       child: Column(

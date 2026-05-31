@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile/features/widgets/gradient_fab.dart';
 import '../providers/maintenance_providers.dart';
 import '../repositories/maintenance_repository.dart';
 
@@ -21,7 +22,7 @@ class TicketsScreen extends ConsumerWidget {
     final ticketsAsync = ref.watch(maintenanceTicketsProvider);
 
     return Scaffold(
-      backgroundColor: _kBg,
+      // backgroundColor: _kBg,
       body: SafeArea(
         child: Stack(
           children: [
@@ -29,20 +30,20 @@ class TicketsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Padding(
-                  padding: EdgeInsets.fromLTRB(28, 34, 28, 36),
+                  padding: EdgeInsets.all(24),
                   child: Text(
                     'Maintenance Center',
                     style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
                       color: _kText,
-                      letterSpacing: -0.4,
+                      letterSpacing: -0.2,
                     ),
                   ),
                 ),
                 Expanded(
                   child: RefreshIndicator(
-                    color: _kPrimary,
+                    // color: _kPrimary,
                     onRefresh: () async => ref.invalidate(maintenanceTicketsProvider),
                     child: ticketsAsync.when(
                       loading: () => const Center(child: CircularProgressIndicator()),
@@ -77,30 +78,36 @@ class TicketsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 86,
-              child: Center(
-                child: ElevatedButton.icon(
-                  onPressed: () => context.push('/maintenance/new'),
-                  icon: const Icon(Icons.report_problem_outlined, size: 30),
-                  label: const Text('Report a problem'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _kPrimary,
-                    foregroundColor: Colors.white,
-                    elevation: 12,
-                    shadowColor: Colors.black.withValues(alpha: 0.35),
-                    padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                    textStyle: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ),
-            ),
+            // Positioned(
+            //   left: 0,
+            //   right: 0,
+            //   bottom: 86,
+            //   child: Center(
+            //     child: ElevatedButton.icon(
+            //       onPressed: () => context.push('/maintenance/new'),
+            //       icon: const Icon(Icons.report_problem_outlined),
+            //       label: const Text('Report a problem'),
+            //       // style: ElevatedButton.styleFrom(
+            //       //   backgroundColor: _kPrimary,
+            //       //   foregroundColor: Colors.white,
+            //       //   elevation: 12,
+            //       //   shadowColor: Colors.black.withValues(alpha: 0.35),
+            //       //   padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 18),
+            //       //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+            //       //   textStyle: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+            //       // ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
+      floatingActionButton: GradientFAB(
+        onPressed: () => context.push('/maintenance/new'),
+        icon: const Icon(Icons.report_problem_outlined),
+        label: const Text('Report a problem'),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
@@ -117,44 +124,42 @@ class _TicketRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         color: const Color(0xFFF8F8F8),
-        padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8.0,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8.0,
               children: [
                 Expanded(
                   child: Text(
                     _ticketTitle(ticket),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w800, color: _kText),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _kText),
                   ),
                 ),
-                const SizedBox(width: 18),
                 Text(
                   _timeFormat.format(ticket.createdAt),
-                  style: const TextStyle(fontSize: 22, color: _kMuted),
+                  style: const TextStyle(color: _kMuted),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
             Text(
               _statusLabel(ticket.ticketStatus),
               style: TextStyle(
-                fontSize: 16,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2,
                 color: _statusColor(ticket.ticketStatus),
               ),
             ),
-            const SizedBox(height: 18),
             Text(
               ticket.description,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 23, height: 1.15, color: _kText),
+              style: const TextStyle(height: 1.15, color: _kText),
             ),
           ],
         ),

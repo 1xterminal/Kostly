@@ -8,12 +8,12 @@ import '../repositories/home_repository.dart';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const _kPrimary   = Color(0xFF3341A5);
-const _kBg        = Color(0xFFEBEBEB);
+// const _kPrimary   = Color(0xFF3341A5);
+// const _kBg        = Color(0xFFEBEBEB);
 const _kCardBg    = Color(0xFFF5F5F5);
 const _kBorder    = Color(0xFFDDDDDD);
 const _kLabelGray = Color(0xFF9CA3AF);
-const _kBodyBlack = Color(0xFF111827);
+// const _kBodyBlack = Color(0xFF111827);
 const _kSubGray   = Color(0xFF6B7280);
 
 final _currencyFmt = NumberFormat.currency(locale: 'id_ID', symbol: 'IDR ', decimalDigits: 0);
@@ -34,10 +34,10 @@ class HomeScreen extends ConsumerWidget {
     final ticketAsync   = ref.watch(activeTicketProvider);
 
     return Scaffold(
-      backgroundColor: _kBg,
+      // backgroundColor: _kBg,
       body: SafeArea(
         child: RefreshIndicator(
-          color: _kPrimary,
+          // color: _kPrimary,
           onRefresh: () async {
             ref.invalidate(activeContractProvider);
             ref.invalidate(pendingInvoiceProvider);
@@ -45,7 +45,7 @@ class HomeScreen extends ConsumerWidget {
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -53,10 +53,10 @@ class HomeScreen extends ConsumerWidget {
                 // ── Header ────────────────────────────────────────────────────
                 Text(
                   'Welcome, $fullName',
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: TextStyle(
+                    fontSize: 22,
                     fontWeight: FontWeight.w600,
-                    color: _kBodyBlack,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -77,6 +77,19 @@ class HomeScreen extends ConsumerWidget {
                   error: (e, _) => _ErrorTile(message: e.toString()),
                   data: (contract) => _InfoCard(
                     label: 'YOUR CONTRACT',
+                    actions: [
+                      _CardAction(
+                        icon: Icons.info_outline_rounded,
+                        label: 'Details',
+                        onTap: () => context.go('/contracts'),
+                      ),
+                      if (contract != null)
+                        _CardAction(
+                          icon: Icons.add,
+                          label: 'Extend',
+                          onTap: () => context.go('/extend'),
+                        ),
+                    ],
                     children: [
                       Text(
                         contract == null
@@ -85,35 +98,15 @@ class HomeScreen extends ConsumerWidget {
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
-                          color: _kBodyBlack,
+                          // color: _kBodyBlack,
                           letterSpacing: -0.3,
                         ),
                       ),
-                      const SizedBox(height: 2),
                       Text(
                         contract == null
                             ? 'No active contract'
                             : 'remaining · ends ${_dateFmt.format(contract.endDate)}',
                         style: const TextStyle(fontSize: 14, color: _kSubGray),
-                      ),
-                      const SizedBox(height: 14),
-                      const _CardDivider(),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          _CardAction(
-                            icon: Icons.info_outline_rounded,
-                            label: 'Details',
-                            onTap: () => context.go('/contracts'),
-                          ),
-                          const Spacer(),
-                          if (contract != null)
-                            _CardAction(
-                              icon: Icons.add,
-                              label: 'Extend',
-                              onTap: () => context.go('/extend'),
-                            ),
-                        ],
                       ),
                     ],
                   ),
@@ -126,42 +119,36 @@ class HomeScreen extends ConsumerWidget {
                   error: (e, _) => _ErrorTile(message: e.toString()),
                   data: (invoice) => _InfoCard(
                     label: 'NEXT PAYMENT',
+                    actions: [
+                      _CardAction(
+                        icon: Icons.info_outline_rounded,
+                        label: 'Details',
+                        onTap: () => context.go('/payments'),
+                      ),
+                      const Spacer(),
+                      if (invoice != null)
+                        _CardAction(
+                          icon: Icons.crop_free_rounded,
+                          label: 'Pay now',
+                          onTap: () => context.go('/payments/new'),
+                        ),
+                    ],
                     children: [
                       Text(
                         invoice == null ? '—' : _currencyFmt.format(invoice.totalAmount),
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
-                          color: _kBodyBlack,
+                          // color: _kBodyBlack,
                           letterSpacing: -0.3,
                         ),
                       ),
-                      const SizedBox(height: 2),
                       Text(
                         invoice == null
                             ? 'All paid up 🎉'
                             : 'Due on ${_dateFmt.format(invoice.dueDate)}',
                         style: const TextStyle(fontSize: 14, color: _kSubGray),
-                      ),
-                      const SizedBox(height: 14),
-                      const _CardDivider(),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          _CardAction(
-                            icon: Icons.info_outline_rounded,
-                            label: 'Details',
-                            onTap: () => context.go('/payments'),
-                          ),
-                          const Spacer(),
-                          if (invoice != null)
-                            _CardAction(
-                              icon: Icons.crop_free_rounded,
-                              label: 'Pay now',
-                              onTap: () => context.go('/payments/new'),
-                            ),
-                        ],
-                      ),
+                      )
                     ],
                   ),
                 ),
@@ -173,6 +160,13 @@ class HomeScreen extends ConsumerWidget {
                   error: (e, _) => _ErrorTile(message: e.toString()),
                   data: (ticket) => _InfoCard(
                     label: 'ACTIVE MAINTENANCE',
+                    actions: [
+                      _CardAction(
+                        icon: Icons.report_problem_outlined,
+                        label: 'Report a problem',
+                        onTap: () => context.go('/maintenance/new'),
+                      ),
+                    ],
                     children: [
                       if (ticket == null) ...[
                         const Text(
@@ -191,7 +185,7 @@ class HomeScreen extends ConsumerWidget {
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
-                                  color: _kBodyBlack,
+                                  // color: _kBodyBlack,
                                 ),
                               ),
                             ),
@@ -201,7 +195,6 @@ class HomeScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
                         Text(
                           ticket.ticketStatus.toUpperCase().replaceAll('_', ' '),
                           style: TextStyle(
@@ -212,14 +205,6 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 14),
-                      const _CardDivider(),
-                      const SizedBox(height: 12),
-                      _CardAction(
-                        icon: Icons.report_problem_outlined,
-                        label: 'Report a problem',
-                        onTap: () => context.go('/maintenance/new'),
-                      ),
                     ],
                   ),
                 ),
@@ -260,7 +245,7 @@ class _RoomHeader extends StatelessWidget {
           style: const TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.w700,
-            color: _kBodyBlack,
+            // color: _kBodyBlack,
             letterSpacing: -0.5,
           ),
         ),
@@ -405,7 +390,7 @@ class _WifiPasswordState extends State<_WifiPassword> {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: _kBodyBlack,
+            // color: _kBodyBlack,
             letterSpacing: 2,
           ),
         ),
@@ -428,24 +413,46 @@ class _WifiPasswordState extends State<_WifiPassword> {
 class _InfoCard extends StatelessWidget {
   final String label;
   final List<Widget> children;
-  const _InfoCard({required this.label, required this.children});
+  final List<Widget> actions;
+  const _InfoCard({required this.label, required this.children, this.actions = const []});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         color: _kCardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: _kBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _UpperLabel(label),
-          const SizedBox(height: 8),
-          ...children,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: [
+                _UpperLabel(label),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
+                  children: children,
+                )
+              ]
+            ),
+          ),
+          const _CardDivider(),
+          if (actions.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: actions,
+              ),
+            ),
+          ]
         ],
       ),
     );
@@ -473,19 +480,21 @@ class _CardAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: _kPrimary),
+          Icon(icon, size: 18, color: colorScheme.primary),
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: _kPrimary,
+              color: colorScheme.primary,
             ),
           ),
         ],
