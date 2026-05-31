@@ -123,6 +123,8 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
           );
           final latestRequest = latestRequestAsync.asData?.value;
           final hasPendingRequest = latestRequest?.isPending ?? false;
+          final isAwaitingPayment = latestRequest?.isAwaitingPayment ?? false;
+          final blocksNewRequest = latestRequest?.blocksNewRequest ?? false;
 
           return Padding(
             padding: const EdgeInsets.all(24.0),
@@ -155,12 +157,14 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
                 TextField(
                   controller: _dateController,
                   readOnly: true,
-                  onTap: hasPendingRequest
+                  onTap: blocksNewRequest
                       ? null
                       : () => _pickDate(context, contract.endDate),
                   decoration: InputDecoration(
-                    hintText: hasPendingRequest
-                        ? 'Request already pending'
+                    hintText: blocksNewRequest
+                        ? isAwaitingPayment
+                              ? 'Extension invoice waiting for payment'
+                              : 'Request already pending'
                         : 'DD/MM/YYYY',
                     filled: true,
                     fillColor: Colors.white,
@@ -187,10 +191,11 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
                 const Spacer(),
                 Center(
                   child: GradientFAB(
-                    onPressed:
-                        (_isLoading ||
-                            _dateController.text.isEmpty ||
-                            hasPendingRequest)
+                    onPressed: isAwaitingPayment
+                        ? () => context.go('/payments')
+                        : (_isLoading ||
+                              _dateController.text.isEmpty ||
+                              hasPendingRequest)
                         ? null
                         : () => _submit(contract.id),
                     icon: _isLoading
@@ -199,9 +204,15 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.save_outlined),
+                        : Icon(
+                            isAwaitingPayment
+                                ? Icons.receipt_long_outlined
+                                : Icons.save_outlined,
+                          ),
                     label: Text(
-                      hasPendingRequest
+                      isAwaitingPayment
+                          ? 'Open payments'
+                          : hasPendingRequest
                           ? 'Pending'
                           : _isLoading
                           ? 'Submitting...'
@@ -222,13 +233,22 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
   Widget _buildRequestStatus(LatestExtendRequest request) {
     final color = switch (request.status) {
       'approved' => const Color(0xFF059669),
+      'awaiting_payment' => const Color(0xFF2563EB),
       'rejected' => const Color(0xFFDC2626),
       _ => const Color(0xFFD97706),
     };
     final label = switch (request.status) {
       'approved' => 'Approved',
+      'awaiting_payment' => 'Payment required',
       'rejected' => 'Rejected',
       _ => 'Pending owner review',
+    };
+    final message = switch (request.status) {
+      'approved' => 'Your extension is active after payment verification.',
+      'awaiting_payment' =>
+        'Owner accepted your request. Pay the extension invoice to activate it.',
+      'rejected' => 'You can submit a new extension request.',
+      _ => 'Waiting for owner review.',
     };
 
     return Container(
@@ -253,6 +273,11 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
           const SizedBox(height: 4),
           Text(
             'Requested end date: ${_formatDate(request.requestedEndDate)}',
+            style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            message,
             style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
           ),
         ],

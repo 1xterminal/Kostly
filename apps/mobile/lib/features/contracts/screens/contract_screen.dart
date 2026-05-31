@@ -68,6 +68,15 @@ class _ContractBody extends ConsumerWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
     final extensionAsync = ref.watch(latestExtendRequestProvider(contract.id));
+    final latestRequest = extensionAsync.asData?.value;
+    final extendButtonLabel = latestRequest?.isAwaitingPayment == true
+        ? 'Pay Extension Invoice'
+        : latestRequest?.isPending == true
+        ? 'Extension Request Pending'
+        : 'Request Contract Extension';
+    final extendButtonIcon = latestRequest?.isAwaitingPayment == true
+        ? Icons.receipt_long_outlined
+        : Icons.calendar_month_outlined;
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -288,11 +297,18 @@ class _ContractBody extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => context.push('/extend'),
-              icon: const Icon(Icons.calendar_month_outlined, size: 20),
-              label: const Text(
-                'Request Contract Extension',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              onPressed: latestRequest?.isPending == true
+                  ? null
+                  : latestRequest?.isAwaitingPayment == true
+                  ? () => context.go('/payments')
+                  : () => context.push('/extend'),
+              icon: Icon(extendButtonIcon, size: 20),
+              label: Text(
+                extendButtonLabel,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kPrimary,
@@ -343,13 +359,22 @@ class _ExtensionRequestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = switch (request.status) {
       'approved' => const Color(0xFF059669),
+      'awaiting_payment' => const Color(0xFF2563EB),
       'rejected' => const Color(0xFFDC2626),
       _ => const Color(0xFFD97706),
     };
     final label = switch (request.status) {
       'approved' => 'APPROVED',
+      'awaiting_payment' => 'PAYMENT REQUIRED',
       'rejected' => 'REJECTED',
       _ => 'PENDING',
+    };
+    final message = switch (request.status) {
+      'approved' => 'Extension is active after payment verification.',
+      'awaiting_payment' =>
+        'Owner accepted it. Pay the extension invoice to activate this end date.',
+      'rejected' => 'This request was rejected. You can submit a new request.',
+      _ => 'Waiting for owner review.',
     };
 
     return _SectionCard(
@@ -385,6 +410,11 @@ class _ExtensionRequestCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          message,
+          style: const TextStyle(fontSize: 13, color: _kSubGray, height: 1.35),
         ),
       ],
     );

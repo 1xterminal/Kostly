@@ -117,7 +117,7 @@ export default function ExtendRequestsModal({
       onSuccess()
       showToast(
         action === 'approved'
-          ? 'Request approved. Contract end date updated.'
+          ? 'Request accepted. Invoice created for tenant payment.'
           : 'Request rejected.',
         action === 'approved' ? 'success' : 'error',
       )
@@ -250,7 +250,7 @@ export default function ExtendRequestsModal({
                         ) : (
                           <CheckCircle2 className="h-3.5 w-3.5" />
                         )}
-                        Approve
+                        Approve & invoice
                       </Button>
 
                       {/*<button
@@ -290,7 +290,7 @@ export default function ExtendRequestsModal({
 
         <div className="rounded-b-2xl border-t border-gray-100 bg-gray-50 px-6 py-4">
           <p className="text-center text-xs text-gray-400">
-            Approving uses the review transaction and updates the contract end date.
+            Approving creates an invoice. The contract updates after the payment is verified.
           </p>
         </div>
 

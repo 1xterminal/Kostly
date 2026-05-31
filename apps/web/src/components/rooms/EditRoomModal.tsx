@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getRoomById, updateRoom } from '@/api/rooms'
 import type { RoomWithRelations } from '@/types'
 import { requiredText } from '@/lib/validation'
 import { Symbols } from '../ui/MaterialSymbols'
-import { Input, Select } from '../ui/Field'
+import { Input } from '../ui/Field'
 import Button from '../ui/Button'
 
 const roomStatusSchema = z.object({
@@ -35,9 +35,10 @@ export default function EditRoomModal({
 
   const [selectedData, selectData] = useState<RoomWithRelations | null>(null)
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<RoomStatusFormData>({
+  const { register, handleSubmit, formState: { errors }, reset, setValue, control } = useForm<RoomStatusFormData>({
     resolver: zodResolver(roomStatusSchema)
   })
+  const watchedStatus = useWatch({ control, name: 'status' })
 
   useEffect(() => {
     const fetchData = async () => {
@@ -90,6 +91,7 @@ export default function EditRoomModal({
   if (!(isOpen && selectedData)) return null
 
   const hasActiveContract = selectedData.contracts?.some((contract) => contract.status === 'active') ?? false
+  const currentStatus = watchedStatus ?? (hasActiveContract ? 'occupied' : 'available')
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -154,22 +156,52 @@ export default function EditRoomModal({
               {hasActiveContract ? (
                 <>
                   <input type="hidden" value="occupied" {...register('status')} />
-                  <Input
-                    label="Room Status"
-                    value="Occupied"
-                    disabled
-                    readOnly
-                  />
+                  <div>
+                    <p className="mb-2 text-sm font-medium text-gray-700">Inventory Status</p>
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">
+                      Occupied
+                    </div>
+                  </div>
                   <p className="mt-1 text-xs text-gray-500">
                     Occupied rooms are controlled by the active tenant contract.
                   </p>
                 </>
               ) : (
                 <>
-                  <Select label="Room Status" {...register('status')}>
-                    <option value="available">Available</option>
-                    <option value="maintenance">Maintenance</option>
-                  </Select>
+                  <input type="hidden" {...register('status')} />
+                  <div>
+                    <p className="mb-2 text-sm font-medium text-gray-700">Inventory Status</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { value: 'available', label: 'Available', helper: 'Ready to assign' },
+                        { value: 'maintenance', label: 'Maintenance', helper: 'Hide from assignment' },
+                      ] as const).map((option) => {
+                        const isSelected = currentStatus === option.value
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => setValue('status', option.value, { shouldDirty: true, shouldValidate: true })}
+                            className={[
+                              'rounded-lg border px-4 py-3 text-left transition',
+                              isSelected
+                                ? option.value === 'maintenance'
+                                  ? 'border-amber-300 bg-amber-50 text-amber-800 shadow-sm'
+                                  : 'border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm'
+                                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50',
+                            ].join(' ')}
+                            aria-pressed={isSelected}
+                          >
+                            <span className="block text-sm font-bold">{option.label}</span>
+                            <span className="mt-0.5 block text-xs opacity-75">{option.helper}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      Maintenance rooms stay visible in the filter but cannot be assigned until marked available.
+                    </p>
+                  </div>
                   {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status.message}</p>}
                 </>
               )}

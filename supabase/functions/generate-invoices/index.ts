@@ -26,7 +26,18 @@ Deno.serve(async (req) => {
   )
 
   try {
-    // 3. Fetch all active contracts
+    // 3. Set up billing dates where billing_month is always YYYY-MM-01
+    const today = new Date()
+    const monthStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
+    const nextMonthStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 1))
+    const monthEnd = new Date(nextMonthStart)
+    monthEnd.setUTCDate(monthEnd.getUTCDate() - 1)
+
+    const toDateString = (date: Date) => date.toISOString().slice(0, 10)
+    const currentMonth = toDateString(monthStart)
+    const monthEndDate = toDateString(monthEnd)
+
+    // 4. Fetch active contracts that overlap the billed month
     const {
       data: contracts,
       error: contractsError
@@ -34,12 +45,10 @@ Deno.serve(async (req) => {
       .from('contracts')
       .select("*")
       .eq('status', 'active')
+      .lte('start_date', monthEndDate)
+      .gte('end_date', currentMonth)
 
     if (contractsError) throw contractsError
-
-    // 4. Set up billing dates where billing_month is always YYYY-MM-01
-    const today = new Date()
-    const currentMonth = today.toISOString().slice(0, 8) + '01'
 
     let createdCount = 0
 
@@ -49,8 +58,7 @@ Deno.serve(async (req) => {
       const dueDate = new Date(today)
       dueDate.setDate(dueDate.getDate() + 5)
 
-      // the (contract_id, billing_month) unique constraint acts as idempotency guard:
-      // if this function runs twice in a month, the second insert is a no-op (erro 23505)
+      // The (contract_id, billing_month) unique constraint is the idempotency guard.
       const {
         error: insertError
       } = await supabaseAdmin
@@ -58,7 +66,8 @@ Deno.serve(async (req) => {
         .insert({
           contract_id: contract.id,
           tenant_id: contract.tenant_id,
-          due_date: dueDate.toISOString().split('T')[0], // YYYY-MM-DD
+          invoice_date: toDateString(today),
+          due_date: toDateString(dueDate),
           total_amount: contract.monthly_rate,
           billing_month: currentMonth,
           status: 'unpaid'

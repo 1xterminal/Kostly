@@ -40,12 +40,14 @@ final activeContractProvider = FutureProvider.autoDispose<Contract?>((
 
 class LatestExtendRequest {
   final String id;
+  final String? extensionInvoiceId;
   final DateTime requestedEndDate;
   final String status;
   final DateTime createdAt;
 
   const LatestExtendRequest({
     required this.id,
+    this.extensionInvoiceId,
     required this.requestedEndDate,
     required this.status,
     required this.createdAt,
@@ -54,6 +56,7 @@ class LatestExtendRequest {
   factory LatestExtendRequest.fromJson(Map<String, dynamic> json) {
     return LatestExtendRequest(
       id: json['id'] as String,
+      extensionInvoiceId: json['extension_invoice_id'] as String?,
       requestedEndDate: DateTime.parse(json['requested_end_date'] as String),
       status: json['status'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -61,6 +64,8 @@ class LatestExtendRequest {
   }
 
   bool get isPending => status == 'pending';
+  bool get isAwaitingPayment => status == 'awaiting_payment';
+  bool get blocksNewRequest => isPending || isAwaitingPayment;
 }
 
 final latestExtendRequestProvider = FutureProvider.autoDispose
@@ -70,7 +75,9 @@ final latestExtendRequestProvider = FutureProvider.autoDispose
 
       final response = await supabase
           .from('extend_requests')
-          .select('id, requested_end_date, status, created_at')
+          .select(
+            'id, extension_invoice_id, requested_end_date, status, created_at',
+          )
           .eq('tenant_id', userId)
           .eq('contract_id', contractId)
           .order('created_at', ascending: false)
@@ -95,12 +102,12 @@ class ExtendRequestService {
         .from('extend_requests')
         .select('id')
         .eq('contract_id', contractId)
-        .eq('status', 'pending')
+        .inFilter('status', ['pending', 'awaiting_payment'])
         .maybeSingle();
 
     if (existing != null) {
       throw Exception(
-        'You already have a pending extend request for this contract.',
+        'You already have an extension request waiting for review or payment.',
       );
     }
 
