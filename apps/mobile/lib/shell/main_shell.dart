@@ -20,7 +20,7 @@ const _navItems = [
   _NavItem(Icons.account_circle_outlined, 'Profile'), // person circle
 ];
 
-const _kPrimary = Color(0xFF3341A5);
+// const _kPrimary = Color(0xFF3341A5);
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
 

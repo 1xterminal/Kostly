@@ -3,7 +3,7 @@ import 'package:mobile/themeUtil.dart';
 
 class KostlyTheme {
   // 1. Your Fixed Brand Colors
-  static const Color accentColor = Color(0xFF9A13D9);
+  static const Color accentColor = Color(0xFF4433DB);
   static const Color backgroundColor = Color(0xFFEBEBEB);
 
   static ThemeData get lightTheme {
