@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/themeUtil.dart';
+import 'package:mobile/theme_util.dart';
 
 class GradientFAB extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -24,32 +24,36 @@ class GradientFAB extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: disabled
-          ? [Colors.grey.shade400, Colors.grey.shade300]
-          : [colorScheme.primary, lightenColor(colorScheme.primary, 0.2)],
+              ? [Colors.grey.shade400, Colors.grey.shade300]
+              : [colorScheme.primary, lightenColor(colorScheme.primary, 0.2)],
         ),
-        borderRadius: BorderRadius.circular(999.0), // M3 default FAB curve radius
+        borderRadius: BorderRadius.circular(
+          999.0,
+        ), // M3 default FAB curve radius
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: disabled ? 0.0: 0.15),
+            color: Colors.black.withValues(alpha: disabled ? 0.0 : 0.15),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: Colors.black.withValues(alpha: disabled ? 0.1: 0.25), 
-          width: 1.0
+          color: Colors.black.withValues(alpha: disabled ? 0.1 : 0.25),
+          width: 1.0,
         ),
       ),
       child: Material(
         color: Colors.transparent,
-        textStyle: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+        textStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(999.0),
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 20
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -57,10 +61,7 @@ class GradientFAB extends StatelessWidget {
                   data: IconThemeData(color: Colors.white),
                   child: icon,
                 ),
-                if (label != null) ...[
-                  const SizedBox(width: 8),
-                  label!
-                ],
+                if (label != null) ...[const SizedBox(width: 8), label!],
               ],
             ),
           ),

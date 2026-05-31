@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { KeyRound, LogOut, Mail, Phone, Save, UserRound } from 'lucide-react'
+import { KeyRound, Mail, Phone, UserRound } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSignOut, authKeys } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
@@ -36,14 +36,6 @@ export default function Profile() {
 
   useEffect(() => {
     setActions(
-      // <button
-      //   onClick={() => signOut()}
-      //   disabled={isSigningOut}
-      //   className="inline-flex items-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
-      // >
-      //   <LogOut className="mr-2 h-4 w-4" />
-      //   {isSigningOut ? "Signing out..." : "Sign Out"}
-      // </button>,
       <Button
         emphasis="outlined"
         action="destructive"
@@ -246,14 +238,6 @@ export default function Profile() {
           </div>
 
           <div className="mt-6 flex justify-end">
-            {/*<button
-              type="submit"
-              disabled={isSavingProfile}
-              className="inline-flex items-center rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {isSavingProfile ? "Saving..." : "Save Profile"}
-            </button>*/}
             <Button type="submit" disabled={isSavingProfile}>
               <Symbols name="save" />
               {isSavingProfile ? "Saving..." : "Save Profile"}

@@ -8,16 +8,17 @@ import '../repositories/home_repository.dart';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-// const _kPrimary   = Color(0xFF3341A5);
-// const _kBg        = Color(0xFFEBEBEB);
-const _kCardBg    = Color(0xFFF5F5F5);
-const _kBorder    = Color(0xFFDDDDDD);
+const _kCardBg = Color(0xFFF5F5F5);
+const _kBorder = Color(0xFFDDDDDD);
 const _kLabelGray = Color(0xFF9CA3AF);
-// const _kBodyBlack = Color(0xFF111827);
-const _kSubGray   = Color(0xFF6B7280);
+const _kSubGray = Color(0xFF6B7280);
 
-final _currencyFmt = NumberFormat.currency(locale: 'id_ID', symbol: 'IDR ', decimalDigits: 0);
-final _dateFmt     = DateFormat('d MMM');
+final _currencyFmt = NumberFormat.currency(
+  locale: 'id_ID',
+  symbol: 'IDR ',
+  decimalDigits: 0,
+);
+final _dateFmt = DateFormat('d MMM');
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
 
@@ -26,18 +27,16 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user     = supabase.auth.currentUser;
+    final user = supabase.auth.currentUser;
     final fullName = user?.userMetadata?['full_name'] as String? ?? 'Tenant';
 
     final contractAsync = ref.watch(activeContractProvider);
-    final invoiceAsync  = ref.watch(pendingInvoiceProvider);
-    final ticketAsync   = ref.watch(activeTicketProvider);
+    final invoiceAsync = ref.watch(pendingInvoiceProvider);
+    final ticketAsync = ref.watch(activeTicketProvider);
 
     return Scaffold(
-      // backgroundColor: _kBg,
       body: SafeArea(
         child: RefreshIndicator(
-          // color: _kPrimary,
           onRefresh: () async {
             ref.invalidate(activeContractProvider);
             ref.invalidate(pendingInvoiceProvider);
@@ -49,7 +48,6 @@ class HomeScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 // ── Header ────────────────────────────────────────────────────
                 Text(
                   'Welcome, $fullName',
@@ -135,7 +133,9 @@ class HomeScreen extends ConsumerWidget {
                     ],
                     children: [
                       Text(
-                        invoice == null ? '—' : _currencyFmt.format(invoice.totalAmount),
+                        invoice == null
+                            ? '—'
+                            : _currencyFmt.format(invoice.totalAmount),
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
@@ -148,7 +148,7 @@ class HomeScreen extends ConsumerWidget {
                             ? 'All paid up 🎉'
                             : 'Due on ${_dateFmt.format(invoice.dueDate)}',
                         style: const TextStyle(fontSize: 14, color: _kSubGray),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -191,12 +191,18 @@ class HomeScreen extends ConsumerWidget {
                             ),
                             Text(
                               _dateFmt.format(ticket.createdAt),
-                              style: const TextStyle(fontSize: 12, color: _kSubGray),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: _kSubGray,
+                              ),
                             ),
                           ],
                         ),
                         Text(
-                          ticket.ticketStatus.toUpperCase().replaceAll('_', ' '),
+                          ticket.ticketStatus.toUpperCase().replaceAll(
+                            '_',
+                            ' ',
+                          ),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -208,7 +214,6 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-
               ],
             ),
           ),
@@ -219,10 +224,10 @@ class HomeScreen extends ConsumerWidget {
 
   Color _statusColor(String status) {
     return switch (status) {
-      'in_progress' => const Color(0xFF3B82F6),  // blue
-      'resolved'    => const Color(0xFF10B981),  // green
-      'closed'      => _kSubGray,
-      _             => const Color(0xFFD97706),  // amber (reported)
+      'in_progress' => const Color(0xFF3B82F6), // blue
+      'resolved' => const Color(0xFF10B981), // green
+      'closed' => _kSubGray,
+      _ => const Color(0xFFD97706), // amber (reported)
     };
   }
 }
@@ -344,7 +349,10 @@ class _EmptyTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(message, style: const TextStyle(fontSize: 14, color: _kSubGray));
+    return Text(
+      message,
+      style: const TextStyle(fontSize: 14, color: _kSubGray),
+    );
   }
 }
 
@@ -398,7 +406,9 @@ class _WifiPasswordState extends State<_WifiPassword> {
         GestureDetector(
           onTap: () => setState(() => _revealed = !_revealed),
           child: Icon(
-            _revealed ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+            _revealed
+                ? Icons.visibility_off_outlined
+                : Icons.visibility_outlined,
             size: 22,
             color: _kSubGray,
           ),
@@ -414,7 +424,11 @@ class _InfoCard extends StatelessWidget {
   final String label;
   final List<Widget> children;
   final List<Widget> actions;
-  const _InfoCard({required this.label, required this.children, this.actions = const []});
+  const _InfoCard({
+    required this.label,
+    required this.children,
+    this.actions = const [],
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -439,8 +453,8 @@ class _InfoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 4,
                   children: children,
-                )
-              ]
+                ),
+              ],
             ),
           ),
           const _CardDivider(),
@@ -452,7 +466,7 @@ class _InfoCard extends StatelessWidget {
                 children: actions,
               ),
             ),
-          ]
+          ],
         ],
       ),
     );
@@ -476,7 +490,11 @@ class _CardAction extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  const _CardAction({required this.icon, required this.label, required this.onTap});
+  const _CardAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

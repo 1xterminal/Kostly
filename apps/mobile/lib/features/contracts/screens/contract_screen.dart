@@ -7,16 +7,20 @@ import '../providers/contract_provider.dart';
 import '../../../models/contract.dart';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const _kPrimary    = Color(0xFF3341A5);
-const _kBg         = Color(0xFFEBEBEB);
-const _kCardBg     = Color(0xFFF5F5F5);
-const _kBorder     = Color(0xFFDDDDDD);
-const _kBodyBlack  = Color(0xFF111827);
-const _kSubGray    = Color(0xFF6B7280);
-const _kLabelGray  = Color(0xFF9CA3AF);
+const _kPrimary = Color(0xFF3341A5);
+const _kBg = Color(0xFFEBEBEB);
+const _kCardBg = Color(0xFFF5F5F5);
+const _kBorder = Color(0xFFDDDDDD);
+const _kBodyBlack = Color(0xFF111827);
+const _kSubGray = Color(0xFF6B7280);
+const _kLabelGray = Color(0xFF9CA3AF);
 
-final _currencyFmt = NumberFormat.currency(locale: 'id_ID', symbol: 'IDR ', decimalDigits: 0);
-final _dateFmt     = DateFormat('d MMM yyyy');
+final _currencyFmt = NumberFormat.currency(
+  locale: 'id_ID',
+  symbol: 'IDR ',
+  decimalDigits: 0,
+);
+final _dateFmt = DateFormat('d MMM yyyy');
 
 // ─── Contract Screen ──────────────────────────────────────────────────────────
 
@@ -31,12 +35,11 @@ class ContractScreen extends ConsumerWidget {
       backgroundColor: _kBg,
       body: SafeArea(
         child: RefreshIndicator(
-          // color: _kPrimary,
           onRefresh: () async => ref.invalidate(activeContractProvider),
           child: contractAsync.when(
             loading: () => const _LoadingSkeleton(),
-            error:   (e, _) => _ErrorView(message: e.toString()),
-            data:    (contract) => contract == null
+            error: (e, _) => _ErrorView(message: e.toString()),
+            data: (contract) => contract == null
                 ? const _EmptyState()
                 : _ContractBody(contract: contract),
           ),
@@ -54,10 +57,13 @@ class _ContractBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final now        = DateTime.now();
-    final totalDays  = contract.endDate.difference(contract.startDate).inDays;
-    final daysLeft   = contract.endDate.difference(now).inDays.clamp(0, totalDays);
-    final progress   = totalDays > 0 ? daysLeft / totalDays : 0.0;
+    final now = DateTime.now();
+    final totalDays = contract.endDate.difference(contract.startDate).inDays;
+    final daysLeft = contract.endDate
+        .difference(now)
+        .inDays
+        .clamp(0, totalDays);
+    final progress = totalDays > 0 ? daysLeft / totalDays : 0.0;
     final monthsLeft = (daysLeft / 30).ceil();
 
     final colorScheme = Theme.of(context).colorScheme;
@@ -68,7 +74,6 @@ class _ContractBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // ── Page title ─────────────────────────────────────────────────────
           const Text(
             'My Contract',
@@ -97,31 +102,45 @@ class _ContractBody extends StatelessWidget {
                       color: colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(Icons.door_front_door_outlined, color: colorScheme.primary, size: 22),
+                    child: Icon(
+                      Icons.door_front_door_outlined,
+                      color: colorScheme.primary,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('OCCUPIED ROOM', style: TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w700,
-                        color: _kLabelGray, letterSpacing: 0.8,
-                      )),
+                      const Text(
+                        'OCCUPIED ROOM',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: _kLabelGray,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         contract.room != null
                             ? 'Room #${contract.room!.number}'
                             : 'Room #${contract.roomId.substring(0, 8)}',
                         style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.w700,
-                          color: _kBodyBlack, letterSpacing: -0.3,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: _kBodyBlack,
+                          letterSpacing: -0.3,
                         ),
                       ),
                     ],
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF10B981).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
@@ -129,8 +148,10 @@ class _ContractBody extends StatelessWidget {
                     child: const Text(
                       'ACTIVE',
                       style: TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w700,
-                        color: Color(0xFF065F46), letterSpacing: 0.5,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF065F46),
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
@@ -158,8 +179,10 @@ class _ContractBody extends StatelessWidget {
                   Text(
                     '$monthsLeft',
                     style: const TextStyle(
-                      fontSize: 36, fontWeight: FontWeight.w700,
-                      color: _kBodyBlack, letterSpacing: -1,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w700,
+                      color: _kBodyBlack,
+                      letterSpacing: -1,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -177,7 +200,9 @@ class _ContractBody extends StatelessWidget {
                   minHeight: 8,
                   backgroundColor: const Color(0xFFE5E7EB),
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    progress > 0.3 ? colorScheme.primary : const Color(0xFFEF4444),
+                    progress > 0.3
+                        ? colorScheme.primary
+                        : const Color(0xFFEF4444),
                   ),
                 ),
               ),
@@ -185,10 +210,14 @@ class _ContractBody extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(_dateFmt.format(contract.startDate),
-                      style: const TextStyle(fontSize: 11, color: _kLabelGray)),
-                  Text(_dateFmt.format(contract.endDate),
-                      style: const TextStyle(fontSize: 11, color: _kLabelGray)),
+                  Text(
+                    _dateFmt.format(contract.startDate),
+                    style: const TextStyle(fontSize: 11, color: _kLabelGray),
+                  ),
+                  Text(
+                    _dateFmt.format(contract.endDate),
+                    style: const TextStyle(fontSize: 11, color: _kLabelGray),
+                  ),
                 ],
               ),
             ],
@@ -203,8 +232,10 @@ class _ContractBody extends StatelessWidget {
               Text(
                 _currencyFmt.format(contract.monthlyRate),
                 style: const TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.w700,
-                  color: _kBodyBlack, letterSpacing: -0.3,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: _kBodyBlack,
+                  letterSpacing: -0.3,
                 ),
               ),
               const SizedBox(height: 2),
@@ -222,11 +253,18 @@ class _ContractBody extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _DateBlock(label: 'START DATE', date: contract.startDate),
+                    child: _DateBlock(
+                      label: 'START DATE',
+                      date: contract.startDate,
+                    ),
                   ),
                   Container(width: 1, height: 48, color: _kBorder),
                   Expanded(
-                    child: _DateBlock(label: 'END DATE', date: contract.endDate, alignRight: true),
+                    child: _DateBlock(
+                      label: 'END DATE',
+                      date: contract.endDate,
+                      alignRight: true,
+                    ),
                   ),
                 ],
               ),
@@ -296,8 +334,10 @@ class _Label extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        fontSize: 11, fontWeight: FontWeight.w700,
-        color: _kLabelGray, letterSpacing: 0.8,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: _kLabelGray,
+        letterSpacing: 0.8,
       ),
     );
   }
@@ -309,13 +349,22 @@ class _DateBlock extends StatelessWidget {
   final String label;
   final DateTime date;
   final bool alignRight;
-  const _DateBlock({required this.label, required this.date, this.alignRight = false});
+  const _DateBlock({
+    required this.label,
+    required this.date,
+    this.alignRight = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final align = alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final align = alignRight
+        ? CrossAxisAlignment.end
+        : CrossAxisAlignment.start;
     return Padding(
-      padding: EdgeInsets.only(left: alignRight ? 16 : 0, right: alignRight ? 0 : 16),
+      padding: EdgeInsets.only(
+        left: alignRight ? 16 : 0,
+        right: alignRight ? 0 : 16,
+      ),
       child: Column(
         crossAxisAlignment: align,
         children: [
@@ -323,7 +372,11 @@ class _DateBlock extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             _dateFmt.format(date),
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _kBodyBlack),
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: _kBodyBlack,
+            ),
           ),
         ],
       ),
@@ -353,10 +406,15 @@ class _WifiRowState extends State<_WifiRow> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('WIFI PASSWORD', style: TextStyle(
-              fontSize: 10, fontWeight: FontWeight.w700,
-              color: _kLabelGray, letterSpacing: 0.8,
-            )),
+            const Text(
+              'WIFI PASSWORD',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: _kLabelGray,
+                letterSpacing: 0.8,
+              ),
+            ),
             const SizedBox(height: 2),
             Text(
               _revealed ? widget.password : '● ● ● ●  ● ● ● ●',
@@ -383,14 +441,21 @@ class _WifiRowState extends State<_WifiRow> {
                     ),
                   );
                 },
-                child: const Icon(Icons.copy_outlined, size: 18, color: _kSubGray),
+                child: const Icon(
+                  Icons.copy_outlined,
+                  size: 18,
+                  color: _kSubGray,
+                ),
               ),
             const SizedBox(width: 10),
             GestureDetector(
               onTap: () => setState(() => _revealed = !_revealed),
               child: Icon(
-                _revealed ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                size: 20, color: _kSubGray,
+                _revealed
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                size: 20,
+                color: _kSubGray,
               ),
             ),
           ],
@@ -422,13 +487,19 @@ class _EmptyState extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: _kBorder),
                 ),
-                child: const Icon(Icons.receipt_long_outlined, size: 48, color: _kLabelGray),
+                child: const Icon(
+                  Icons.receipt_long_outlined,
+                  size: 48,
+                  color: _kLabelGray,
+                ),
               ),
               const SizedBox(height: 20),
               const Text(
                 'No Active Contract',
                 style: TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.w700, color: _kBodyBlack,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: _kBodyBlack,
                 ),
               ),
               const SizedBox(height: 8),
@@ -477,21 +548,28 @@ class _LoadingSkeleton extends StatelessWidget {
 
 class _Shimmer extends StatefulWidget {
   final double width, height, radius;
-  const _Shimmer({required this.width, required this.height, required this.radius});
+  const _Shimmer({
+    required this.width,
+    required this.height,
+    required this.radius,
+  });
 
   @override
   State<_Shimmer> createState() => _ShimmerState();
 }
 
-class _ShimmerState extends State<_Shimmer> with SingleTickerProviderStateMixin {
+class _ShimmerState extends State<_Shimmer>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _anim;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
-      ..repeat(reverse: true);
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
     _anim = Tween(begin: 0.3, end: 0.75).animate(_ctrl);
   }
 
@@ -535,14 +613,22 @@ class _ErrorView extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: Color(0xFFDC2626)),
+                const Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: Color(0xFFDC2626),
+                ),
                 const SizedBox(height: 16),
-                const Text('Failed to load contract',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                const Text(
+                  'Failed to load contract',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 8),
-                Text(message,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 13, color: _kSubGray)),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13, color: _kSubGray),
+                ),
               ],
             ),
           ),

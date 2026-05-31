@@ -12,5 +12,5 @@ export const lightTheme = createTheme(themeVars, {
   accent: colors.blue,
   destructive: colors.red,
   background: colors.gray[100],
-  text: colors.gray[900],
+  text: colors.gray[100],
 });

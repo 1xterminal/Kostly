@@ -181,13 +181,10 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             : const Icon(Icons.save, size: 20),
         label: const Text(
           'Change password',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -207,26 +204,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         TextFormField(
           controller: controller,
           obscureText: true,
-          // decoration: InputDecoration(
-          //   filled: true,
-          //   fillColor: Colors.white,
-          //   contentPadding: const EdgeInsets.symmetric(
-          //     horizontal: 16,
-          //     vertical: 14,
-          //   ),
-          //   border: OutlineInputBorder(
-          //     borderRadius: BorderRadius.circular(8),
-          //     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-          //   ),
-          //   enabledBorder: OutlineInputBorder(
-          //     borderRadius: BorderRadius.circular(8),
-          //     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-          //   ),
-          //   focusedBorder: OutlineInputBorder(
-          //     borderRadius: BorderRadius.circular(8),
-          //     borderSide: const BorderSide(color: Color(0xFF3341A5)),
-          //   ),
-          // ),
           validator: validator,
         ),
       ],

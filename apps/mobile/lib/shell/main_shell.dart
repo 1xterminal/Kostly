@@ -20,8 +20,6 @@ const _navItems = [
   _NavItem(Icons.account_circle_outlined, 'Profile'), // person circle
 ];
 
-// const _kPrimary = Color(0xFF3341A5);
-
 // ─── Shell ────────────────────────────────────────────────────────────────────
 
 class MainShell extends ConsumerWidget {
@@ -92,7 +90,7 @@ class _BottomNav extends StatelessWidget {
                     decoration: BoxDecoration(
                       // Active: light blue fill + blue border (matches mockup)
                       color: isActive
-                          ? theme.primaryColor.withValues(alpha: 0.08) //_kPrimary.withValues(alpha: 0.08)
+                          ? theme.primaryColor.withValues(alpha: 0.08)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       border: isActive
@@ -106,7 +104,9 @@ class _BottomNav extends StatelessWidget {
                       child: Icon(
                         item.icon,
                         size: 24,
-                        color: isActive ? theme.primaryColor : const Color(0xFF374151),
+                        color: isActive
+                            ? theme.primaryColor
+                            : const Color(0xFF374151),
                       ),
                     ),
                   ),
