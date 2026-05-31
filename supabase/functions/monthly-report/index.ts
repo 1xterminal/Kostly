@@ -89,8 +89,8 @@ Deno.serve(async (req) => {
     const totalPaidInvoices = invoices?.length || 0
     const totalRevenue = invoices?.reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0
 
-    // --- Step 5: Insert Report Snapshot (use service role to bypass RLS on insert) ---
-    console.log('[monthly-report] Step 5: Inserting report snapshot...')
+    // --- Step 5: Upsert Report Snapshot (use service role to bypass RLS on write) ---
+    console.log('[monthly-report] Step 5: Upserting report snapshot...')
     const adminClient = createClient(supabaseUrl, serviceRoleKey)
 
     const reportData = {
@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
 
     const { data: insertedReport, error: insertError } = await adminClient
       .from('reports')
-      .insert(reportData)
+      .upsert(reportData, { onConflict: 'owner_id,month_year' })
       .select()
       .single()
 
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
       console.error('[monthly-report] Insert error:', insertError.message, insertError.details)
       throw insertError
     }
-    console.log('[monthly-report] Report snapshot inserted successfully.')
+    console.log('[monthly-report] Report snapshot saved successfully.')
 
     // --- Step 6: Return success ---
     return new Response(JSON.stringify(insertedReport), {

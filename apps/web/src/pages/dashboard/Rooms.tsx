@@ -41,8 +41,6 @@ export default function RoomInventory() {
     );
   }
 
-  console.log(rooms);
-
   const selectId = (id: string) => {
     setSelectedId(id);
     setIsSetStatusOpen(true);
@@ -76,7 +74,7 @@ export default function RoomInventory() {
   });
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 lg:p-8">
       {/*<div className="flex items-center space-x-4">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -91,7 +89,7 @@ export default function RoomInventory() {
           />
         </div>
       </div>*/}
-      <div className="flex flex-col px-20 gap-4">
+      <div className="flex flex-col gap-4 lg:px-20">
         <Input
           placeholder="Search Rooms"
           leadingIcon={<Symbols name="search" />}
@@ -99,8 +97,8 @@ export default function RoomInventory() {
         />
 
         <div className="border-b border-gray-200">
-          <nav className="-mb-px flex gap-2 items-baseline font-bold">
-            <span>Filter:</span>
+          <nav className="-mb-px flex flex-wrap items-center gap-2 font-bold">
+            <span className="mr-1">Filter:</span>
             {['Available', 'Occupied', 'Maintenance'].map((filter) => (
               <button
                 key={filter}
@@ -128,7 +126,7 @@ export default function RoomInventory() {
           ): filteredRooms?.length === 0 ? (
             <div className="p-8 text-red-500">No rooms found</div>
           ) : (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {filteredRooms?.map((room) => {
                 return <div className="cursor-pointer" key={room.id} onClick={() => selectId(room.id)}>
                   <RoomCard {...room} />

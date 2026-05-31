@@ -52,7 +52,7 @@ on conflict (id) do update set role = 'owner';
 | `archive-tenant` | Owner-only. Calls `archive_tenant_tx` to terminate active contracts, release rooms, and archive tenant atomically. |
 | `submit-payment` | Tenant-only. Calls `submit_payment_tx` to create payment and set invoice pending atomically. |
 | `review-payment` | Owner-only. Calls `review_payment_tx` to approve/reject payment and update invoice status atomically. |
-| `review-extend-request` | Owner-only. Calls `review_extend_request_tx` to approve/reject extend requests and update contract end date atomically. |
+| `review-extend-request` | Owner-only. Calls `review_extend_request_tx` to reject requests or approve them into an extension invoice awaiting tenant payment. |
 | `generate-invoices` | Cron/service-role billing generation. |
 | `monthly-report` | Owner-only report snapshot generation. |
 

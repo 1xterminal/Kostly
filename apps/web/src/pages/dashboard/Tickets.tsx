@@ -34,10 +34,10 @@ export default function Tickets() {
   }, [search, tickets])
 
   return (
-    <div className="h-full overflow-hidden px-6 py-4 text-[#111111]">
-      <div className="mx-auto h-full max-w-7xl">
-        <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-[340px_1fr]">
-          <aside>
+    <div className="h-full min-h-0 overflow-hidden px-6 py-4 text-[#111111]">
+      <div className="mx-auto h-full min-h-0 max-w-7xl">
+        <div className="grid h-full min-h-0 grid-rows-[minmax(260px,40%)_1fr] gap-8 lg:grid-cols-[340px_minmax(0,1fr)] lg:grid-rows-1">
+          <aside className="min-h-0">
             {/*<label className="relative block">
               <Search className="absolute left-4 top-1/2 h-6 w-6 -translate-y-1/2 text-[#151515]" strokeWidth={2.5} />
               <input
@@ -55,7 +55,7 @@ export default function Tickets() {
               placeholder="Search tickets"
             />
 
-            <div className="mt-6 h-[calc(100%-72px)] overflow-hidden rounded-lg border border-[#b7b7b7] bg-white shadow-[0_8px_16px_rgba(0,0,0,0.16)]">
+            <div className="mt-6 h-[calc(100%-72px)] overflow-y-auto rounded-lg border border-[#b7b7b7] bg-white shadow-[0_8px_16px_rgba(0,0,0,0.16)]">
               {ticketsQuery.isLoading ? (
                 <div className="p-6 text-sm text-gray-500">Loading tickets...</div>
               ) : ticketsQuery.error ? (
@@ -116,10 +116,10 @@ function TicketDetail({ ticketId }: { ticketId: string | null }) {
     enabled: Boolean(ticketId),
   })
 
-  if (!ticketId) return <main className="pt-24 text-[#777777]">Select a ticket.</main>
-  if (ticketQuery.isLoading) return <main className="pt-24 text-[#777777]">Loading ticket detail...</main>
+  if (!ticketId) return <main className="min-h-0 overflow-y-auto pt-24 text-[#777777]">Select a ticket.</main>
+  if (ticketQuery.isLoading) return <main className="min-h-0 overflow-y-auto pt-24 text-[#777777]">Loading ticket detail...</main>
   if (ticketQuery.error || !ticketQuery.data) {
-    return <main className="pt-24 text-red-700">{(ticketQuery.error as Error)?.message ?? 'Ticket not found'}</main>
+    return <main className="min-h-0 overflow-y-auto pt-24 text-red-700">{(ticketQuery.error as Error)?.message ?? 'Ticket not found'}</main>
   }
 
   return (
@@ -154,7 +154,7 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
   const replies = ticket.replies ?? []
 
   return (
-    <main className="overflow-y-auto pt-10">
+    <main className="min-h-0 overflow-y-auto pb-10 pr-2 pt-10">
       <div className="flex justify-between items-center gap-6">
         <div className="flex flex-wrap items-center gap-4 font-bold">
           <span className="inline-flex items-center gap-2">

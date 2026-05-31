@@ -24,6 +24,7 @@ import { useSidebarHeader } from '../../components/layout/sidebar-context'
 import Button from "@/components/ui/Button";
 import { Symbols } from "@/components/ui/MaterialSymbols";
 import { Input } from '@/components/ui/Field'
+import Avatar from '@/components/ui/Avatar'
 
 type TenantTab = 'All' | 'Needs Onboarding' | 'Assigned' | 'Unassigned' | 'Archived'
 
@@ -315,15 +316,7 @@ export default function Tenants() {
                   <tr key={tenant.id} className="hover:bg-gray-50">
                     <td className="px-5 py-4">
                       <button onClick={() => setSelectedTenant(tenant)} className="flex items-center text-left">
-                        {tenant.avatar_url ? (
-                          <img
-                            src={tenant.avatar_url}
-                            alt={`${tenant.name}'s profile`}
-                            className="h-9 w-9 flex-shrink-0 rounded-full object-cover"
-                          />
-                        ) : (
-                          <span className="h-9 w-9 flex-shrink-0 rounded-full bg-gray-200" />
-                        )}
+                        <Avatar src={tenant.avatar_url ?? undefined} name={tenant.name} size={36} />
                         <span className="ml-3">
                           <span className="block text-sm font-bold text-gray-950">{tenant.name}</span>
                           <span className="block text-xs text-gray-500">{tenant.email}</span>

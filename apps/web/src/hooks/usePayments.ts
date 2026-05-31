@@ -19,6 +19,7 @@ export type PaymentWithDetails = {
     id: string
     total_amount: number
     billing_month: string
+    due_date: string
     status: string
     contracts: {
       id: string
@@ -65,6 +66,7 @@ export function usePayments() {
             id,
             total_amount,
             billing_month,
+            due_date,
             status,
             contracts (
               id,

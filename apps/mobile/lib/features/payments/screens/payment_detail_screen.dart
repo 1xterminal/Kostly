@@ -68,7 +68,7 @@ class PaymentDetailScreen extends ConsumerWidget {
     final currency = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'IDR ',
-      decimalDigits: 2,
+      decimalDigits: 0,
     );
 
     Color statusColor;
@@ -131,7 +131,7 @@ class PaymentDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Rental Room Cloud',
+            'Monthly rent payment',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
 

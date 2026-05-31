@@ -69,6 +69,7 @@ export type Database = {
         Row: {
           contract_id: string
           created_at: string
+          extension_invoice_id: string | null
           id: string
           note: string | null
           requested_end_date: string
@@ -80,6 +81,7 @@ export type Database = {
         Insert: {
           contract_id: string
           created_at?: string
+          extension_invoice_id?: string | null
           id?: string
           note?: string | null
           requested_end_date: string
@@ -91,6 +93,7 @@ export type Database = {
         Update: {
           contract_id?: string
           created_at?: string
+          extension_invoice_id?: string | null
           id?: string
           note?: string | null
           requested_end_date?: string
@@ -105,6 +108,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extend_requests_extension_invoice_id_fkey"
+            columns: ["extension_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
           {
@@ -477,7 +487,7 @@ export type Database = {
     }
     Enums: {
       contract_status_enum: "active" | "expired" | "terminated"
-      extend_req_status_enum: "pending" | "approved" | "rejected"
+      extend_req_status_enum: "pending" | "awaiting_payment" | "approved" | "rejected"
       invoice_status_enum: "unpaid" | "pending" | "paid"
       payment_status_enum: "not_verified" | "verified" | "rejected"
       room_status_enum: "available" | "occupied" | "maintenance"
@@ -612,7 +622,7 @@ export const Constants = {
   public: {
     Enums: {
       contract_status_enum: ["active", "expired", "terminated"],
-      extend_req_status_enum: ["pending", "approved", "rejected"],
+      extend_req_status_enum: ["pending", "awaiting_payment", "approved", "rejected"],
       invoice_status_enum: ["unpaid", "pending", "paid"],
       payment_status_enum: ["not_verified", "verified", "rejected"],
       room_status_enum: ["available", "occupied", "maintenance"],

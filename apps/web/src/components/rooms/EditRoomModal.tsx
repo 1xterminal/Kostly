@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getRoomById, updateRoom } from '@/api/rooms'
@@ -14,6 +14,7 @@ const roomStatusSchema = z.object({
   number: requiredText('Room number'),
   price: z.number({ error: 'Price is required' }).finite('Price must be a number').positive('Price must be greater than 0'),
   wifi_password: z.string().trim(),
+  status: z.enum(['available', 'occupied', 'maintenance']),
 })
 
 type RoomStatusFormData = z.infer<typeof roomStatusSchema>
@@ -34,20 +35,23 @@ export default function EditRoomModal({
 
   const [selectedData, selectData] = useState<RoomWithRelations | null>(null)
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<RoomStatusFormData>({
+  const { register, handleSubmit, formState: { errors }, reset, setValue, control } = useForm<RoomStatusFormData>({
     resolver: zodResolver(roomStatusSchema)
   })
+  const watchedStatus = useWatch({ control, name: 'status' })
 
   useEffect(() => {
     const fetchData = async () => {
       if (isOpen) {
         const data = await getRoomById(id);
         if (data) {
+          const hasActiveContract = data.contracts?.some((contract) => contract.status === 'active') ?? false
           selectData(data);
           reset({
             number: data.number,
             price: data.price,
-            wifi_password: data.wifi_password ?? ''
+            wifi_password: data.wifi_password ?? '',
+            status: hasActiveContract ? 'occupied' : data.status === 'maintenance' ? 'maintenance' : 'available',
           });
         }
       }
@@ -68,6 +72,9 @@ export default function EditRoomModal({
       await updateRoom(id, {
         ...data,
         wifi_password: data.wifi_password || null,
+        status: selectedData?.contracts?.some((contract) => contract.status === 'active')
+          ? 'occupied'
+          : data.status,
       });
 
       reset()
@@ -83,6 +90,9 @@ export default function EditRoomModal({
 
   if (!(isOpen && selectedData)) return null
 
+  const hasActiveContract = selectedData.contracts?.some((contract) => contract.status === 'active') ?? false
+  const currentStatus = watchedStatus ?? (hasActiveContract ? 'occupied' : 'available')
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center px-4 py-8 text-center">
@@ -96,7 +106,7 @@ export default function EditRoomModal({
               </div>
               <h3 className="text-xl font-bold text-gray-950">Edit Room #{selectedData?.number}</h3>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+            <button onClick={handleClose} className="text-gray-400 hover:text-gray-500">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -140,6 +150,61 @@ export default function EditRoomModal({
                 defaultValue={selectedData?.wifi_password ?? ''}
               />
               {errors.wifi_password && <p className="mt-1 text-xs text-red-500">{errors.wifi_password.message}</p>}
+            </div>
+
+            <div>
+              {hasActiveContract ? (
+                <>
+                  <input type="hidden" value="occupied" {...register('status')} />
+                  <div>
+                    <p className="mb-2 text-sm font-medium text-gray-700">Inventory Status</p>
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">
+                      Occupied
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Occupied rooms are controlled by the active tenant contract.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <input type="hidden" {...register('status')} />
+                  <div>
+                    <p className="mb-2 text-sm font-medium text-gray-700">Inventory Status</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        { value: 'available', label: 'Available', helper: 'Ready to assign' },
+                        { value: 'maintenance', label: 'Maintenance', helper: 'Hide from assignment' },
+                      ] as const).map((option) => {
+                        const isSelected = currentStatus === option.value
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => setValue('status', option.value, { shouldDirty: true, shouldValidate: true })}
+                            className={[
+                              'rounded-lg border px-4 py-3 text-left transition',
+                              isSelected
+                                ? option.value === 'maintenance'
+                                  ? 'border-amber-300 bg-amber-50 text-amber-800 shadow-sm'
+                                  : 'border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm'
+                                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50',
+                            ].join(' ')}
+                            aria-pressed={isSelected}
+                          >
+                            <span className="block text-sm font-bold">{option.label}</span>
+                            <span className="mt-0.5 block text-xs opacity-75">{option.helper}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      Maintenance rooms stay visible in the filter but cannot be assigned until marked available.
+                    </p>
+                  </div>
+                  {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status.message}</p>}
+                </>
+              )}
             </div>
 
             <div className="mt-6 flex justify-end space-x-3">
