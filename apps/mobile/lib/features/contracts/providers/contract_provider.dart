@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/supabase_client.dart';
 import '../../../models/contract.dart';
 
-final activeContractProvider = FutureProvider.autoDispose<Contract?>((ref) async {
+final activeContractProvider = FutureProvider.autoDispose<Contract?>((
+  ref,
+) async {
   final userId = supabase.auth.currentUser?.id;
   if (userId == null) return null;
 
@@ -36,8 +38,55 @@ final activeContractProvider = FutureProvider.autoDispose<Contract?>((ref) async
   }
 });
 
+class LatestExtendRequest {
+  final String id;
+  final DateTime requestedEndDate;
+  final String status;
+  final DateTime createdAt;
+
+  const LatestExtendRequest({
+    required this.id,
+    required this.requestedEndDate,
+    required this.status,
+    required this.createdAt,
+  });
+
+  factory LatestExtendRequest.fromJson(Map<String, dynamic> json) {
+    return LatestExtendRequest(
+      id: json['id'] as String,
+      requestedEndDate: DateTime.parse(json['requested_end_date'] as String),
+      status: json['status'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+    );
+  }
+
+  bool get isPending => status == 'pending';
+}
+
+final latestExtendRequestProvider = FutureProvider.autoDispose
+    .family<LatestExtendRequest?, String>((ref, contractId) async {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) return null;
+
+      final response = await supabase
+          .from('extend_requests')
+          .select('id, requested_end_date, status, created_at')
+          .eq('tenant_id', userId)
+          .eq('contract_id', contractId)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      if (response == null) return null;
+      return LatestExtendRequest.fromJson(Map<String, dynamic>.from(response));
+    });
+
 class ExtendRequestService {
-  Future<void> submitRequest(String contractId, DateTime requestedEndDate, String? note) async {
+  Future<void> submitRequest(
+    String contractId,
+    DateTime requestedEndDate,
+    String? note,
+  ) async {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) throw Exception('Not logged in');
 
@@ -50,7 +99,9 @@ class ExtendRequestService {
         .maybeSingle();
 
     if (existing != null) {
-      throw Exception('You already have a pending extend request for this contract.');
+      throw Exception(
+        'You already have a pending extend request for this contract.',
+      );
     }
 
     await supabase.from('extend_requests').insert({

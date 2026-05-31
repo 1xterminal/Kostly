@@ -115,42 +115,49 @@ class HomeScreen extends ConsumerWidget {
                 invoiceAsync.when(
                   loading: () => const _SkeletonBlock(height: 140),
                   error: (e, _) => _ErrorTile(message: e.toString()),
-                  data: (invoice) => _InfoCard(
-                    label: 'NEXT PAYMENT',
-                    actions: [
-                      _CardAction(
-                        icon: Icons.info_outline_rounded,
-                        label: 'Details',
-                        onTap: () => context.go('/payments'),
-                      ),
-                      const Spacer(),
-                      if (invoice != null)
+                  data: (invoice) {
+                    final isPending = invoice?.status == 'pending';
+                    return _InfoCard(
+                      label: isPending ? 'PAYMENT STATUS' : 'NEXT PAYMENT',
+                      actions: [
                         _CardAction(
-                          icon: Icons.crop_free_rounded,
-                          label: 'Pay now',
-                          onTap: () => context.go('/payments/new'),
+                          icon: Icons.info_outline_rounded,
+                          label: 'Details',
+                          onTap: () => context.go('/payments'),
                         ),
-                    ],
-                    children: [
-                      Text(
-                        invoice == null
-                            ? '—'
-                            : _currencyFmt.format(invoice.totalAmount),
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w700,
-                          // color: _kBodyBlack,
-                          letterSpacing: -0.3,
+                        const Spacer(),
+                        if (invoice != null && !isPending)
+                          _CardAction(
+                            icon: Icons.crop_free_rounded,
+                            label: 'Pay now',
+                            onTap: () => context.go('/payments/new'),
+                          ),
+                      ],
+                      children: [
+                        Text(
+                          invoice == null
+                              ? '-'
+                              : _currencyFmt.format(invoice.totalAmount),
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.3,
+                          ),
                         ),
-                      ),
-                      Text(
-                        invoice == null
-                            ? 'All paid up 🎉'
-                            : 'Due on ${_dateFmt.format(invoice.dueDate)}',
-                        style: const TextStyle(fontSize: 14, color: _kSubGray),
-                      ),
-                    ],
-                  ),
+                        Text(
+                          invoice == null
+                              ? 'All paid up'
+                              : isPending
+                              ? 'Awaiting owner verification'
+                              : 'Due on ${_dateFmt.format(invoice.dueDate)}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: _kSubGray,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 14),
 

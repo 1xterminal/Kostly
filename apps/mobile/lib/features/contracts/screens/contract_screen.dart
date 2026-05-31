@@ -51,12 +51,12 @@ class ContractScreen extends ConsumerWidget {
 
 // ─── Main Body ────────────────────────────────────────────────────────────────
 
-class _ContractBody extends StatelessWidget {
+class _ContractBody extends ConsumerWidget {
   final Contract contract;
   const _ContractBody({required this.contract});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
     final totalDays = contract.endDate.difference(contract.startDate).inDays;
     final daysLeft = contract.endDate
@@ -67,6 +67,7 @@ class _ContractBody extends StatelessWidget {
     final monthsLeft = (daysLeft / 30).ceil();
 
     final colorScheme = Theme.of(context).colorScheme;
+    final extensionAsync = ref.watch(latestExtendRequestProvider(contract.id));
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -272,6 +273,17 @@ class _ContractBody extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
+          extensionAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
+            data: (request) => request == null
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: _ExtensionRequestCard(request: request),
+                  ),
+          ),
+
           // ── Extend button ───────────────────────────────────────────────────
           SizedBox(
             width: double.infinity,
@@ -319,6 +331,62 @@ class _SectionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: children,
       ),
+    );
+  }
+}
+
+class _ExtensionRequestCard extends StatelessWidget {
+  final LatestExtendRequest request;
+  const _ExtensionRequestCard({required this.request});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (request.status) {
+      'approved' => const Color(0xFF059669),
+      'rejected' => const Color(0xFFDC2626),
+      _ => const Color(0xFFD97706),
+    };
+    final label = switch (request.status) {
+      'approved' => 'APPROVED',
+      'rejected' => 'REJECTED',
+      _ => 'PENDING',
+    };
+
+    return _SectionCard(
+      children: [
+        const _Label('LATEST EXTENSION REQUEST'),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Extend to ${_dateFmt.format(request.requestedEndDate)}',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: _kBodyBlack,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

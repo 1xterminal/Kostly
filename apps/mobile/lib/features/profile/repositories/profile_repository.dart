@@ -31,6 +31,16 @@ class Profile {
 class ProfileRepository {
   const ProfileRepository();
 
+  static const _maxAvatarBytes = 2 * 1024 * 1024;
+  static const _allowedAvatarExtensions = {
+    'jpg',
+    'jpeg',
+    'png',
+    'webp',
+    'heic',
+    'heif',
+  };
+
   Future<Profile> fetchProfile() async {
     final user = supabase.auth.currentUser;
     if (user == null) throw Exception('User not logged in');
@@ -117,6 +127,23 @@ class ProfileRepository {
     if (user == null) throw Exception('User not logged in');
 
     final fileExtension = imageFile.path.split('.').last.toLowerCase();
+    if (!_allowedAvatarExtensions.contains(fileExtension)) {
+      throw Exception('Upload JPG, PNG, WEBP, HEIC, or HEIF image only.');
+    }
+
+    final fileSize = await imageFile.length();
+    if (fileSize > _maxAvatarBytes) {
+      throw Exception('Profile picture must be 2 MB or smaller.');
+    }
+
+    final contentType = switch (fileExtension) {
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      'heic' => 'image/heic',
+      'heif' => 'image/heif',
+      _ => 'image/jpeg',
+    };
+
     final fileName =
         '${user.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
 
@@ -127,7 +154,11 @@ class ProfileRepository {
         .upload(
           filePath,
           imageFile,
-          fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+          fileOptions: FileOptions(
+            cacheControl: '3600',
+            contentType: contentType,
+            upsert: true,
+          ),
         );
 
     await supabase

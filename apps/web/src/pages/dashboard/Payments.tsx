@@ -11,6 +11,11 @@ const formatCurrency = (amount: number) =>
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
 
+const formatMonth = (dateStr?: string) =>
+  dateStr
+    ? new Date(dateStr).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+    : '-'
+
 const shortInvoiceId = (id: string) => `#INV${id.slice(0, 5).toUpperCase()}`
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -234,7 +239,9 @@ export default function Payments() {
             <div className="flex items-start justify-between px-6 pt-6 pb-2">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Payment Proof</h2>
-                <p className="text-sm text-gray-400 mt-1">Subtitle</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  {shortInvoiceId(selectedProof.payment.invoice_id)} · {formatMonth(selectedProof.payment.invoices?.billing_month)}
+                </p>
               </div>
               <button onClick={() => setSelectedProof(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
             </div>
@@ -278,9 +285,19 @@ export default function Payments() {
                         </div>
 
                         <div>
+                          <p className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-1">Billing Month</p>
+                          <p className="text-gray-900 text-sm">{formatMonth(current.invoices?.billing_month)}</p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-1">Due Date</p>
+                          <p className="text-gray-900 text-sm">{current.invoices?.due_date ? formatDate(current.invoices.due_date) : '-'}</p>
+                        </div>
+
+                        <div>
                           <p className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-1">Payment Target</p>
                           <p className="text-gray-900 font-semibold flex items-center gap-2">
-                            Rental Room Cloud
+                            Monthly rent payment
                             <svg className="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                           </p>
                         </div>

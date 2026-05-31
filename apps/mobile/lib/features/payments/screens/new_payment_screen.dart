@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:mobile/features/widgets/gradient_fab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/supabase_client.dart';
+import '../../home/providers/home_providers.dart';
 import '../providers/payment_providers.dart';
 
 class NewPaymentScreen extends ConsumerStatefulWidget {
@@ -19,7 +20,14 @@ class NewPaymentScreen extends ConsumerStatefulWidget {
 
 class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
   static const _maxProofBytes = 5 * 1024 * 1024;
-  static const _allowedProofExtensions = {'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'};
+  static const _allowedProofExtensions = {
+    'jpg',
+    'jpeg',
+    'png',
+    'webp',
+    'heic',
+    'heif',
+  };
 
   Map<String, dynamic>? _selectedInvoice;
   XFile? _selectedImage;
@@ -29,8 +37,10 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
   final _currency = NumberFormat.currency(
     locale: 'id_ID',
     symbol: 'IDR ',
-    decimalDigits: 2,
+    decimalDigits: 0,
   );
+  final _date = DateFormat('d MMM yyyy');
+  final _month = DateFormat('MMMM yyyy');
 
   // ── Pick image ──────────────────────────────────────────────────────────────
   Future<void> _pickImage() async {
@@ -104,6 +114,7 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
 
       ref.invalidate(tenantPaymentsProvider);
       ref.invalidate(unpaidInvoicesProvider);
+      ref.invalidate(pendingInvoiceProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -161,6 +172,18 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
     };
   }
 
+  String _formatDateValue(Object? value) {
+    if (value == null) return '-';
+    final parsed = DateTime.tryParse(value.toString());
+    return parsed == null ? '-' : _date.format(parsed);
+  }
+
+  String _formatMonthValue(Object? value) {
+    if (value == null) return '-';
+    final parsed = DateTime.tryParse(value.toString());
+    return parsed == null ? '-' : _month.format(parsed);
+  }
+
   @override
   Widget build(BuildContext context) {
     final asyncInvoices = ref.watch(unpaidInvoicesProvider);
@@ -188,9 +211,7 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
       ),
       floatingActionButton: GradientFAB(
         onPressed:
-            (_selectedInvoice == null ||
-                _selectedImage == null ||
-                _isUploading)
+            (_selectedInvoice == null || _selectedImage == null || _isUploading)
             ? null
             : _submit,
         icon: _isUploading
@@ -259,15 +280,33 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
                       ),
                       items: invoices.map((inv) {
                         final id = inv['id'] as String;
+                        final amount = _currency.format(
+                          inv['total_amount'] ?? 0,
+                        );
                         return DropdownMenuItem(
                           value: inv,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text(
-                              '#${id.substring(0, 6).toUpperCase()}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${_formatMonthValue(inv['billing_month'])} - $amount',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  '#${id.substring(0, 6).toUpperCase()} - due ${_formatDateValue(inv['due_date'])}',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -288,7 +327,17 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
             const SizedBox(height: 12),
             _infoRow('PAYMENT AMOUNT', amount ?? '-'),
             const SizedBox(height: 12),
-            _infoRow('PAYMENT TARGET', 'Rental Room Cloud'),
+            _infoRow(
+              'BILLING MONTH',
+              _formatMonthValue(_selectedInvoice!['billing_month']),
+            ),
+            const SizedBox(height: 12),
+            _infoRow(
+              'DUE DATE',
+              _formatDateValue(_selectedInvoice!['due_date']),
+            ),
+            const SizedBox(height: 12),
+            _infoRow('PAYMENT TARGET', 'Monthly rent payment'),
           ],
 
           // ── Upload proof ────────────────────────────────────────────────────

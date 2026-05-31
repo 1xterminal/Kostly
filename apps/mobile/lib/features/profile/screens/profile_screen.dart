@@ -50,9 +50,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _profileImage = oldImage;
             _isUploading = false;
           });
+          final message = e.toString().replaceFirst('Exception: ', '');
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Failed to upload image: $e')));
+          ).showSnackBar(SnackBar(content: Text(message)));
         }
       }
     }

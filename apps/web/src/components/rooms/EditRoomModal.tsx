@@ -7,13 +7,14 @@ import { getRoomById, updateRoom } from '@/api/rooms'
 import type { RoomWithRelations } from '@/types'
 import { requiredText } from '@/lib/validation'
 import { Symbols } from '../ui/MaterialSymbols'
-import { Input } from '../ui/Field'
+import { Input, Select } from '../ui/Field'
 import Button from '../ui/Button'
 
 const roomStatusSchema = z.object({
   number: requiredText('Room number'),
   price: z.number({ error: 'Price is required' }).finite('Price must be a number').positive('Price must be greater than 0'),
   wifi_password: z.string().trim(),
+  status: z.enum(['available', 'occupied', 'maintenance']),
 })
 
 type RoomStatusFormData = z.infer<typeof roomStatusSchema>
@@ -43,11 +44,13 @@ export default function EditRoomModal({
       if (isOpen) {
         const data = await getRoomById(id);
         if (data) {
+          const hasActiveContract = data.contracts?.some((contract) => contract.status === 'active') ?? false
           selectData(data);
           reset({
             number: data.number,
             price: data.price,
-            wifi_password: data.wifi_password ?? ''
+            wifi_password: data.wifi_password ?? '',
+            status: hasActiveContract ? 'occupied' : data.status === 'maintenance' ? 'maintenance' : 'available',
           });
         }
       }
@@ -68,6 +71,9 @@ export default function EditRoomModal({
       await updateRoom(id, {
         ...data,
         wifi_password: data.wifi_password || null,
+        status: selectedData?.contracts?.some((contract) => contract.status === 'active')
+          ? 'occupied'
+          : data.status,
       });
 
       reset()
@@ -83,6 +89,8 @@ export default function EditRoomModal({
 
   if (!(isOpen && selectedData)) return null
 
+  const hasActiveContract = selectedData.contracts?.some((contract) => contract.status === 'active') ?? false
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center px-4 py-8 text-center">
@@ -96,7 +104,7 @@ export default function EditRoomModal({
               </div>
               <h3 className="text-xl font-bold text-gray-950">Edit Room #{selectedData?.number}</h3>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+            <button onClick={handleClose} className="text-gray-400 hover:text-gray-500">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -140,6 +148,31 @@ export default function EditRoomModal({
                 defaultValue={selectedData?.wifi_password ?? ''}
               />
               {errors.wifi_password && <p className="mt-1 text-xs text-red-500">{errors.wifi_password.message}</p>}
+            </div>
+
+            <div>
+              {hasActiveContract ? (
+                <>
+                  <input type="hidden" value="occupied" {...register('status')} />
+                  <Input
+                    label="Room Status"
+                    value="Occupied"
+                    disabled
+                    readOnly
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Occupied rooms are controlled by the active tenant contract.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Select label="Room Status" {...register('status')}>
+                    <option value="available">Available</option>
+                    <option value="maintenance">Maintenance</option>
+                  </Select>
+                  {errors.status && <p className="mt-1 text-xs text-red-500">{errors.status.message}</p>}
+                </>
+              )}
             </div>
 
             <div className="mt-6 flex justify-end space-x-3">

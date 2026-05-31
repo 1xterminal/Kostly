@@ -8,7 +8,8 @@ class ExtendContractScreen extends ConsumerStatefulWidget {
   const ExtendContractScreen({super.key});
 
   @override
-  ConsumerState<ExtendContractScreen> createState() => _ExtendContractScreenState();
+  ConsumerState<ExtendContractScreen> createState() =>
+      _ExtendContractScreenState();
 }
 
 class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
@@ -17,8 +18,18 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
 
   String _formatDate(DateTime date) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
@@ -33,7 +44,8 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
-        _dateController.text = '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+        _dateController.text =
+            '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
       });
     }
   }
@@ -53,18 +65,24 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
     });
 
     try {
-      await ref.read(extendRequestServiceProvider).submitRequest(contractId, _selectedDate!, null);
+      await ref
+          .read(extendRequestServiceProvider)
+          .submitRequest(contractId, _selectedDate!, null);
+      ref.invalidate(latestExtendRequestProvider(contractId));
+      ref.invalidate(activeContractProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Extend request submitted successfully')),
+          const SnackBar(
+            content: Text('Extend request submitted successfully'),
+          ),
         );
         context.pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) {
@@ -88,7 +106,10 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: const Text('Request an Extend', style: TextStyle(fontWeight: FontWeight.w600)),
+        title: const Text(
+          'Request an Extend',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -97,6 +118,11 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
           if (contract == null) {
             return const Center(child: Text('No active contract found.'));
           }
+          final latestRequestAsync = ref.watch(
+            latestExtendRequestProvider(contract.id),
+          );
+          final latestRequest = latestRequestAsync.asData?.value;
+          final hasPendingRequest = latestRequest?.isPending ?? false;
 
           return Padding(
             padding: const EdgeInsets.all(24.0),
@@ -115,7 +141,10 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
                 const SizedBox(height: 4),
                 Text(
                   '${_formatDate(contract.startDate)} - ${_formatDate(contract.endDate)}',
-                  style: const TextStyle(fontSize: 16, color: Color(0xFF111827)),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF111827),
+                  ),
                 ),
                 const SizedBox(height: 32),
                 const Text(
@@ -126,9 +155,13 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
                 TextField(
                   controller: _dateController,
                   readOnly: true,
-                  onTap: () => _pickDate(context, contract.endDate),
+                  onTap: hasPendingRequest
+                      ? null
+                      : () => _pickDate(context, contract.endDate),
                   decoration: InputDecoration(
-                    hintText: 'DD/MM/YYYY',
+                    hintText: hasPendingRequest
+                        ? 'Request already pending'
+                        : 'DD/MM/YYYY',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -141,22 +174,88 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
                     ),
                   ),
                 ),
+                latestRequestAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                  data: (request) => request == null
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: _buildRequestStatus(request),
+                        ),
+                ),
                 const Spacer(),
                 Center(
                   child: GradientFAB(
-                    onPressed: (_isLoading || _dateController.text.isEmpty) ? null : () => _submit(contract.id),
+                    onPressed:
+                        (_isLoading ||
+                            _dateController.text.isEmpty ||
+                            hasPendingRequest)
+                        ? null
+                        : () => _submit(contract.id),
                     icon: _isLoading
-                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Icon(Icons.save_outlined),
-                    label: Text(_isLoading ? 'Submitting...' : 'Submit'),
+                    label: Text(
+                      hasPendingRequest
+                          ? 'Pending'
+                          : _isLoading
+                          ? 'Submitting...'
+                          : 'Submit',
+                    ),
                   ),
-                )
+                ),
               ],
             ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Error: $error')),
+      ),
+    );
+  }
+
+  Widget _buildRequestStatus(LatestExtendRequest request) {
+    final color = switch (request.status) {
+      'approved' => const Color(0xFF059669),
+      'rejected' => const Color(0xFFDC2626),
+      _ => const Color(0xFFD97706),
+    };
+    final label = switch (request.status) {
+      'approved' => 'Approved',
+      'rejected' => 'Rejected',
+      _ => 'Pending owner review',
+    };
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Requested end date: ${_formatDate(request.requestedEndDate)}',
+            style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
+          ),
+        ],
       ),
     );
   }
