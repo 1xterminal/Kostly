@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { BedDouble, Search, Send, Ticket as TicketIcon } from 'lucide-react'
 import { getTicketById, getTickets, replyToTicket, ticketKeys, updateTicketStatus } from '@/api/maintenance'
 import type { Enums, TicketWithRelations } from '@/types'
 import { Input } from '@/components/ui/Field'
@@ -159,12 +158,10 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
       <div className="flex justify-between items-center gap-6">
         <div className="flex flex-wrap items-center gap-4 font-bold">
           <span className="inline-flex items-center gap-2">
-            {/*<TicketIcon className="h-7 w-7" strokeWidth={2.5} />*/}
             <Symbols name="confirmation_number" />
             #{shortTicketId(ticket.id)}
           </span>
           <span className="inline-flex items-center gap-2">
-            {/*<BedDouble className="h-7 w-7" strokeWidth={2.5} />*/}
             <Symbols name="bed" />
             Room #{ticket.room?.number ?? '-'}
           </span>

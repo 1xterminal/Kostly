@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/themeUtil.dart';
+import 'package:mobile/theme_util.dart';
 
 class KostlyTheme {
   // 1. Your Fixed Brand Colors
@@ -11,7 +11,7 @@ class KostlyTheme {
     final ColorScheme customColorScheme = ColorScheme.fromSeed(
       seedColor: accentColor,
       brightness: Brightness.light,
-      primary: accentColor,       // Enforces your exact hex color
+      primary: accentColor, // Enforces your exact hex color
       secondary: accentColor,
       surface: backgroundColor,
     );
@@ -24,32 +24,40 @@ class KostlyTheme {
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: customColorScheme.primary,
         foregroundColor: Colors.white,
-        shape: StadiumBorder()
+        shape: StadiumBorder(),
       ),
 
       // 2. Global Button Styles
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundBuilder: (BuildContext context, Set<WidgetState> states, Widget? child) {
-            return Ink(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: states.contains(WidgetState.disabled)
-                    ? [Colors.grey.shade400, Colors.grey.shade300]
-                    : [customColorScheme.primary, lightenColor(customColorScheme.primary, 0.2)]
-                ),
-                border: Border.all(
-                  color: Colors.black.withValues(alpha: states.contains(WidgetState.disabled) ? 0.1: 0.25), 
-                  width: 1.0
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: child,
-            );
-          },
+          backgroundBuilder:
+              (BuildContext context, Set<WidgetState> states, Widget? child) {
+                return Ink(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: states.contains(WidgetState.disabled)
+                          ? [Colors.grey.shade400, Colors.grey.shade300]
+                          : [
+                              customColorScheme.primary,
+                              lightenColor(customColorScheme.primary, 0.2),
+                            ],
+                    ),
+                    border: Border.all(
+                      color: Colors.black.withValues(
+                        alpha: states.contains(WidgetState.disabled)
+                            ? 0.1
+                            : 0.25,
+                      ),
+                      width: 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: child,
+                );
+              },
           foregroundColor: Colors.white,
           // side: const BorderSide(
-          //   color: Color.fromRGBO(0, 0, 0, 0.25), 
+          //   color: Color.fromRGBO(0, 0, 0, 0.25),
           //   width: 8.0,
           // ),
           // border
@@ -64,17 +72,22 @@ class KostlyTheme {
       ),
 
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom()
+        style: OutlinedButton.styleFrom(),
       ),
 
       // 3. Global Input / TextField Styles
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white, // Native M3 container shade
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
         labelStyle: TextStyle(color: customColorScheme.onSurfaceVariant),
-        hintStyle: TextStyle(color: customColorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
-        
+        hintStyle: TextStyle(
+          color: customColorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+        ),
+
         // Border styles depending on state
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -82,11 +95,17 @@ class KostlyTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: customColorScheme.outlineVariant, width: 1),
+          borderSide: BorderSide(
+            color: customColorScheme.outlineVariant,
+            width: 1,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: customColorScheme.primary, width: 2), // Highlights your fixed accent
+          borderSide: BorderSide(
+            color: customColorScheme.primary,
+            width: 2,
+          ), // Highlights your fixed accent
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

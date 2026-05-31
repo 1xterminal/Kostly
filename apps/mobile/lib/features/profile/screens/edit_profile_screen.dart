@@ -113,27 +113,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 // const Spacer(),
 
                 // Center(
-                //   child: GradientFAB(
-                //     onPressed: _isLoading ? null : _saveChanges,
-                //     icon: _isLoading
-                //         ? const SizedBox(
-                //             width: 16,
-                //             height: 16,
-                //             child: CircularProgressIndicator(
-                //               color: Colors.white,
-                //               strokeWidth: 2,
-                //             ),
-                //           )
-                //         : const Icon(Icons.save, size: 20),
-                //     label: const Text(
-                //       'Save',
-                //       style: TextStyle(
-                //         fontSize: 16,
-                //         fontWeight: FontWeight.w600,
-                //       ),
-                //     ),
-                //   )
-                // ),
               ],
             ),
           ),
@@ -153,13 +132,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             : const Icon(Icons.save, size: 20),
         label: const Text(
           'Save',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -182,26 +158,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           controller: controller,
           keyboardType: keyboardType,
           enabled: enabled,
-          // decoration: InputDecoration(
-          //   filled: true,
-          //   fillColor: enabled ? Colors.white : const Color(0xFFE5E7EB),
-          //   contentPadding: const EdgeInsets.symmetric(
-          //     horizontal: 12,
-          //     vertical: 10,
-          //   ),
-          //   // border: OutlineInputBorder(
-          //   //   borderRadius: BorderRadius.circular(8),
-          //   //   borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-          //   // ),
-          //   // enabledBorder: OutlineInputBorder(
-          //   //   borderRadius: BorderRadius.circular(8),
-          //   //   borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-          //   // ),
-          //   // focusedBorder: OutlineInputBorder(
-          //   //   borderRadius: BorderRadius.circular(8),
-          //   //   // borderSide: const BorderSide(color: Color(0xFF3341A5)),
-          //   // ),
-          // ),
           validator: validator,
         ),
       ],

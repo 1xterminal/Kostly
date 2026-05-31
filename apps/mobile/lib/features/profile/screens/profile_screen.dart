@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mobile/themeUtil.dart';
+import 'package:mobile/theme_util.dart';
 import '../providers/profile_providers.dart';
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
@@ -107,7 +107,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       : (profile.avatarUrl != null &&
                                             profile.avatarUrl!.isNotEmpty)
                                       ? DecorationImage(
-                                          image: NetworkImage(profile.avatarUrl!),
+                                          image: NetworkImage(
+                                            profile.avatarUrl!,
+                                          ),
                                           fit: BoxFit.cover,
                                         )
                                       : null,
@@ -158,23 +160,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             icon: const Icon(Icons.logout, size: 18),
                             label: const Text('Log out'),
                             style: OutlinedButton.styleFrom(
-                              backgroundBuilder: (BuildContext context, Set<WidgetState> states, Widget? child) {
-                                return Ink(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: states.contains(WidgetState.disabled)
-                                        ? [Colors.grey.shade200, Colors.grey.shade100]
-                                        : [lightenColor(Color(0xFFE33119), 0.8), lightenColor(Color(0xFFE33119), 0.9)]
-                                    ),
-                                    border: Border.all(
-                                      color: states.contains(WidgetState.disabled) ? Colors.black.withValues(alpha: 0.1): Color(0xFFE33119), 
-                                      width: 1.0
-                                    ),
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  child: child,
-                                );
-                              },
+                              backgroundBuilder:
+                                  (
+                                    BuildContext context,
+                                    Set<WidgetState> states,
+                                    Widget? child,
+                                  ) {
+                                    return Ink(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors:
+                                              states.contains(
+                                                WidgetState.disabled,
+                                              )
+                                              ? [
+                                                  Colors.grey.shade200,
+                                                  Colors.grey.shade100,
+                                                ]
+                                              : [
+                                                  lightenColor(
+                                                    Color(0xFFE33119),
+                                                    0.8,
+                                                  ),
+                                                  lightenColor(
+                                                    Color(0xFFE33119),
+                                                    0.9,
+                                                  ),
+                                                ],
+                                        ),
+                                        border: Border.all(
+                                          color:
+                                              states.contains(
+                                                WidgetState.disabled,
+                                              )
+                                              ? Colors.black.withValues(
+                                                  alpha: 0.1,
+                                                )
+                                              : Color(0xFFE33119),
+                                          width: 1.0,
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                          8.0,
+                                        ),
+                                      ),
+                                      child: child,
+                                    );
+                                  },
                               foregroundColor: const Color(0xFFE33119),
                               // side: const BorderSide(color: Color(0xFFE33119)),
                               shape: RoundedRectangleBorder(
@@ -205,9 +236,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                           const Text(
                             'Tenant',
-                            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF6B7280),
+                            ),
                           ),
-                        ]
+                        ],
                       ),
                       // const SizedBox(height: 32),
 
@@ -255,13 +289,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       );
                     },
                   ),
-                ]
-              )
-            )
-          ]
-        )
-      )
-      
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

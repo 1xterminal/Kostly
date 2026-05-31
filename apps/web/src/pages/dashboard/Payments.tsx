@@ -1,5 +1,4 @@
 import { useState } from 'react'
-// import { Search } from 'lucide-react'
 import { usePayments } from '../../hooks/usePayments'
 import type { PaymentWithDetails } from '../../hooks/usePayments'
 import { Input } from '@/components/ui/Field'

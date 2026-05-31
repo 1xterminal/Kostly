@@ -6,8 +6,6 @@ import 'package:mobile/features/widgets/gradient_fab.dart';
 import '../providers/maintenance_providers.dart';
 import '../repositories/maintenance_repository.dart';
 
-// const _kBg = Color(0xFFF1F1F1);
-// const _kPrimary = Color(0xFF3341A5);
 const _kText = Color(0xFF111111);
 const _kMuted = Color(0xFF858585);
 const _kOrange = Color(0xFFD44B14);
@@ -22,7 +20,6 @@ class TicketsScreen extends ConsumerWidget {
     final ticketsAsync = ref.watch(maintenanceTicketsProvider);
 
     return Scaffold(
-      // backgroundColor: _kBg,
       body: SafeArea(
         child: Stack(
           children: [
@@ -43,32 +40,42 @@ class TicketsScreen extends ConsumerWidget {
                 ),
                 Expanded(
                   child: RefreshIndicator(
-                    // color: _kPrimary,
-                    onRefresh: () async => ref.invalidate(maintenanceTicketsProvider),
+                    onRefresh: () async =>
+                        ref.invalidate(maintenanceTicketsProvider),
                     child: ticketsAsync.when(
-                      loading: () => const Center(child: CircularProgressIndicator()),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
                       error: (error, _) => ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        children: [_MessageRow(message: error.toString(), isError: true)],
+                        children: [
+                          _MessageRow(message: error.toString(), isError: true),
+                        ],
                       ),
                       data: (tickets) {
                         if (tickets.isEmpty) {
                           return ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
-                            children: const [_MessageRow(message: 'No maintenance tickets yet.')],
+                            children: const [
+                              _MessageRow(
+                                message: 'No maintenance tickets yet.',
+                              ),
+                            ],
                           );
                         }
 
                         return ListView.separated(
                           physics: const AlwaysScrollableScrollPhysics(),
-                          // padding: const EdgeInsets.only(bottom: 180),
                           itemCount: tickets.length,
-                          separatorBuilder: (_, _) => const Divider(height: 1, color: Color(0xFFD7D7D7)),
+                          separatorBuilder: (_, _) => const Divider(
+                            height: 1,
+                            color: Color(0xFFD7D7D7),
+                          ),
                           itemBuilder: (context, index) {
                             final ticket = tickets[index];
                             return _TicketRow(
                               ticket: ticket,
-                              onTap: () => context.push('/maintenance/${ticket.id}'),
+                              onTap: () =>
+                                  context.push('/maintenance/${ticket.id}'),
                             );
                           },
                         );
@@ -78,27 +85,6 @@ class TicketsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            // Positioned(
-            //   left: 0,
-            //   right: 0,
-            //   bottom: 86,
-            //   child: Center(
-            //     child: ElevatedButton.icon(
-            //       onPressed: () => context.push('/maintenance/new'),
-            //       icon: const Icon(Icons.report_problem_outlined),
-            //       label: const Text('Report a problem'),
-            //       // style: ElevatedButton.styleFrom(
-            //       //   backgroundColor: _kPrimary,
-            //       //   foregroundColor: Colors.white,
-            //       //   elevation: 12,
-            //       //   shadowColor: Colors.black.withValues(alpha: 0.35),
-            //       //   padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 18),
-            //       //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-            //       //   textStyle: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-            //       // ),
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),
@@ -138,7 +124,11 @@ class _TicketRow extends StatelessWidget {
                     _ticketTitle(ticket),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _kText),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: _kText,
+                    ),
                   ),
                 ),
                 Text(
