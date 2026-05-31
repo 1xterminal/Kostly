@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/validators.dart';
+import 'package:mobile/features/widgets/gradient_fab.dart';
 import '../providers/profile_providers.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
@@ -103,46 +104,90 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   ),
                 ),
 
-                const Spacer(),
+                // const Spacer(),
 
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _changePassword,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3341A5),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    icon: _isLoading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Icon(Icons.save, size: 20),
-                    label: const Text(
-                      'Change password',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
+                // Center(
+                //   child: GradientFAB(
+                //     onPressed: _isLoading ? null : _changePassword,
+                //     icon: _isLoading
+                //         ? const SizedBox(
+                //             width: 16,
+                //             height: 16,
+                //             child: CircularProgressIndicator(
+                //               color: Colors.white,
+                //               strokeWidth: 2,
+                //             ),
+                //           )
+                //         : const Icon(Icons.save, size: 20),
+                //     label: const Text(
+                //       'Change password',
+                //       style: TextStyle(
+                //         fontSize: 16,
+                //         fontWeight: FontWeight.w600,
+                //       ),
+                //     ),
+                //   )
+                // ),
+
+                // Center(
+                //   child: ElevatedButton.icon(
+                //     onPressed: _isLoading ? null : _changePassword,
+                //     style: ElevatedButton.styleFrom(
+                //       backgroundColor: const Color(0xFF3341A5),
+                //       foregroundColor: Colors.white,
+                //       padding: const EdgeInsets.symmetric(
+                //         horizontal: 32,
+                //         vertical: 16,
+                //       ),
+                //       shape: RoundedRectangleBorder(
+                //         borderRadius: BorderRadius.circular(30),
+                //       ),
+                //     ),
+                //     icon: _isLoading
+                //         ? const SizedBox(
+                //             width: 16,
+                //             height: 16,
+                //             child: CircularProgressIndicator(
+                //               color: Colors.white,
+                //               strokeWidth: 2,
+                //             ),
+                //           )
+                //         : const Icon(Icons.save, size: 20),
+                //     label: const Text(
+                //       'Change password',
+                //       style: TextStyle(
+                //         fontSize: 16,
+                //         fontWeight: FontWeight.w600,
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
         ),
       ),
+      floatingActionButton: GradientFAB(
+        onPressed: _isLoading ? null : _changePassword,
+        icon: _isLoading
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Icon(Icons.save, size: 20),
+        label: const Text(
+          'Change password',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat
     );
   }
 
@@ -162,26 +207,26 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         TextFormField(
           controller: controller,
           obscureText: true,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF3341A5)),
-            ),
-          ),
+          // decoration: InputDecoration(
+          //   filled: true,
+          //   fillColor: Colors.white,
+          //   contentPadding: const EdgeInsets.symmetric(
+          //     horizontal: 16,
+          //     vertical: 14,
+          //   ),
+          //   border: OutlineInputBorder(
+          //     borderRadius: BorderRadius.circular(8),
+          //     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          //   ),
+          //   enabledBorder: OutlineInputBorder(
+          //     borderRadius: BorderRadius.circular(8),
+          //     borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          //   ),
+          //   focusedBorder: OutlineInputBorder(
+          //     borderRadius: BorderRadius.circular(8),
+          //     borderSide: const BorderSide(color: Color(0xFF3341A5)),
+          //   ),
+          // ),
           validator: validator,
         ),
       ],

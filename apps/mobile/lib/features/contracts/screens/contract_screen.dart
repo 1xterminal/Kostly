@@ -31,7 +31,7 @@ class ContractScreen extends ConsumerWidget {
       backgroundColor: _kBg,
       body: SafeArea(
         child: RefreshIndicator(
-          color: _kPrimary,
+          // color: _kPrimary,
           onRefresh: () async => ref.invalidate(activeContractProvider),
           child: contractAsync.when(
             loading: () => const _LoadingSkeleton(),
@@ -60,9 +60,11 @@ class _ContractBody extends StatelessWidget {
     final progress   = totalDays > 0 ? daysLeft / totalDays : 0.0;
     final monthsLeft = (daysLeft / 30).ceil();
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -72,7 +74,7 @@ class _ContractBody extends StatelessWidget {
             'My Contract',
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: _kBodyBlack,
               letterSpacing: -0.3,
             ),
@@ -92,10 +94,10 @@ class _ContractBody extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: _kPrimary.withValues(alpha: 0.1),
+                      color: colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.door_front_door_outlined, color: _kPrimary, size: 22),
+                    child: Icon(Icons.door_front_door_outlined, color: colorScheme.primary, size: 22),
                   ),
                   const SizedBox(width: 14),
                   Column(
@@ -175,7 +177,7 @@ class _ContractBody extends StatelessWidget {
                   minHeight: 8,
                   backgroundColor: const Color(0xFFE5E7EB),
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    progress > 0.3 ? _kPrimary : const Color(0xFFEF4444),
+                    progress > 0.3 ? colorScheme.primary : const Color(0xFFEF4444),
                   ),
                 ),
               ),
@@ -272,7 +274,7 @@ class _SectionCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _kCardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: _kBorder),
       ),
       child: Column(

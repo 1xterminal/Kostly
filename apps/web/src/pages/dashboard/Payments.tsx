@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+// import { Search } from 'lucide-react'
 import { usePayments } from '../../hooks/usePayments'
 import type { PaymentWithDetails } from '../../hooks/usePayments'
+import { Input } from '@/components/ui/Field'
+import { Symbols } from '@/components/ui/MaterialSymbols'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const formatCurrency = (amount: number) =>
@@ -76,7 +78,7 @@ export default function Payments() {
   return (
     <div className="space-y-6">
       {/* Search */}
-      <div className="relative max-w-full">
+      {/* <div className="relative max-w-full">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <input
           id="payments-search"
@@ -85,6 +87,15 @@ export default function Payments() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-100 bg-[#f8f9fa] rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+        />
+        </div> */}
+      <div className="px-20">
+        <Input
+          id="payments-search"
+          placeholder="Search payments"
+          leadingIcon={<Symbols name="search" />}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
@@ -228,7 +239,7 @@ export default function Payments() {
               </div>
               <button onClick={() => setSelectedProof(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
             </div>
-            
+
             {(() => {
               const current = selectedProof.payment
               if (!current || current.status !== 'not_verified') return null
@@ -248,17 +259,17 @@ export default function Payments() {
                         />
                       </div>
                     </div>
-                    
+
                     {/* Right Column */}
                     <div className="space-y-6">
                       <h3 className="font-bold text-gray-800 text-sm">Invoice Info</h3>
-                      
+
                       <div className="space-y-5">
                         <div>
                           <p className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-1">Tenant Name</p>
                           <p className="text-gray-900 text-sm">{current.tenant.name}</p>
                         </div>
-                        
+
                         <div>
                           <p className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-1">Payment Amount</p>
                           <p className="text-gray-900 font-semibold flex items-center gap-2">
@@ -266,7 +277,7 @@ export default function Payments() {
                             <svg className="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                           </p>
                         </div>
-                        
+
                         <div>
                           <p className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-1">Payment Target</p>
                           <p className="text-gray-900 font-semibold flex items-center gap-2">

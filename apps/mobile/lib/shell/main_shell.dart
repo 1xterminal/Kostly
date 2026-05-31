@@ -20,7 +20,7 @@ const _navItems = [
   _NavItem(Icons.account_circle_outlined, 'Profile'), // person circle
 ];
 
-const _kPrimary = Color(0xFF3341A5);
+// const _kPrimary = Color(0xFF3341A5);
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
 
@@ -61,9 +61,11 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       color: const Color(0xFFEBEBEB),
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       child: SafeArea(
         top: false,
         child: Container(
@@ -90,12 +92,12 @@ class _BottomNav extends StatelessWidget {
                     decoration: BoxDecoration(
                       // Active: light blue fill + blue border (matches mockup)
                       color: isActive
-                          ? _kPrimary.withValues(alpha: 0.08)
+                          ? theme.primaryColor.withValues(alpha: 0.08) //_kPrimary.withValues(alpha: 0.08)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       border: isActive
                           ? Border.all(
-                              color: _kPrimary.withValues(alpha: 0.55),
+                              color: theme.primaryColor.withValues(alpha: 0.55),
                               width: 1.5,
                             )
                           : null,
@@ -104,7 +106,7 @@ class _BottomNav extends StatelessWidget {
                       child: Icon(
                         item.icon,
                         size: 24,
-                        color: isActive ? _kPrimary : const Color(0xFF374151),
+                        color: isActive ? theme.primaryColor : const Color(0xFF374151),
                       ),
                     ),
                   ),

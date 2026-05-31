@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile/features/widgets/gradient_fab.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/supabase_client.dart';
 import '../providers/payment_providers.dart';
@@ -185,6 +186,33 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
+      floatingActionButton: GradientFAB(
+        onPressed:
+            (_selectedInvoice == null ||
+                _selectedImage == null ||
+                _isUploading)
+            ? null
+            : _submit,
+        icon: _isUploading
+            ? const SizedBox(
+                height: 16,
+                width: 16,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Icon(Icons.send, color: Colors.white, size: 18),
+        label: Text(
+          _isUploading ? 'Uploading…' : 'Submit',
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -322,46 +350,46 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
           const SizedBox(height: 48),
 
           // ── Submit button ───────────────────────────────────────────────────
-          Align(
-            alignment: Alignment.center,
-            child: ElevatedButton.icon(
-              onPressed:
-                  (_selectedInvoice == null ||
-                      _selectedImage == null ||
-                      _isUploading)
-                  ? null
-                  : _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2E41A2),
-                disabledBackgroundColor: Colors.grey.shade300,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              icon: _isUploading
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Icon(Icons.send, color: Colors.white, size: 18),
-              label: Text(
-                _isUploading ? 'Uploading…' : 'Submit',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
+          // Align(
+          //   alignment: Alignment.center,
+          //   child: ElevatedButton.icon(
+          //     onPressed:
+          //         (_selectedInvoice == null ||
+          //             _selectedImage == null ||
+          //             _isUploading)
+          //         ? null
+          //         : _submit,
+          //     style: ElevatedButton.styleFrom(
+          //       backgroundColor: const Color(0xFF2E41A2),
+          //       disabledBackgroundColor: Colors.grey.shade300,
+          //       padding: const EdgeInsets.symmetric(
+          //         horizontal: 24,
+          //         vertical: 12,
+          //       ),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(30),
+          //       ),
+          //     ),
+          //     icon: _isUploading
+          //         ? const SizedBox(
+          //             height: 16,
+          //             width: 16,
+          //             child: CircularProgressIndicator(
+          //               color: Colors.white,
+          //               strokeWidth: 2,
+          //             ),
+          //           )
+          //         : const Icon(Icons.send, color: Colors.white, size: 18),
+          //     label: Text(
+          //       _isUploading ? 'Uploading…' : 'Submit',
+          //       style: const TextStyle(
+          //         fontSize: 15,
+          //         fontWeight: FontWeight.w600,
+          //         color: Colors.white,
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

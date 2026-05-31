@@ -36,6 +36,7 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final ticketAsync = ref.watch(maintenanceTicketProvider(widget.ticketId));
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       backgroundColor: _kBg,
@@ -48,116 +49,149 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
 
             return Column(
               children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  height: 64,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => context.pop(),
+                        icon: const Icon(Icons.arrow_back),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      const Text(
+                        'Ticket Details',
+                        style: TextStyle(fontWeight: FontWeight.w700, color: _kText),
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(28, 28, 28, 28),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     children: [
-                      Row(
+                      Column(
+                        spacing: 16,
                         children: [
-                          IconButton(
-                            onPressed: () => context.pop(),
-                            icon: const Icon(Icons.arrow_back, size: 34),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: _StatusPill(status: ticket.ticketStatus),
                           ),
-                          const SizedBox(width: 26),
-                          const Text(
-                            'Ticket Details',
-                            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: _kText),
+                          // const SizedBox(height: 34),
+                          Row(
+                            spacing: 16,
+                            children: [
+                              Row(
+                                spacing: 4,
+                                children: [
+                                  const Icon(Icons.confirmation_number_outlined),
+                                  Text(
+                                    '#${_shortTicketId(ticket.id)}',
+                                    style: const TextStyle(fontWeight: FontWeight.w800, color: _kText),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                spacing: 4,
+                                children: [
+                                  const Icon(Icons.bed_outlined),
+                                  Text(
+                                    'Room #${ticket.room?.number ?? '-'}',
+                                    style: const TextStyle(fontWeight: FontWeight.w800, color: _kText),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
+                        ]
+                      ),
+
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 16,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 8,
+                            children: [
+                              Text(
+                                _ticketTitle(ticket),
+                                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w500, color: _kText, letterSpacing: -1.2),
+                              ),
+                              // const SizedBox(height: 18),
+                              Text.rich(
+                                TextSpan(
+                                  text: 'Reported by ',
+                                  children: [
+                                    const TextSpan(text: 'You', style: TextStyle(fontWeight: FontWeight.w800)),
+                                    TextSpan(text: '\non ${_reportedFormat.format(ticket.createdAt)}'),
+                                  ],
+                                ),
+                                style: const TextStyle(height: 1.28, color: _kText),
+                              ),
+                            ],
+                          ),
+                          // const SizedBox(height: 26),
+                          Text(
+                            ticket.description,
+                            style: const TextStyle(fontSize: 16, height: 1.16, color: _kText),
+                          ),
+                          if (ticket.resolvedMessage != null && ticket.resolvedMessage!.isNotEmpty) ...[
+                            // const SizedBox(height: 22),
+                            Text(ticket.resolvedMessage!, style: const TextStyle(fontSize: 20, color: _kMuted)),
+                          ],
+
+                          // const SizedBox(height: 26),
+                          Text(
+                            '${ticket.replies.length} RESPONSE${ticket.replies.length == 1 ? '' : 'S'}',
+                            style: const TextStyle(fontWeight: FontWeight.w900, color: _kText),
+                          ),
+
                         ],
                       ),
-                      const SizedBox(height: 34),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: _StatusPill(status: ticket.ticketStatus),
-                      ),
-                      const SizedBox(height: 34),
-                      Row(
-                        children: [
-                          const Icon(Icons.confirmation_number_outlined, size: 31),
-                          const SizedBox(width: 10),
-                          Text(
-                            '#${_shortTicketId(ticket.id)}',
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: _kText),
-                          ),
-                          const SizedBox(width: 28),
-                          const Icon(Icons.bed_outlined, size: 31),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Room #${ticket.room?.number ?? '-'}',
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: _kText),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 36),
-                      Text(
-                        _ticketTitle(ticket),
-                        style: const TextStyle(fontSize: 46, fontWeight: FontWeight.w500, color: _kText, letterSpacing: -1.2),
-                      ),
-                      const SizedBox(height: 18),
-                      Text.rich(
-                        TextSpan(
-                          text: 'Reported by ',
+                      
+                      const SizedBox(height: 16),
+                      // const SizedBox(height: 24),
+                      ...ticket.replies.map((reply) => Padding(
+                        padding: const EdgeInsets.only(bottom: 22),
+                        child: Row(
+                          spacing: 16,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const TextSpan(text: 'You', style: TextStyle(fontWeight: FontWeight.w800)),
-                            TextSpan(text: '\non ${_reportedFormat.format(ticket.createdAt)}'),
+                            const CircleAvatar(radius: 16, backgroundColor: Color(0xFFD9D9D9)),
+                            // const SizedBox(width: 22),
+                            Expanded(
+                              child: Column(
+                                spacing: 8,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text.rich(
+                                    TextSpan(
+                                      text: _replySenderName(reply),
+                                      style: const TextStyle(fontWeight: FontWeight.w800),
+                                      children: [
+                                        TextSpan(
+                                          text: ' • ${_relativeTime(reply.createdAt)}',
+                                          style: const TextStyle(fontWeight: FontWeight.w400),
+                                        ),
+                                      ],
+                                    ),
+                                    style: const TextStyle(color: _kText),
+                                  ),
+                                  // const SizedBox(height: 10),
+                                  Text(reply.message, style: const TextStyle(fontSize: 16, height: 1.15, color: _kText)),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                        style: const TextStyle(fontSize: 22, height: 1.28, color: _kText),
-                      ),
-                      const SizedBox(height: 26),
-                      Text(
-                        ticket.description,
-                        style: const TextStyle(fontSize: 24, height: 1.16, color: _kText),
-                      ),
-                      if (ticket.resolvedMessage != null && ticket.resolvedMessage!.isNotEmpty) ...[
-                        const SizedBox(height: 22),
-                        Text(ticket.resolvedMessage!, style: const TextStyle(fontSize: 20, color: _kMuted)),
-                      ],
-                      const SizedBox(height: 26),
-                      Text(
-                        '${ticket.replies.length} RESPONSE${ticket.replies.length == 1 ? '' : 'S'}',
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: _kText),
-                      ),
-                      const SizedBox(height: 24),
-                      ...ticket.replies.map((reply) => Padding(
-                            padding: const EdgeInsets.only(bottom: 22),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const CircleAvatar(radius: 32, backgroundColor: Color(0xFFD9D9D9)),
-                                const SizedBox(width: 22),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text.rich(
-                                        TextSpan(
-                                          text: _replySenderName(reply),
-                                          style: const TextStyle(fontWeight: FontWeight.w800),
-                                          children: [
-                                            TextSpan(
-                                              text: ' • ${_relativeTime(reply.createdAt)}',
-                                              style: const TextStyle(fontWeight: FontWeight.w400),
-                                            ),
-                                          ],
-                                        ),
-                                        style: const TextStyle(fontSize: 21, color: _kText),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(reply.message, style: const TextStyle(fontSize: 24, height: 1.15, color: _kText)),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )),
+                      )),
                     ],
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.fromLTRB(28, 14, 28, 14 + MediaQuery.of(context).padding.bottom),
+                  padding: EdgeInsets.fromLTRB(24, 16, 24, 16 + MediaQuery.of(context).padding.bottom),
                   decoration: const BoxDecoration(
                     color: _kBg,
                     border: Border(top: BorderSide(color: Color(0xFFCFCFCF))),
@@ -171,15 +205,16 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
                           child: Text(_error!, style: const TextStyle(color: Color(0xFFDC2626))),
                         ),
                       Row(
+                        spacing: 16,
                         children: [
-                          const CircleAvatar(radius: 32, backgroundColor: Color(0xFFD9D9D9)),
-                          const SizedBox(width: 22),
+                          const CircleAvatar(radius: 16, backgroundColor: Color(0xFFD9D9D9)),
+                          // const SizedBox(width: 22),
                           Expanded(
                             child: TextField(
                               controller: _replyController,
                               minLines: 1,
                               maxLines: 4,
-                              style: const TextStyle(fontSize: 24),
+                              // style: const TextStyle(fontSize: 24),
                               decoration: const InputDecoration(
                                 hintText: 'Enter message',
                                 hintStyle: TextStyle(color: Color(0xFF8F8F8F)),
@@ -191,7 +226,7 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
                             onPressed: _isSending ? null : _sendReply,
                             icon: _isSending
                                 ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                                : const Icon(Icons.send_outlined, size: 34, color: _kMuted),
+                                : Icon(Icons.send_outlined, color: _replyController.text.isEmpty ? _kMuted: colorScheme.primary),
                           ),
                         ],
                       ),
@@ -240,7 +275,8 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = _statusColor(status);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: 24,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(999),
@@ -248,7 +284,7 @@ class _StatusPill extends StatelessWidget {
       ),
       child: Text(
         _statusLabel(status),
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 2, color: color),
+        style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 2, color: color),
       ),
     );
   }
@@ -264,7 +300,7 @@ class _Message extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(28),
+        padding: const EdgeInsets.all(24),
         child: Text(
           message,
           textAlign: TextAlign.center,

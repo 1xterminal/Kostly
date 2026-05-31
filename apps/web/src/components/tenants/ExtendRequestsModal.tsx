@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { callEdgeFunction } from '../../lib/edgeFunctions'
+import Button from "../ui/Button";
 
 type ExtendRequest = {
   id: string
@@ -225,24 +226,60 @@ export default function ExtendRequestsModal({
                     )}
 
                     <div className="flex gap-2">
-                      <button
+                      {/*<button
                         type="button"
-                        onClick={() => handleAction(request.id, 'approved')}
+                        onClick={() => handleAction(request.id, "approved")}
                         disabled={isProcessing}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
                       >
-                        {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                        {isProcessing ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        )}
                         Approve
-                      </button>
-                      <button
+                      </button>*/}
+                      <Button
+                        action="suggested"
+                        onClick={() => handleAction(request.id, "approved")}
+                        disabled={isProcessing}
+                        style={{ flex: 1 }}
+                      >
+                        {isProcessing ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        )}
+                        Approve
+                      </Button>
+
+                      {/*<button
                         type="button"
-                        onClick={() => handleAction(request.id, 'rejected')}
+                        onClick={() => handleAction(request.id, "rejected")}
                         disabled={isProcessing}
                         className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-600 transition-all hover:bg-red-50 active:scale-95 disabled:opacity-50"
                       >
-                        {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
+                        {isProcessing ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <XCircle className="h-3.5 w-3.5" />
+                        )}
                         Reject
-                      </button>
+                      </button>*/}
+                      <Button
+                        emphasis="outlined"
+                        action="destructive"
+                        onClick={() => handleAction(request.id, "rejected")}
+                        disabled={isProcessing}
+                        style={{ flex: 1 }}
+                      >
+                        {isProcessing ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <XCircle className="h-3.5 w-3.5" />
+                        )}
+                        Reject
+                      </Button>
                     </div>
                   </div>
                 )

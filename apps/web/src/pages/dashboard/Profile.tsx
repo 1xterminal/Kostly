@@ -6,6 +6,9 @@ import { useSignOut, authKeys } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useSidebarHeader } from '../../components/layout/sidebar-context'
 import { passwordSchema, phonePattern } from '../../lib/validation'
+import Button from "@/components/ui/Button";
+import { Symbols } from "@/components/ui/MaterialSymbols";
+import { Input } from '@/components/ui/Field'
 
 type OwnerProfile = {
   id: string
@@ -33,15 +36,24 @@ export default function Profile() {
 
   useEffect(() => {
     setActions(
-      <button
+      // <button
+      //   onClick={() => signOut()}
+      //   disabled={isSigningOut}
+      //   className="inline-flex items-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+      // >
+      //   <LogOut className="mr-2 h-4 w-4" />
+      //   {isSigningOut ? "Signing out..." : "Sign Out"}
+      // </button>,
+      <Button
+        emphasis="outlined"
+        action="destructive"
         onClick={() => signOut()}
         disabled={isSigningOut}
-        className="inline-flex items-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
       >
-        <LogOut className="mr-2 h-4 w-4" />
-        {isSigningOut ? 'Signing out...' : 'Sign Out'}
-      </button>,
-    )
+        <Symbols name="logout" />
+        {isSigningOut ? "Signing out..." : "Sign Out"}
+      </Button>,
+    );
 
     return () => setActions(null)
   }, [isSigningOut, setActions, signOut])
@@ -186,42 +198,66 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-sm font-semibold text-gray-800">Full Name</label>
-              <input
+          <div className='flex flex-col gap-4'>
+            <div className="grid gap-4 md:grid-cols-2">
+              {/*<div>
+                <label className="block text-sm font-semibold text-gray-800">Full Name</label>
+                <input
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>*/}
+              <Input
+                label="Full Name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-800">Phone Number</label>
-              <input
+              {/*<div>
+                <label className="block text-sm font-semibold text-gray-800">Phone Number</label>
+                <input
+                  value={phoneNumber}
+                  onChange={(event) => setPhoneNumber(event.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>*/}
+              <Input
+                label="Phone Number"
                 value={phoneNumber}
                 onChange={(event) => setPhoneNumber(event.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
-          </div>
 
-          <div className="mt-4">
-            <label className="block text-sm font-semibold text-gray-800">Email</label>
-            <div className="mt-1 flex items-center rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">
-              <Mail className="mr-2 h-4 w-4" />
-              {profile?.email}
-            </div>
+            {/*<div className="mt-4">
+              <label className="block text-sm font-semibold text-gray-800">Email</label>
+              <div className="mt-1 flex items-center rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500">
+                <Mail className="mr-2 h-4 w-4" />
+                {profile?.email}
+              </div>
+            </div>*/}
+
+            <Input
+              label="Email"
+              value={profile?.email}
+              leadingIcon={<Symbols name="mail" />}
+              disabled
+              readOnly
+            />
           </div>
 
           <div className="mt-6 flex justify-end">
-            <button
+            {/*<button
               type="submit"
               disabled={isSavingProfile}
               className="inline-flex items-center rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
             >
               <Save className="mr-2 h-4 w-4" />
-              {isSavingProfile ? 'Saving...' : 'Save Profile'}
-            </button>
+              {isSavingProfile ? "Saving..." : "Save Profile"}
+            </button>*/}
+            <Button type="submit" disabled={isSavingProfile}>
+              <Symbols name="save" />
+              {isSavingProfile ? "Saving..." : "Save Profile"}
+            </Button>
           </div>
         </form>
 
@@ -254,7 +290,7 @@ export default function Profile() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div>
+          {/*<div>
             <label className="block text-sm font-semibold text-gray-800">Current Password</label>
             <input
               type="password"
@@ -263,8 +299,15 @@ export default function Profile() {
               autoComplete="current-password"
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-          </div>
-          <div>
+          </div>*/}
+          <Input
+            label="Current Password"
+            type="password"
+            value={currentPassword}
+            onChange={(event) => setCurrentPassword(event.target.value)}
+            autoComplete="current-password"
+          />
+          {/*<div>
             <label className="block text-sm font-semibold text-gray-800">New Password</label>
             <input
               type="password"
@@ -273,8 +316,15 @@ export default function Profile() {
               autoComplete="new-password"
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-          </div>
-          <div>
+          </div>*/}
+          <Input
+            label="New Password"
+            type="password"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            autoComplete="new-password"
+          />
+          {/*<div>
             <label className="block text-sm font-semibold text-gray-800">Confirm Password</label>
             <input
               type="password"
@@ -283,18 +333,29 @@ export default function Profile() {
               autoComplete="new-password"
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-          </div>
+          </div>*/}
+          <Input
+            label="Confirm Password"
+            type="password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            autoComplete="new-password"
+          />
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button
+          {/*<button
             type="submit"
             disabled={isSavingPassword}
             className="inline-flex items-center rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
           >
             <KeyRound className="mr-2 h-4 w-4" />
-            {isSavingPassword ? 'Changing...' : 'Change Password'}
-          </button>
+            {isSavingPassword ? "Changing..." : "Change Password"}
+          </button>*/}
+          <Button type="submit" disabled={isSavingPassword}>
+            <Symbols name="key" />
+            {isSavingPassword ? "Changing..." : "Change Password"}
+          </Button>
         </div>
       </form>
     </div>

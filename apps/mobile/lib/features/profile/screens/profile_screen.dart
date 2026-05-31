@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile/themeUtil.dart';
 import '../providers/profile_providers.dart';
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
@@ -62,151 +63,175 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final profileState = ref.watch(profileNotifierProvider);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFAFAFA), Color(0xFFE2E2E2)],
-          ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: profileState.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Center(child: Text('Error: $err')),
-            data: (profile) => Padding(
-              padding: const EdgeInsets.only(
-                left: 24.0,
-                right: 24.0,
-                top: 24.0,
-                bottom: 32.0,
+      body: profileState.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (profile) => Column(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFAFAFA), Color(0xFFE2E2E2)],
+                ),
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFD1D5DB), width: 1),
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 16,
                     children: [
-                      Stack(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFD1D5DB),
-                              shape: BoxShape.circle,
-                              image: _profileImage != null
-                                  ? DecorationImage(
-                                      image: FileImage(_profileImage!),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : (profile.avatarUrl != null &&
-                                        profile.avatarUrl!.isNotEmpty)
-                                  ? DecorationImage(
-                                      image: NetworkImage(profile.avatarUrl!),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : null,
-                            ),
-                            child: _isUploading
-                                ? const Center(
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                          Stack(
+                            children: [
+                              Container(
+                                width: 64,
+                                height: 64,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD1D5DB),
+                                  shape: BoxShape.circle,
+                                  image: _profileImage != null
+                                      ? DecorationImage(
+                                          image: FileImage(_profileImage!),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : (profile.avatarUrl != null &&
+                                            profile.avatarUrl!.isNotEmpty)
+                                      ? DecorationImage(
+                                          image: NetworkImage(profile.avatarUrl!),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
+                                ),
+                                child: _isUploading
+                                    ? const Center(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : (profile.avatarUrl == null &&
+                                          _profileImage == null)
+                                    ? const Icon(
+                                        Icons.person,
+                                        size: 32,
+                                        color: Colors.white,
+                                      )
+                                    : null,
+                              ),
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: _pickImage,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black87,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.edit,
+                                      size: 14,
                                       color: Colors.white,
                                     ),
-                                  )
-                                : (profile.avatarUrl == null &&
-                                      _profileImage == null)
-                                ? const Icon(
-                                    Icons.person,
-                                    size: 32,
-                                    color: Colors.white,
-                                  )
-                                : null,
-                          ),
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: _pickImage,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.black87,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.edit,
-                                  size: 14,
-                                  color: Colors.white,
-                                ),
+                              ),
+                            ],
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () => _handleLogout(context, ref),
+                            icon: const Icon(Icons.logout, size: 18),
+                            label: const Text('Log out'),
+                            style: OutlinedButton.styleFrom(
+                              backgroundBuilder: (BuildContext context, Set<WidgetState> states, Widget? child) {
+                                return Ink(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: states.contains(WidgetState.disabled)
+                                        ? [Colors.grey.shade200, Colors.grey.shade100]
+                                        : [lightenColor(Color(0xFFE33119), 0.8), lightenColor(Color(0xFFE33119), 0.9)]
+                                    ),
+                                    border: Border.all(
+                                      color: states.contains(WidgetState.disabled) ? Colors.black.withValues(alpha: 0.1): Color(0xFFE33119), 
+                                      width: 1.0
+                                    ),
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  child: child,
+                                );
+                              },
+                              foregroundColor: const Color(0xFFE33119),
+                              // side: const BorderSide(color: Color(0xFFE33119)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      OutlinedButton.icon(
-                        onPressed: () => _handleLogout(context, ref),
-                        icon: const Icon(Icons.logout, size: 18),
-                        label: const Text('Log out'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFDC2626),
-                          side: const BorderSide(color: Color(0xFFDC2626)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      // const SizedBox(height: 24),
+
+                      // Name
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 4,
+                        children: [
+                          Text(
+                            profile.name,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF111827),
+                            ),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                          const Text(
+                            'Tenant',
+                            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
                           ),
-                        ),
+                        ]
                       ),
+                      // const SizedBox(height: 32),
+
+                      // Tenant Info
+                      _buildInfoField('FULL NAME', profile.name),
+                      // const SizedBox(height: 20),
+                      _buildInfoField('EMAIL', profile.email),
+                      // const SizedBox(height: 20),
+                      _buildInfoField(
+                        'PHONE NUMBER',
+                        profile.phone.isEmpty ? '-' : profile.phone,
+                      ),
+
+                      // const SizedBox(height: 32),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                ),
+              ),
+            ),
 
-                  // Name
-                  Text(
-                    profile.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Tenant',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Tenant Info
-                  _buildInfoField('FULL NAME', profile.name),
-                  const SizedBox(height: 20),
-                  _buildInfoField('EMAIL', profile.email),
-                  const SizedBox(height: 20),
-                  _buildInfoField(
-                    'PHONE NUMBER',
-                    profile.phone.isEmpty ? '-' : profile.phone,
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Divider
-                  const Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: Color(0xFFD1D5DB),
-                  ),
-                  const SizedBox(height: 16),
-
+            Padding(
+              padding: EdgeInsetsGeometry.all(12),
+              child: Column(
+                children: [
                   // Edit Profile And Change Password
                   _buildMenuItem(
                     icon: Icons.edit_outlined,
@@ -219,7 +244,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 8),
                   _buildMenuItem(
                     icon: Icons.lock_outline,
                     title: 'Change password',
@@ -231,18 +255,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       );
                     },
                   ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+                ]
+              )
+            )
+          ]
+        )
+      )
+      
     );
   }
 
   Widget _buildInfoField(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 4,
       children: [
         Text(
           label,
@@ -253,7 +279,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 4),
+        // const SizedBox(height: 4),
         Text(
           value,
           style: const TextStyle(fontSize: 14, color: Color(0xFF4B5563)),
@@ -271,7 +297,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        padding: const EdgeInsets.all(12.0),
         child: Row(
           children: [
             Icon(icon, color: const Color(0xFF374151), size: 22),

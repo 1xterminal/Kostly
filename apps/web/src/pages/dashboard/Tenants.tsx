@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Archive,
-  Bell,
+  // Bell,
   Home,
   Mail,
   MessageCircle,
@@ -9,7 +9,7 @@ import {
   Pencil,
   RotateCcw,
   Search,
-  UserPlus,
+  // UserPlus,
 } from 'lucide-react'
 import { useTenants, type TenantWithDetails } from '../../hooks/useTenants'
 import { usePendingExtendCount } from '../../hooks/useExtendRequests'
@@ -21,6 +21,9 @@ import TenantDetailsDrawer from '../../components/tenants/TenantDetailsDrawer'
 import { supabase } from '../../lib/supabase'
 import { callEdgeFunction } from '../../lib/edgeFunctions'
 import { useSidebarHeader } from '../../components/layout/sidebar-context'
+import Button from "@/components/ui/Button";
+import { Symbols } from "@/components/ui/MaterialSymbols";
+import { Input } from '@/components/ui/Field'
 
 type TenantTab = 'All' | 'Needs Onboarding' | 'Assigned' | 'Unassigned' | 'Archived'
 
@@ -115,7 +118,16 @@ export default function Tenants() {
   useEffect(() => {
     setActions(
       <>
-        <button
+        <Button emphasis="outlined" onClick={() => setIsExtendModalOpen(true)}>
+          <Symbols name="more_time" />
+          Extend Requests
+          {pendingExtendCount > 0 && (
+            <span className="ml-2 rounded-full bg-[#D6420F] px-2 py-0.5 text-xs font-bold text-white">
+              {pendingExtendCount}
+            </span>
+          )}
+        </Button>
+        {/*<button
           onClick={() => setIsExtendModalOpen(true)}
           className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
         >
@@ -126,25 +138,40 @@ export default function Tenants() {
               {pendingExtendCount}
             </span>
           )}
-        </button>
-        <button
+        </button>*/}
+        <Button
+          emphasis="outlined"
           onClick={() => {
-            setAssignTarget(null)
-            setIsAssignModalOpen(true)
-            setActiveMenuId(null)
+            setAssignTarget(null);
+            setIsAssignModalOpen(true);
+            setActiveMenuId(null);
+          }}
+        >
+          <Symbols name="in_home_mode" />
+          Assign Room
+        </Button>
+        {/*<button
+          onClick={() => {
+            setAssignTarget(null);
+            setIsAssignModalOpen(true);
+            setActiveMenuId(null);
           }}
           className="inline-flex items-center rounded-md border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-[#3B5998] hover:bg-blue-50"
         >
           <Home className="mr-2 h-4 w-4" />
           Assign Room
-        </button>
-        <button
+        </button>*/}
+        <Button onClick={() => setIsAccountModalOpen(true)}>
+          <Symbols name="person_add" />
+          Add Account
+        </Button>
+        {/*<button
           onClick={() => setIsAccountModalOpen(true)}
           className="inline-flex items-center rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
         >
           <UserPlus className="mr-2 h-4 w-4" />
           Add Account
-        </button>
+        </button>*/}
       </>,
     )
 
@@ -226,8 +253,8 @@ export default function Tenants() {
         Needs Onboarding means the tenant has not finished first mobile login/password setup. Unassigned means the tenant has no active room contract.
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative max-w-xl flex-1">
+      <div className="flex justify-center gap-3 px-20">
+        {/*<div className="relative max-w-xl flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -236,13 +263,26 @@ export default function Tenants() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-        </div>
-        <button
-          onClick={() => setActiveTab('All')}
+        </div>*/}
+        <Input
+          placeholder="Search name, email, phone, or room"
+          leadingIcon={<Symbols name="search" />}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ flex: 1 }}
+        />
+        {/*<button
+          onClick={() => setActiveTab("All")}
           className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
         >
           Clear Filters
-        </button>
+        </button>*/}
+        <Button
+          emphasis="outlined"
+          action="mono"
+          onClick={() => setActiveTab("All")}
+        >
+          Clear Filters
+        </Button>
       </div>
 
       <div className="overflow-visible rounded-lg border border-gray-200 bg-white shadow">

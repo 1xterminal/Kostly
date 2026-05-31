@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { BedDouble, Search, Send, Ticket as TicketIcon } from 'lucide-react'
 import { getTicketById, getTickets, replyToTicket, ticketKeys, updateTicketStatus } from '@/api/maintenance'
 import type { Enums, TicketWithRelations } from '@/types'
+import { Input } from '@/components/ui/Field'
+import { Symbols } from '@/components/ui/MaterialSymbols'
 
 type TicketStatus = Enums<'ticket_status_enum'>
 
@@ -33,11 +35,11 @@ export default function Tickets() {
   }, [search, tickets])
 
   return (
-    <div className="h-full overflow-hidden bg-[#f1f1f1] px-6 py-4 text-[#111111]">
+    <div className="h-full overflow-hidden px-6 py-4 text-[#111111]">
       <div className="mx-auto h-full max-w-7xl">
         <div className="grid h-full grid-cols-1 gap-8 lg:grid-cols-[340px_1fr]">
           <aside>
-            <label className="relative block">
+            {/*<label className="relative block">
               <Search className="absolute left-4 top-1/2 h-6 w-6 -translate-y-1/2 text-[#151515]" strokeWidth={2.5} />
               <input
                 value={search}
@@ -45,7 +47,14 @@ export default function Tickets() {
                 placeholder="Search tickets"
                 className="h-12 w-full rounded-lg border border-[#9b9b9b] bg-white pl-14 pr-4 text-base outline-none placeholder:text-[#8b8b8b] focus:border-[#3341A5] focus:ring-2 focus:ring-[#3341A5]/20"
               />
-            </label>
+            </label>*/}
+
+            <Input
+              leadingIcon={<Symbols name="search" />}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search tickets"
+            />
 
             <div className="mt-6 h-[calc(100%-72px)] overflow-hidden rounded-lg border border-[#b7b7b7] bg-white shadow-[0_8px_16px_rgba(0,0,0,0.16)]">
               {ticketsQuery.isLoading ? (
@@ -108,10 +117,10 @@ function TicketDetail({ ticketId }: { ticketId: string | null }) {
     enabled: Boolean(ticketId),
   })
 
-  if (!ticketId) return <main className="pt-24 text-lg text-[#777777]">Select a ticket.</main>
-  if (ticketQuery.isLoading) return <main className="pt-24 text-lg text-[#777777]">Loading ticket detail...</main>
+  if (!ticketId) return <main className="pt-24 text-[#777777]">Select a ticket.</main>
+  if (ticketQuery.isLoading) return <main className="pt-24 text-[#777777]">Loading ticket detail...</main>
   if (ticketQuery.error || !ticketQuery.data) {
-    return <main className="pt-24 text-lg text-red-700">{(ticketQuery.error as Error)?.message ?? 'Ticket not found'}</main>
+    return <main className="pt-24 text-red-700">{(ticketQuery.error as Error)?.message ?? 'Ticket not found'}</main>
   }
 
   return (
@@ -147,14 +156,16 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
 
   return (
     <main className="overflow-y-auto pt-10">
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex flex-wrap items-center gap-8 text-xl font-bold">
+      <div className="flex justify-between items-center gap-6">
+        <div className="flex flex-wrap items-center gap-4 font-bold">
           <span className="inline-flex items-center gap-2">
-            <TicketIcon className="h-7 w-7" strokeWidth={2.5} />
+            {/*<TicketIcon className="h-7 w-7" strokeWidth={2.5} />*/}
+            <Symbols name="confirmation_number" />
             #{shortTicketId(ticket.id)}
           </span>
           <span className="inline-flex items-center gap-2">
-            <BedDouble className="h-7 w-7" strokeWidth={2.5} />
+            {/*<BedDouble className="h-7 w-7" strokeWidth={2.5} />*/}
+            <Symbols name="bed" />
             Room #{ticket.room?.number ?? '-'}
           </span>
         </div>
@@ -173,41 +184,42 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
               <option key={option} value={option}>{statusLabel(option)}</option>
             ))}
           </select>
-          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#d44b14]">⌄</span>
+          {/*<span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#d44b14]">⌄</span>*/}
+          <Symbols className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#d44b14]" name="arrow_drop_down" />
         </label>
       </div>
 
-      <h2 className="mt-6 max-w-4xl text-5xl font-medium tracking-tight">{ticketTitle(ticket)}</h2>
-      <p className="mt-4 text-xl">
+      <h2 className="mt-6 max-w-4xl text-4xl font-medium tracking-tight">{ticketTitle(ticket)}</h2>
+      <p className="mt-4 text-lg">
         Reported by <span className="font-bold">{ticket.reporter?.name ?? 'Unknown'}</span> on {formatFullDate(ticket.created_at)}
       </p>
-      <p className="mt-6 max-w-4xl text-2xl leading-snug">{ticket.description}</p>
+      <p className="mt-6 max-w-4xl leading-snug">{ticket.description}</p>
 
       <section className="mt-8 max-w-5xl">
-        <h3 className="text-xl font-extrabold uppercase tracking-wide">{replies.length} Response{replies.length === 1 ? '' : 's'}</h3>
-        <div className="mt-6 space-y-5">
+        <h3 className="font-extrabold uppercase tracking-wide">{replies.length} Response{replies.length === 1 ? '' : 's'}</h3>
+        <div className="my-6 space-y-5">
           {replies.map(replyItem => (
             <div key={replyItem.id} className="flex gap-5">
               <div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9]" />
               <div>
-                <p className="text-xl">
+                <p>
                   <span className="font-bold">{replySenderName(replyItem, ticket)}</span>
                   <span className="text-[#555555]"> • {relativeTime(replyItem.created_at)}</span>
                 </p>
-                <p className="mt-2 text-2xl leading-snug">{replyItem.message}</p>
+                <p className="leading-snug">{replyItem.message}</p>
               </div>
             </div>
           ))}
         </div>
 
         <form
-          className="mt-8 flex h-20 items-center gap-5 rounded-lg border border-[#8f8f8f] bg-white px-4"
+          // className="mt-8 flex h-20 items-center gap-5 rounded-lg border border-[#8f8f8f] bg-white px-4"
           onSubmit={(event) => {
             event.preventDefault()
             if (reply.trim()) replyMutation.mutate()
           }}
         >
-          <div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9]" />
+          {/*<div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9]" />
           <input
             value={reply}
             onChange={(event) => setReply(event.target.value)}
@@ -216,7 +228,19 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
           />
           <button type="submit" disabled={!reply.trim() || replyMutation.isPending} className="text-[#777777] disabled:opacity-40">
             <Send className="h-8 w-8" strokeWidth={2.5} />
-          </button>
+          </button>*/}
+          <Input
+            placeholder="Enter message"
+            leadingIcon={<div className="h-8 w-8 shrink-0 rounded-full bg-[#d9d9d9]" />}
+            trailingIcon={
+              <button type="submit" disabled={!reply.trim() || replyMutation.isPending} className="text-[#777777] disabled:opacity-40">
+                {/*<Send className="h-8 w-8" strokeWidth={2.5} />*/}
+                <Symbols name="send" />
+              </button>
+            }
+            onChange={(event) => setReply(event.target.value)}
+            style={{ height: 56 }}
+          />
         </form>
         {replyMutation.error && <p className="mt-3 text-sm text-red-600">{(replyMutation.error as Error).message}</p>}
         {updateMutation.error && <p className="mt-3 text-sm text-red-600">{(updateMutation.error as Error).message}</p>}

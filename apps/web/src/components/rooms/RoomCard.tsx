@@ -29,15 +29,15 @@ export function RoomCard(roomData: RoomWithRelations) {
 
   return (
     <div key={roomData.id} className={`
-      h-[160px] p-5 rounded-2xl
+      h-40 p-5 rounded-lg
       border border-gray-300
       bg-white shadow-sm
       flex flex-col justify-between
       bg-linear-to-b ${theme[roomData.status].cardBackground}
     `}>
       {/* bg-linear-to-b from-[${accentColor}00] to-[${accentColor}ff] */}
-        <div className="flex justify-between">
-          <h1 className="font-medium text-2xl">#{roomData.number}</h1>
+        <div className="flex justify-between items-start">
+          <h1 className="font-semibold text-3xl">#{roomData.number}</h1>
           <span className={`
             uppercase font-bold text-sm ${theme[roomData.status].text}
             ${theme[roomData.status].chipBackground}
@@ -49,17 +49,17 @@ export function RoomCard(roomData: RoomWithRelations) {
         </div>
         {
           roomData.status === 'available' ?
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0.5">
               <p className='uppercase font-bold text-sm'>Price</p>
               <p>{roomData.price}</p>
             </div>
           : roomData.status === 'occupied' ?
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0.5">
               <p className='uppercase font-bold text-sm'>Tenant</p>
               <p>{activeContract?.tenant?.name ?? 'No active tenant'}</p>
             </div>
           : // Maintenance
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0.5">
               <p className='uppercase font-bold text-sm'>Reason</p>
               <p className="line-clamp-2">{activeTicket?.description ?? 'No active ticket'}</p>
             </div>
