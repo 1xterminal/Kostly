@@ -70,26 +70,26 @@ class KostlyTheme {
       // 3. Global Input / TextField Styles
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: customColorScheme.surfaceContainerHighest, // Native M3 container shade
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        fillColor: Colors.white, // Native M3 container shade
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         labelStyle: TextStyle(color: customColorScheme.onSurfaceVariant),
-        hintStyle: TextStyle(color: customColorScheme.onSurfaceVariant.withOpacity(0.6)),
+        hintStyle: TextStyle(color: customColorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
         
         // Border styles depending on state
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: customColorScheme.outlineVariant, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: customColorScheme.primary, width: 2), // Highlights your fixed accent
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: customColorScheme.error, width: 1),
         ),
       ),

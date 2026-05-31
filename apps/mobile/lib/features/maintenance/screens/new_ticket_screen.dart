@@ -66,7 +66,8 @@ class _NewTicketScreenState extends ConsumerState<NewTicketScreen> {
                     hintText: 'Example: AC leaking near the window...',
                     filled: true,
                     fillColor: const Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                    // border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                    contentPadding: EdgeInsets.all(14)
                     // focusedBorder: OutlineInputBorder(
                     //   borderRadius: BorderRadius.circular(16),
                     //   borderSide: const BorderSide(color: _kPrimary),

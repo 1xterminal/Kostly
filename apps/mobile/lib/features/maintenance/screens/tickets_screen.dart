@@ -6,8 +6,8 @@ import 'package:mobile/features/widgets/gradient_fab.dart';
 import '../providers/maintenance_providers.dart';
 import '../repositories/maintenance_repository.dart';
 
-const _kBg = Color(0xFFF1F1F1);
-const _kPrimary = Color(0xFF3341A5);
+// const _kBg = Color(0xFFF1F1F1);
+// const _kPrimary = Color(0xFF3341A5);
 const _kText = Color(0xFF111111);
 const _kMuted = Color(0xFF858585);
 const _kOrange = Color(0xFFD44B14);
@@ -61,7 +61,7 @@ class TicketsScreen extends ConsumerWidget {
 
                         return ListView.separated(
                           physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.only(bottom: 180),
+                          // padding: const EdgeInsets.only(bottom: 180),
                           itemCount: tickets.length,
                           separatorBuilder: (_, _) => const Divider(height: 1, color: Color(0xFFD7D7D7)),
                           itemBuilder: (context, index) {

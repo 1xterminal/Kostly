@@ -182,26 +182,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           controller: controller,
           keyboardType: keyboardType,
           enabled: enabled,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: enabled ? Colors.white : const Color(0xFFE5E7EB),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF3341A5)),
-            ),
-          ),
+          // decoration: InputDecoration(
+          //   filled: true,
+          //   fillColor: enabled ? Colors.white : const Color(0xFFE5E7EB),
+          //   contentPadding: const EdgeInsets.symmetric(
+          //     horizontal: 12,
+          //     vertical: 10,
+          //   ),
+          //   // border: OutlineInputBorder(
+          //   //   borderRadius: BorderRadius.circular(8),
+          //   //   borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          //   // ),
+          //   // enabledBorder: OutlineInputBorder(
+          //   //   borderRadius: BorderRadius.circular(8),
+          //   //   borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          //   // ),
+          //   // focusedBorder: OutlineInputBorder(
+          //   //   borderRadius: BorderRadius.circular(8),
+          //   //   // borderSide: const BorderSide(color: Color(0xFF3341A5)),
+          //   // ),
+          // ),
           validator: validator,
         ),
       ],
