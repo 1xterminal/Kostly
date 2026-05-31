@@ -67,10 +67,10 @@ class _NewTicketScreenState extends ConsumerState<NewTicketScreen> {
                     filled: true,
                     fillColor: const Color(0xFFF5F5F5),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: _kPrimary),
-                    ),
+                    // focusedBorder: OutlineInputBorder(
+                    //   borderRadius: BorderRadius.circular(16),
+                    //   borderSide: const BorderSide(color: _kPrimary),
+                    // ),
                   ),
                 ),
                 if (_error != null) ...[
@@ -80,15 +80,15 @@ class _NewTicketScreenState extends ConsumerState<NewTicketScreen> {
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
-                  child: FilledButton.icon(
+                  child: ElevatedButton.icon(
                     onPressed: _isSubmitting ? null : () => _submit(room.id),
                     icon: const Icon(Icons.send_outlined),
                     label: Text(_isSubmitting ? 'Submitting...' : 'Submit Ticket'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _kPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                    // style: FilledButton.styleFrom(
+                    //   backgroundColor: _kPrimary,
+                    //   padding: const EdgeInsets.symmetric(vertical: 14),
+                    //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    // ),
                   ),
                 ),
               ],

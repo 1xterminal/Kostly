@@ -31,7 +31,7 @@ class ContractScreen extends ConsumerWidget {
       backgroundColor: _kBg,
       body: SafeArea(
         child: RefreshIndicator(
-          color: _kPrimary,
+          // color: _kPrimary,
           onRefresh: () async => ref.invalidate(activeContractProvider),
           child: contractAsync.when(
             loading: () => const _LoadingSkeleton(),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile/features/widgets/gradient_fab.dart';
 import '../providers/contract_provider.dart';
 
 class ExtendContractScreen extends ConsumerStatefulWidget {
@@ -141,24 +142,15 @@ class _ExtendContractScreenState extends ConsumerState<ExtendContractScreen> {
                   ),
                 ),
                 const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
+                Center(
+                  child: GradientFAB(
                     onPressed: _isLoading ? null : () => _submit(contract.id),
                     icon: _isLoading
                         ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.save_outlined),
                     label: Text(_isLoading ? 'Submitting...' : 'Submit'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B5998), // Brand blue
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
                   ),
-                ),
+                )
               ],
             ),
           );

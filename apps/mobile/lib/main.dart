@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'router.dart';
+import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,11 +33,23 @@ class KostlyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
       title: 'Kostly',
-      theme: ThemeData(
-        fontFamily: 'Inter',
-        colorSchemeSeed: const Color(0xFF2563EB),
-        useMaterial3: true,
-      ),
+      theme: KostlyTheme.lightTheme,
+      // theme: ThemeData(
+      //   fontFamily: 'Inter',
+      //   colorScheme: ColorScheme.fromSeed(
+      //     seedColor: const Color(0xFFEA0EA8),
+      //     primaryFixed: const Color(0xFFEA0EA8),
+      //     brightness: Brightness.light,
+
+      //   ),
+      //   elevatedButtonTheme: ElevatedButtonThemeData(
+      //     style: ElevatedButton.styleFrom(
+      //       backgroundColor: const Color(0xFFEA0EA8),
+      //     ),
+      //   ),
+      //   // colorSchemeSeed: const Color(0xFFEA0EA8),
+      //   useMaterial3: true,
+      // ),
       routerConfig: router,
     );
   }

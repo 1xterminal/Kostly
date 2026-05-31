@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile/features/widgets/gradient_fab.dart';
 import '../providers/payment_providers.dart';
 
 Color _statusColor(String status) {
@@ -159,19 +160,27 @@ class PaymentsListScreen extends ConsumerWidget {
         ),
       ),
       // ── FAB ──────────────────────────────────────────────────────────────────
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: GradientFAB(
         onPressed: () async {
           await context.push('/payments/new');
           ref.invalidate(tenantPaymentsProvider);
         },
-        backgroundColor: const Color(0xFF2E41A2),
-        elevation: 2,
-        icon: const Icon(Icons.add, color: Colors.white, size: 20),
-        label: const Text(
-          'New payment',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
+        icon: const Icon(Icons.add),
+        label: const Text('New payment')
       ),
+      // FloatingActionButton.extended(
+      //   onPressed: () async {
+      //     await context.push('/payments/new');
+      //     ref.invalidate(tenantPaymentsProvider);
+      //   },
+      //   // backgroundColor: const Color(0xFF2E41A2),
+      //   elevation: 2,
+      //   icon: const Icon(Icons.add, size: 20),
+      //   label: const Text(
+      //     'New payment',
+      //     // style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      //   ),
+      // ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }

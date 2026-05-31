@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/validators.dart';
+import 'package:mobile/features/widgets/gradient_fab.dart';
 import '../providers/profile_providers.dart';
 import '../repositories/profile_repository.dart';
 
@@ -109,48 +110,56 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   validator: validateOptionalPhone,
                 ),
 
-                const Spacer(),
+                // const Spacer(),
 
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _saveChanges,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(
-                        0xFF3341A5,
-                      ), // Standard app blue
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    icon: _isLoading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Icon(Icons.save, size: 20),
-                    label: const Text(
-                      'Save',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
+                // Center(
+                //   child: GradientFAB(
+                //     onPressed: _isLoading ? null : _saveChanges,
+                //     icon: _isLoading
+                //         ? const SizedBox(
+                //             width: 16,
+                //             height: 16,
+                //             child: CircularProgressIndicator(
+                //               color: Colors.white,
+                //               strokeWidth: 2,
+                //             ),
+                //           )
+                //         : const Icon(Icons.save, size: 20),
+                //     label: const Text(
+                //       'Save',
+                //       style: TextStyle(
+                //         fontSize: 16,
+                //         fontWeight: FontWeight.w600,
+                //       ),
+                //     ),
+                //   )
+                // ),
               ],
             ),
           ),
         ),
       ),
+      floatingActionButton: GradientFAB(
+        onPressed: _isLoading ? null : _saveChanges,
+        icon: _isLoading
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Icon(Icons.save, size: 20),
+        label: const Text(
+          'Save',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat
     );
   }
 
