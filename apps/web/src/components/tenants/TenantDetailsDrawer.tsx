@@ -80,8 +80,10 @@ export default function TenantDetailsDrawer({
                   <p className="text-sm font-semibold text-gray-950">{formatDate(tenant.activeContract?.start_date)}</p>
                 </div>
                 <div className="border-l border-gray-200 p-3">
-                  <p className="text-xs text-gray-500">End</p>
-                  <p className="text-sm font-semibold text-gray-950">{formatDate(tenant.activeContract?.end_date)}</p>
+                  <p className="text-xs text-gray-500">Term</p>
+                  <p className="text-sm font-semibold text-gray-950">
+                    {tenant.activeContract ? 'Month-to-month' : '-'}
+                  </p>
                 </div>
               </div>
             </div>

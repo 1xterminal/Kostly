@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import '../../../core/supabase_client.dart';
 import 'package:image_picker/image_picker.dart';
@@ -178,6 +179,10 @@ class ProfileRepository {
   }
 
   Future<void> signOut() async {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut().timeout(const Duration(seconds: 4));
+    } on TimeoutException {
+      // Supabase clears local session before network revoke. Do not block UI.
+    }
   }
 }

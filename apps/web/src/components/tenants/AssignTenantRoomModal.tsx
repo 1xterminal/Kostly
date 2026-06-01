@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { supabase } from '../../lib/supabase'
 import { callEdgeFunction } from '../../lib/edgeFunctions'
 import type { TenantWithDetails } from '../../hooks/useTenants'
-import { isEndAfterStart } from '../../lib/validation'
 import Button from "../ui/Button";
 import { Input, Select } from '../ui/Field'
 
@@ -14,14 +13,20 @@ const assignSchema = z.object({
   tenant_id: z.string().min(1, 'Tenant is required'),
   room_id: z.string().min(1, 'Room is required'),
   start_date: z.string().min(1, 'Start date is required'),
-  end_date: z.string().min(1, 'End date is required'),
-}).refine((data) => isEndAfterStart(data.start_date, data.end_date), {
-  message: 'End date must be after start date',
-  path: ['end_date'],
 })
 
 type AssignFormData = z.infer<typeof assignSchema>
 type AvailableRoom = { id: string; number: string; price: number }
+
+const monthToMonthEndDate = '9999-12-31'
+
+const formatDateInput = (date: Date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
 
 export default function AssignTenantRoomModal({
   isOpen,
@@ -55,6 +60,9 @@ export default function AssignTenantRoomModal({
     formState: { errors },
   } = useForm<AssignFormData>({
     resolver: zodResolver(assignSchema),
+    defaultValues: {
+      start_date: formatDateInput(new Date()),
+    },
   })
 
   const selectedRoom = rooms.find((room) => room.id === selectedRoomId)
@@ -92,7 +100,12 @@ export default function AssignTenantRoomModal({
     setError(null)
 
     try {
-      await callEdgeFunction('assign-tenant-room', data)
+      await callEdgeFunction('assign-tenant-room', {
+        tenant_id: data.tenant_id,
+        room_id: data.room_id,
+        start_date: data.start_date,
+        end_date: monthToMonthEndDate,
+      })
       reset()
       setSelectedRoomId('')
       onSuccess()
@@ -135,8 +148,6 @@ export default function AssignTenantRoomModal({
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              {/*<label className="block text-sm font-semibold text-gray-800">Tenant</label>
-              <select {...register('tenant_id')} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">*/}
               <Select
                 label="Tenant"
                 {...register('tenant_id')}
@@ -148,7 +159,6 @@ export default function AssignTenantRoomModal({
                   </option>
                 ))}
               </Select>
-              {/*</select>*/}
               {!hasAssignableTenants && (
                 <p className="mt-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-800">
                   No unassigned tenant accounts. Tenants that still need onboarding may already have rooms; ask them to log in and set their password.
@@ -158,18 +168,6 @@ export default function AssignTenantRoomModal({
             </div>
 
             <div>
-              {/*<label className="block text-sm font-semibold text-gray-800">Room</label>
-              <select
-                {...register('room_id', { onChange: (event) => setSelectedRoomId(event.target.value) })}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="">Select available room</option>
-                {rooms.map((room) => (
-                  <option key={room.id} value={room.id}>
-                    Room #{room.number} - IDR {Number(room.price).toLocaleString('id-ID')}
-                  </option>
-                ))}
-              </select>*/}
               <Select
                 label="Room"
                 {...register('room_id', { onChange: (event) => setSelectedRoomId(event.target.value) })}
@@ -184,43 +182,33 @@ export default function AssignTenantRoomModal({
               {errors.room_id && <p className="mt-1 text-xs text-red-500">{errors.room_id.message}</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                {/*<label className="block text-sm font-semibold text-gray-800">Start Date</label>
-                <input type="date" {...register('start_date')} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />*/}
-                <Input
-                  label="Start Date"
-                  type="date"
-                  {...register('start_date')}
-                />
-                {errors.start_date && <p className="mt-1 text-xs text-red-500">{errors.start_date.message}</p>}
-              </div>
-              <div>
-                {/*<label className="block text-sm font-semibold text-gray-800">End Date</label>
-                <input type="date" {...register('end_date')} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />*/}
-                <Input
-                  label="End Date"
-                  type="date"
-                  {...register('end_date')}
-                />
-                {errors.end_date && <p className="mt-1 text-xs text-red-500">{errors.end_date.message}</p>}
-              </div>
+            <div>
+              <Input
+                label="Move-in Date"
+                type="date"
+                {...register('start_date')}
+              />
+              {errors.start_date && <p className="mt-1 text-xs text-red-500">{errors.start_date.message}</p>}
+            </div>
+
+            <div className="rounded-md border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
+              This creates an active month-to-month tenancy. Rent invoices keep generating monthly until the tenant is archived or the contract is ended.
             </div>
 
             <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
-              Monthly rate:{' '}
-              <span className="font-bold text-gray-950">
-                {selectedRoom ? `IDR ${Number(selectedRoom.price).toLocaleString('id-ID')}` : 'Select a room'}
-              </span>
+              <div>
+                Monthly rate:{' '}
+                <span className="font-bold text-gray-950">
+                  {selectedRoom ? `IDR ${Number(selectedRoom.price).toLocaleString('id-ID')}` : 'Select a room'}
+                </span>
+              </div>
+              <div>
+                Term:{' '}
+                <span className="font-bold text-gray-950">Month-to-month</span>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
-              {/*<button type="button" onClick={handleClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                Cancel
-              </button>
-              <button type="submit" disabled={isSubmitting || !hasAssignableTenants || rooms.length === 0} className="rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50">
-                {isSubmitting ? 'Assigning...' : 'Assign Room'}
-              </button>*/}
               <Button
                 type="button"
                 emphasis="outlined"

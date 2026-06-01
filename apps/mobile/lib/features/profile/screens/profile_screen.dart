@@ -18,6 +18,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Uint8List? _profileImageBytes;
   bool _isUploading = false;
+  bool _isSigningOut = false;
 
   Future<void> _pickImage() async {
     if (_isUploading) return;
@@ -158,9 +159,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ],
                           ),
                           OutlinedButton.icon(
-                            onPressed: () => _handleLogout(context, ref),
-                            icon: const Icon(Icons.logout, size: 18),
-                            label: const Text('Log out'),
+                            onPressed: _isSigningOut
+                                ? null
+                                : () => _handleLogout(context, ref),
+                            icon: _isSigningOut
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.logout, size: 18),
+                            label: Text(
+                              _isSigningOut ? 'Logging out...' : 'Log out',
+                            ),
                             style: OutlinedButton.styleFrom(
                               backgroundBuilder:
                                   (
@@ -404,8 +417,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
 
     if (confirm == true) {
-      await ref.read(profileNotifierProvider.notifier).signOut();
-      if (context.mounted) context.go('/login');
+      setState(() => _isSigningOut = true);
+      try {
+        await ref.read(profileNotifierProvider.notifier).signOut();
+      } finally {
+        if (context.mounted) context.go('/login');
+      }
     }
   }
 }

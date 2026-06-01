@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Archive,
-  // Bell,
   Home,
   Mail,
   MessageCircle,
@@ -12,10 +11,8 @@ import {
   // UserPlus,
 } from 'lucide-react'
 import { useTenants, type TenantWithDetails } from '../../hooks/useTenants'
-import { usePendingExtendCount } from '../../hooks/useExtendRequests'
 import AssignTenantRoomModal from '../../components/tenants/AssignTenantRoomModal'
 import EditTenantModal from '../../components/tenants/EditTenantModal'
-import ExtendRequestsModal from '../../components/tenants/ExtendRequestsModal'
 import TenantAccountModal from '../../components/tenants/TenantAccountModal'
 import TenantDetailsDrawer from '../../components/tenants/TenantDetailsDrawer'
 import { supabase } from '../../lib/supabase'
@@ -35,9 +32,9 @@ const formatDate = (dateStr?: string) => {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
-const formatPeriod = (start?: string, end?: string) => {
-  if (!start || !end) return '-'
-  return `${formatDate(start)} - ${formatDate(end)}`
+const formatPeriod = (start?: string) => {
+  if (!start) return '-'
+  return `${formatDate(start)} - ongoing`
 }
 
 const statusClasses: Record<string, string> = {
@@ -64,12 +61,10 @@ function getLifecycleKey(tenant: TenantWithDetails) {
 export default function Tenants() {
   const { data: tenants = [], isLoading, error, refetch } = useTenants()
   const { setActions } = useSidebarHeader()
-  const pendingExtendCount = usePendingExtendCount()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<TenantTab>('All')
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false)
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
-  const [isExtendModalOpen, setIsExtendModalOpen] = useState(false)
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null)
   const [selectedTenant, setSelectedTenant] = useState<TenantWithDetails | null>(null)
   const [assignTarget, setAssignTarget] = useState<TenantWithDetails | null>(null)
@@ -119,27 +114,6 @@ export default function Tenants() {
   useEffect(() => {
     setActions(
       <>
-        <Button emphasis="outlined" onClick={() => setIsExtendModalOpen(true)}>
-          <Symbols name="more_time" />
-          Extend Requests
-          {pendingExtendCount > 0 && (
-            <span className="ml-2 rounded-full bg-[#D6420F] px-2 py-0.5 text-xs font-bold text-white">
-              {pendingExtendCount}
-            </span>
-          )}
-        </Button>
-        {/*<button
-          onClick={() => setIsExtendModalOpen(true)}
-          className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-        >
-          <Bell className="mr-2 h-4 w-4" />
-          Extend Requests
-          {pendingExtendCount > 0 && (
-            <span className="ml-2 rounded-full bg-[#D6420F] px-2 py-0.5 text-xs font-bold text-white">
-              {pendingExtendCount}
-            </span>
-          )}
-        </button>*/}
         <Button
           emphasis="outlined"
           onClick={() => {
@@ -177,7 +151,7 @@ export default function Tenants() {
     )
 
     return () => setActions(null)
-  }, [pendingExtendCount, setActions])
+  }, [setActions])
 
   if (error) {
     return <div className="p-8 text-red-500">Error loading tenants: {(error as Error).message}</div>
@@ -333,7 +307,7 @@ export default function Tenants() {
                       {tenant.activeContract?.room?.number ? `#${tenant.activeContract.room.number}` : '-'}
                     </td>
                     <td className="whitespace-nowrap border-l border-gray-200 px-5 py-4 text-sm text-gray-900">
-                      {formatPeriod(tenant.activeContract?.start_date, tenant.activeContract?.end_date)}
+                      {formatPeriod(tenant.activeContract?.start_date)}
                     </td>
                     <td className="whitespace-nowrap border-l border-gray-200 px-5 py-4 text-sm">
                       <span className={tenant.paymentState === 'Paid' ? 'text-emerald-700' : tenant.paymentState === 'Pending' ? 'text-orange-700' : 'text-red-700'}>
@@ -405,12 +379,6 @@ export default function Tenants() {
           setIsAssignModalOpen(false)
           setAssignTarget(null)
         }}
-        onSuccess={() => refetch()}
-      />
-
-      <ExtendRequestsModal
-        isOpen={isExtendModalOpen}
-        onClose={() => setIsExtendModalOpen(false)}
         onSuccess={() => refetch()}
       />
 

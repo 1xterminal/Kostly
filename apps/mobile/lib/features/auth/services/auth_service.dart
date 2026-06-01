@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mobile/core/supabase_client.dart';
 
@@ -102,7 +103,11 @@ class AuthService {
 
   Future<void> signOut() async {
     _mustChangePasswordOverride = false;
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut().timeout(const Duration(seconds: 4));
+    } on TimeoutException {
+      // Local session is cleared first; never leave logout UI stuck.
+    }
   }
 
   User? get currentUser => supabase.auth.currentUser;

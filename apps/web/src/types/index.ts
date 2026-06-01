@@ -52,8 +52,12 @@ export type RoomWithRelations = Room & {
 
 export type TicketWithRelations = MaintenanceTicket & {
   room?:     Pick<Room, 'id' | 'number'>
-  reporter?: Pick<AppUser, 'id' | 'name' | 'email'>
+  reporter?: Pick<AppUser, 'id' | 'name' | 'email' | 'avatar_path'> & {
+    avatar_url?: string | null
+  }
   replies?:  (TicketReply & {
-    sender?: Pick<AppUser, 'id' | 'name' | 'role'>
+    sender?: Pick<AppUser, 'id' | 'name' | 'role' | 'avatar_path'> & {
+      avatar_url?: string | null
+    }
   })[]
 }

@@ -4,6 +4,7 @@ import { getTicketById, getTickets, replyToTicket, ticketKeys, updateTicketStatu
 import type { Enums, TicketWithRelations } from '@/types'
 import { Input } from '@/components/ui/Field'
 import { Symbols } from '@/components/ui/MaterialSymbols'
+import Avatar from '@/components/ui/Avatar'
 
 type TicketStatus = Enums<'ticket_status_enum'>
 
@@ -90,14 +91,17 @@ function TicketListItem({ ticket, active, onClick }: { ticket: TicketWithRelatio
       className={`block w-full border-b border-[#d8d8d8] px-5 py-4 text-left transition ${active ? 'bg-[#ededed]' : 'bg-white hover:bg-[#f7f7f7]'}`}
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h2 className="truncate text-xl font-bold tracking-tight">{ticketTitle(ticket)}</h2>
-          <p className="mt-0.5 truncate text-base">
-            Reported by <span className="font-bold">{ticket.reporter?.name ?? 'Unknown'}</span>
-          </p>
-          <p className={`mt-2 text-xs font-extrabold tracking-[0.12em] ${isUnresolved(ticket.ticket_status) ? 'text-[#d44b14]' : 'text-[#4f6f52]'}`}>
-            {statusLabel(ticket.ticket_status)}
-          </p>
+        <div className="flex min-w-0 gap-3">
+          <Avatar src={ticket.reporter?.avatar_url ?? undefined} name={ticket.reporter?.name} size={42} />
+          <div className="min-w-0">
+            <h2 className="truncate text-xl font-bold tracking-tight">{ticketTitle(ticket)}</h2>
+            <p className="mt-0.5 truncate text-base">
+              Reported by <span className="font-bold">{ticket.reporter?.name ?? 'Unknown'}</span>
+            </p>
+            <p className={`mt-2 text-xs font-extrabold tracking-[0.12em] ${isUnresolved(ticket.ticket_status) ? 'text-[#d44b14]' : 'text-[#4f6f52]'}`}>
+              {statusLabel(ticket.ticket_status)}
+            </p>
+          </div>
         </div>
         <div className="shrink-0 text-right">
           <p className="text-base text-[#888888]">{relativeTime(ticket.created_at)}</p>
@@ -187,9 +191,12 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
       </div>
 
       <h2 className="mt-6 max-w-4xl text-4xl font-medium tracking-tight">{ticketTitle(ticket)}</h2>
-      <p className="mt-4 text-lg">
-        Reported by <span className="font-bold">{ticket.reporter?.name ?? 'Unknown'}</span> on {formatFullDate(ticket.created_at)}
-      </p>
+      <div className="mt-4 flex items-center gap-3 text-lg">
+        <Avatar src={ticket.reporter?.avatar_url ?? undefined} name={ticket.reporter?.name} size={42} />
+        <p>
+          Reported by <span className="font-bold">{ticket.reporter?.name ?? 'Unknown'}</span> on {formatFullDate(ticket.created_at)}
+        </p>
+      </div>
       <p className="mt-6 max-w-4xl leading-snug">{ticket.description}</p>
 
       <section className="mt-8 max-w-5xl">
@@ -197,7 +204,11 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
         <div className="my-6 space-y-5">
           {replies.map(replyItem => (
             <div key={replyItem.id} className="flex gap-5">
-              <div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9]" />
+              <Avatar
+                src={replySenderAvatar(replyItem, ticket) ?? undefined}
+                name={replySenderName(replyItem, ticket)}
+                size={48}
+              />
               <div>
                 <p>
                   <span className="font-bold">{replySenderName(replyItem, ticket)}</span>
@@ -270,6 +281,12 @@ function replySenderName(reply: NonNullable<TicketWithRelations['replies']>[numb
   if (reply.sender?.name) return reply.sender.name
   if (reply.sender_id === ticket.reported_by_user_id) return ticket.reporter?.name ?? 'Tenant'
   return 'Owner'
+}
+
+function replySenderAvatar(reply: NonNullable<TicketWithRelations['replies']>[number], ticket: TicketWithRelations) {
+  if (reply.sender?.avatar_url) return reply.sender.avatar_url
+  if (reply.sender_id === ticket.reported_by_user_id) return ticket.reporter?.avatar_url ?? null
+  return null
 }
 
 function relativeTime(value: string) {

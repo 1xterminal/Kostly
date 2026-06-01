@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { RevenueChart } from '@/components/reports/RevenueChart'
 import { OccupancyPieChart } from '@/components/reports/OccupancyPieChart'
 import type { Report } from '@/types'
+import { getReports } from '@/api/reports'
 
 type InvoiceLogRow = {
     id: string
@@ -26,11 +27,7 @@ export default function ReportDetails() {
     // Fetch ALL reports so we can generate the 6-month historical graph accurately up until the month viewed
     const { data: reportsList } = useQuery({
         queryKey: ['reports', 'list'],
-        queryFn: async () => {
-            const { data, error } = await supabase.from('reports').select('*').order('created_at', { ascending: false })
-            if (error) throw error
-            return data
-        }
+        queryFn: getReports
     })
 
     // Identify the currently viewed report

@@ -81,18 +81,10 @@ class HomeScreen extends ConsumerWidget {
                         label: 'Details',
                         onTap: () => context.go('/contracts'),
                       ),
-                      if (contract != null)
-                        _CardAction(
-                          icon: Icons.add,
-                          label: 'Extend',
-                          onTap: () => context.go('/extend'),
-                        ),
                     ],
                     children: [
                       Text(
-                        contract == null
-                            ? '—'
-                            : '${contract.monthsRemaining} month${contract.monthsRemaining == 1 ? '' : 's'}',
+                        contract == null ? '—' : 'Month-to-month',
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
@@ -103,7 +95,7 @@ class HomeScreen extends ConsumerWidget {
                       Text(
                         contract == null
                             ? 'No active contract'
-                            : 'remaining · ends ${_dateFmt.format(contract.endDate)}',
+                            : 'Started ${_dateFmt.format(contract.startDate)} · paid monthly',
                         style: const TextStyle(fontSize: 14, color: _kSubGray),
                       ),
                     ],

@@ -21,7 +21,7 @@ export async function getReports(): Promise<Report[]> {
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data
+  return hydrateLiveRevenue(data)
 }
 
 /** Fetch a single report by ID. */
@@ -33,7 +33,41 @@ export async function getReportById(id: string): Promise<Report> {
     .single()
 
   if (error) throw error
-  return data
+  return (await hydrateLiveRevenue([data]))[0]
+}
+
+async function hydrateLiveRevenue(reports: Report[]): Promise<Report[]> {
+  const months = [...new Set(reports.map((report) => report.month_year))]
+  if (months.length === 0) return reports
+
+  const { data, error } = await supabase
+    .from('invoices')
+    .select('billing_month, total_amount')
+    .in('billing_month', months)
+    .eq('status', 'paid')
+
+  if (error) throw error
+
+  const totals = new Map<string, { revenue: number; count: number }>()
+  for (const invoice of data ?? []) {
+    const current = totals.get(invoice.billing_month) ?? { revenue: 0, count: 0 }
+    current.revenue += Number(invoice.total_amount)
+    current.count += 1
+    totals.set(invoice.billing_month, current)
+  }
+
+  return reports.map((report) => {
+    const total = totals.get(report.month_year)
+    if (!total) {
+      return { ...report, total_revenue: 0, total_paid_invoices: 0 }
+    }
+
+    return {
+      ...report,
+      total_revenue: total.revenue,
+      total_paid_invoices: total.count,
+    }
+  })
 }
 
 // ─── Analytics ──────────────────────────────────────────────────────────────────

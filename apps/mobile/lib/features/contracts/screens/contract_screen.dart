@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/contract_provider.dart';
 import '../../../models/contract.dart';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const _kPrimary = Color(0xFF3341A5);
 const _kBg = Color(0xFFEBEBEB);
 const _kCardBg = Color(0xFFF5F5F5);
 const _kBorder = Color(0xFFDDDDDD);
@@ -57,26 +55,7 @@ class _ContractBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final now = DateTime.now();
-    final totalDays = contract.endDate.difference(contract.startDate).inDays;
-    final daysLeft = contract.endDate
-        .difference(now)
-        .inDays
-        .clamp(0, totalDays);
-    final progress = totalDays > 0 ? daysLeft / totalDays : 0.0;
-    final monthsLeft = (daysLeft / 30).ceil();
-
     final colorScheme = Theme.of(context).colorScheme;
-    final extensionAsync = ref.watch(latestExtendRequestProvider(contract.id));
-    final latestRequest = extensionAsync.asData?.value;
-    final extendButtonLabel = latestRequest?.isAwaitingPayment == true
-        ? 'Pay Extension Invoice'
-        : latestRequest?.isPending == true
-        ? 'Extension Request Pending'
-        : 'Request Contract Extension';
-    final extendButtonIcon = latestRequest?.isAwaitingPayment == true
-        ? Icons.receipt_long_outlined
-        : Icons.calendar_month_outlined;
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -180,55 +159,21 @@ class _ContractBody extends ConsumerWidget {
           // ── Duration progress card ──────────────────────────────────────────
           _SectionCard(
             children: [
-              const _Label('CONTRACT DURATION'),
+              const _Label('TENANCY TYPE'),
               const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    '$monthsLeft',
-                    style: const TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w700,
-                      color: _kBodyBlack,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'month${monthsLeft == 1 ? '' : 's'} remaining',
-                    style: const TextStyle(fontSize: 15, color: _kSubGray),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: progress.toDouble(),
-                  minHeight: 8,
-                  backgroundColor: const Color(0xFFE5E7EB),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    progress > 0.3
-                        ? colorScheme.primary
-                        : const Color(0xFFEF4444),
-                  ),
+              const Text(
+                'Month-to-month',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: _kBodyBlack,
+                  letterSpacing: -0.3,
                 ),
               ),
               const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _dateFmt.format(contract.startDate),
-                    style: const TextStyle(fontSize: 11, color: _kLabelGray),
-                  ),
-                  Text(
-                    _dateFmt.format(contract.endDate),
-                    style: const TextStyle(fontSize: 11, color: _kLabelGray),
-                  ),
-                ],
+              const Text(
+                'Rent is billed every month while this contract stays active.',
+                style: TextStyle(fontSize: 13, color: _kSubGray, height: 1.4),
               ),
             ],
           ),
@@ -269,57 +214,16 @@ class _ContractBody extends ConsumerWidget {
                     ),
                   ),
                   Container(width: 1, height: 48, color: _kBorder),
-                  Expanded(
-                    child: _DateBlock(
-                      label: 'END DATE',
-                      date: contract.endDate,
+                  const Expanded(
+                    child: _TextBlock(
+                      label: 'TERM',
+                      value: 'Ongoing',
                       alignRight: true,
                     ),
                   ),
                 ],
               ),
             ],
-          ),
-          const SizedBox(height: 24),
-
-          extensionAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
-            data: (request) => request == null
-                ? const SizedBox.shrink()
-                : Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: _ExtensionRequestCard(request: request),
-                  ),
-          ),
-
-          // ── Extend button ───────────────────────────────────────────────────
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: latestRequest?.isPending == true
-                  ? null
-                  : latestRequest?.isAwaitingPayment == true
-                  ? () => context.go('/payments')
-                  : () => context.push('/extend'),
-              icon: Icon(extendButtonIcon, size: 20),
-              label: Text(
-                extendButtonLabel,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _kPrimary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-            ),
           ),
         ],
       ),
@@ -351,76 +255,6 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-class _ExtensionRequestCard extends StatelessWidget {
-  final LatestExtendRequest request;
-  const _ExtensionRequestCard({required this.request});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = switch (request.status) {
-      'approved' => const Color(0xFF059669),
-      'awaiting_payment' => const Color(0xFF2563EB),
-      'rejected' => const Color(0xFFDC2626),
-      _ => const Color(0xFFD97706),
-    };
-    final label = switch (request.status) {
-      'approved' => 'APPROVED',
-      'awaiting_payment' => 'PAYMENT REQUIRED',
-      'rejected' => 'REJECTED',
-      _ => 'PENDING',
-    };
-    final message = switch (request.status) {
-      'approved' => 'Extension is active after payment verification.',
-      'awaiting_payment' =>
-        'Owner accepted it. Pay the extension invoice to activate this end date.',
-      'rejected' => 'This request was rejected. You can submit a new request.',
-      _ => 'Waiting for owner review.',
-    };
-
-    return _SectionCard(
-      children: [
-        const _Label('LATEST EXTENSION REQUEST'),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Extend to ${_dateFmt.format(request.requestedEndDate)}',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: _kBodyBlack,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          message,
-          style: const TextStyle(fontSize: 13, color: _kSubGray, height: 1.35),
-        ),
-      ],
-    );
-  }
-}
-
 // ─── Label ────────────────────────────────────────────────────────────────────
 
 class _Label extends StatelessWidget {
@@ -446,10 +280,38 @@ class _Label extends StatelessWidget {
 class _DateBlock extends StatelessWidget {
   final String label;
   final DateTime date;
+  const _DateBlock({required this.label, required this.date});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Label(label),
+          const SizedBox(height: 4),
+          Text(
+            _dateFmt.format(date),
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: _kBodyBlack,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TextBlock extends StatelessWidget {
+  final String label;
+  final String value;
   final bool alignRight;
-  const _DateBlock({
+  const _TextBlock({
     required this.label,
-    required this.date,
+    required this.value,
     this.alignRight = false,
   });
 
@@ -469,7 +331,7 @@ class _DateBlock extends StatelessWidget {
           _Label(label),
           const SizedBox(height: 4),
           Text(
-            _dateFmt.format(date),
+            value,
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
