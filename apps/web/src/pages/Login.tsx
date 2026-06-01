@@ -34,6 +34,17 @@ export default function Login() {
       <div className="w-full max-w-95">
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-8 pt-9 border border-gray-100">
+          <div className="mb-7 flex items-center gap-4">
+            <img
+              src="/kostly-logo.png"
+              alt=""
+              className="h-16 w-16 rounded-2xl"
+            />
+            <div>
+              <p className="text-3xl font-extrabold tracking-tight text-gray-950">Kostly</p>
+              <p className="text-sm font-medium text-gray-500">Owner dashboard</p>
+            </div>
+          </div>
           <h1 className="text-[26px] font-bold text-gray-900 mb-6 tracking-tight">Login</h1>
 
           {/* API error */}

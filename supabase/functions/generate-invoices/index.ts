@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     const currentMonth = toDateString(monthStart)
     const monthEndDate = toDateString(monthEnd)
 
-    // 4. Fetch active contracts that overlap the billed month
+    // 4. Fetch active month-to-month contracts that have already started.
     const {
       data: contracts,
       error: contractsError
@@ -46,7 +46,6 @@ Deno.serve(async (req) => {
       .select("*")
       .eq('status', 'active')
       .lte('start_date', monthEndDate)
-      .gte('end_date', currentMonth)
 
     if (contractsError) throw contractsError
 
