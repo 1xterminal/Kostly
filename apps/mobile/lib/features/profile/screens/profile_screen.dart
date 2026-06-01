@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,7 +16,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  File? _profileImage;
+  Uint8List? _profileImageBytes;
   bool _isUploading = false;
 
   Future<void> _pickImage() async {
@@ -25,19 +25,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      final file = File(pickedFile.path);
-
-      final oldImage = _profileImage;
+      final previewBytes = await pickedFile.readAsBytes();
+      final oldImage = _profileImageBytes;
 
       setState(() {
-        _profileImage = file;
+        _profileImageBytes = previewBytes;
         _isUploading = true;
       });
 
       try {
         await ref
             .read(profileNotifierProvider.notifier)
-            .uploadProfilePicture(file);
+            .uploadProfilePicture(pickedFile);
         if (mounted) {
           setState(() => _isUploading = false);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -47,7 +46,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       } catch (e) {
         if (mounted) {
           setState(() {
-            _profileImage = oldImage;
+            _profileImageBytes = oldImage;
             _isUploading = false;
           });
           final message = e.toString().replaceFirst('Exception: ', '');
@@ -100,9 +99,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFD1D5DB),
                                   shape: BoxShape.circle,
-                                  image: _profileImage != null
+                                  image: _profileImageBytes != null
                                       ? DecorationImage(
-                                          image: FileImage(_profileImage!),
+                                          image: MemoryImage(
+                                            _profileImageBytes!,
+                                          ),
                                           fit: BoxFit.cover,
                                         )
                                       : (profile.avatarUrl != null &&
@@ -123,7 +124,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                         ),
                                       )
                                     : (profile.avatarUrl == null &&
-                                          _profileImage == null)
+                                          _profileImageBytes == null)
                                     ? const Icon(
                                         Icons.person,
                                         size: 32,
