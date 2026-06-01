@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../repositories/profile_repository.dart';
 
 final profileRepositoryProvider = Provider<ProfileRepository>(
@@ -36,7 +36,7 @@ class ProfileNotifier extends AsyncNotifier<Profile> {
     await repo.signOut();
   }
 
-  Future<void> uploadProfilePicture(File imageFile) async {
+  Future<void> uploadProfilePicture(XFile imageFile) async {
     try {
       final repo = ref.read(profileRepositoryProvider);
       await repo.uploadProfilePicture(imageFile);

@@ -1,5 +1,4 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,6 +30,7 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
 
   Map<String, dynamic>? _selectedInvoice;
   XFile? _selectedImage;
+  Uint8List? _selectedImageBytes;
   bool _isUploading = false;
   final ImagePicker _picker = ImagePicker();
 
@@ -55,7 +55,11 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
         _showError(validationError);
         return;
       }
-      setState(() => _selectedImage = image);
+      final bytes = await image.readAsBytes();
+      setState(() {
+        _selectedImage = image;
+        _selectedImageBytes = bytes;
+      });
     }
   }
 
@@ -361,20 +365,14 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
                 borderRadius: BorderRadius.circular(8),
                 color: Colors.white,
               ),
-              child: _selectedImage != null
+              child: _selectedImageBytes != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(6),
-                      child: kIsWeb
-                          ? Image.network(
-                              _selectedImage!.path,
-                              height: 200,
-                              fit: BoxFit.cover,
-                            )
-                          : Image.file(
-                              File(_selectedImage!.path),
-                              height: 200,
-                              fit: BoxFit.cover,
-                            ),
+                      child: Image.memory(
+                        _selectedImageBytes!,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
                     )
                   : Row(
                       children: [

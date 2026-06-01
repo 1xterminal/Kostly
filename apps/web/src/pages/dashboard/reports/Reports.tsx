@@ -15,10 +15,16 @@ export default function Reports() {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
     const [searchQuery, setSearchQuery] = useState('')
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
     const [sortBy, setSortBy] = useState('Date Created')
     const [isSortOpen, setIsSortOpen] = useState(false)
     const sortRef = useRef<HTMLDivElement>(null)
+
+    const showToast = (message: string, type: 'success' | 'error') => {
+        setToast({ message, type })
+        window.setTimeout(() => setToast(null), 3000)
+    }
 
     // Data Fetching: All charts now feed directly from this DB query
     const { data: reportsList, isLoading: reportsLoading } = useQuery({
@@ -57,15 +63,23 @@ export default function Reports() {
             const { data, error } = await supabase.functions.invoke('monthly-report', {
                 body: { month: now.getMonth() + 1, year: now.getFullYear() }
             })
-            if (error) throw error
+            if (error) {
+                let message = error.message
+                const context = 'context' in error ? error.context : null
+                if (context instanceof Response) {
+                    const body = await context.clone().json().catch(() => null)
+                    if (body?.error) message = body.error
+                }
+                throw new Error(message)
+            }
             return data
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['reports'] })
-            alert('Report successfully generated!')
+            showToast('Report generated successfully.', 'success')
         },
         onError: (err) => {
-            alert(`Failed to generate report: ${err.message}. Ensure the Edge Function is deployed.`)
+            showToast(`Failed to generate report: ${(err as Error).message}`, 'error')
         }
     })
 
@@ -101,6 +115,20 @@ export default function Reports() {
 
     return (
         <div className="h-[calc(100vh-80px)] flex flex-col px-6 pt-2 pb-6 max-w-7xl w-full mx-auto space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {toast && (
+                <div
+                    className={[
+                        'fixed right-6 top-6 z-50 flex max-w-sm items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold shadow-lg',
+                        toast.type === 'success'
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-gray-900 text-white',
+                    ].join(' ')}
+                    role="status"
+                >
+                    <Symbols name={toast.type === 'success' ? 'check_circle' : 'error'} />
+                    <span>{toast.message}</span>
+                </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 shrink-0">
                 {reportsLoading ? (
                     <div className="h-[200px] bg-white rounded-xl shadow-sm border border-gray-100 animate-pulse" />

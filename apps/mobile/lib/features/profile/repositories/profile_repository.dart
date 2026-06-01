@@ -1,5 +1,6 @@
-import 'dart:io';
+import 'dart:typed_data';
 import '../../../core/supabase_client.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Profile {
@@ -122,27 +123,29 @@ class ProfileRepository {
     await supabase.auth.updateUser(UserAttributes(password: newPassword));
   }
 
-  Future<void> uploadProfilePicture(File imageFile) async {
+  Future<void> uploadProfilePicture(XFile imageFile) async {
     final user = supabase.auth.currentUser;
     if (user == null) throw Exception('User not logged in');
 
-    final fileExtension = imageFile.path.split('.').last.toLowerCase();
+    final fileExtension = _avatarExtension(imageFile);
     if (!_allowedAvatarExtensions.contains(fileExtension)) {
       throw Exception('Upload JPG, PNG, WEBP, HEIC, or HEIF image only.');
     }
 
-    final fileSize = await imageFile.length();
-    if (fileSize > _maxAvatarBytes) {
+    final bytes = await imageFile.readAsBytes();
+    if (bytes.length > _maxAvatarBytes) {
       throw Exception('Profile picture must be 2 MB or smaller.');
     }
 
-    final contentType = switch (fileExtension) {
-      'png' => 'image/png',
-      'webp' => 'image/webp',
-      'heic' => 'image/heic',
-      'heif' => 'image/heif',
-      _ => 'image/jpeg',
-    };
+    final contentType =
+        imageFile.mimeType ??
+        switch (fileExtension) {
+          'png' => 'image/png',
+          'webp' => 'image/webp',
+          'heic' => 'image/heic',
+          'heif' => 'image/heif',
+          _ => 'image/jpeg',
+        };
 
     final fileName =
         '${user.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
@@ -151,9 +154,9 @@ class ProfileRepository {
 
     await supabase.storage
         .from('profile-pictures')
-        .upload(
+        .uploadBinary(
           filePath,
-          imageFile,
+          Uint8List.fromList(bytes),
           fileOptions: FileOptions(
             cacheControl: '3600',
             contentType: contentType,
@@ -165,6 +168,13 @@ class ProfileRepository {
         .from('users')
         .update({'avatar_path': filePath})
         .eq('id', user.id);
+  }
+
+  String _avatarExtension(XFile imageFile) {
+    final source = imageFile.name.isNotEmpty ? imageFile.name : imageFile.path;
+    final lastSegment = source.split(RegExp(r'[/\\]')).last;
+    if (!lastSegment.contains('.')) return '';
+    return lastSegment.split('.').last.toLowerCase();
   }
 
   Future<void> signOut() async {
