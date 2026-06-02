@@ -3,6 +3,9 @@ import { usePayments } from '../../hooks/usePayments'
 import type { PaymentWithDetails } from '../../hooks/usePayments'
 import { Input } from '@/components/ui/Field'
 import { Symbols } from '@/components/ui/MaterialSymbols'
+import { useSidebar } from '@/components/layout/sidebar-context'
+import Avatar from '@/components/ui/Avatar'
+import { DashboardCanvas, DashboardSearchRow, MetricTile, StatusPill, TableShell } from '@/components/dashboardPrimitives'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const formatCurrency = (amount: number) =>
@@ -21,6 +24,7 @@ const shortInvoiceId = (id: string) => `#INV${id.slice(0, 5).toUpperCase()}`
 // ── Component ──────────────────────────────────────────────────────────────────
 export default function Payments() {
   const { data: payments, isLoading, error, approvePayment, rejectPayment, getProofUrl } = usePayments()
+  const { toggle } = useSidebar()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<'Unverified' | 'Verified' | 'Rejected'>('Unverified')
   const [selectedProof, setSelectedProof] = useState<{ url: string; payment: PaymentWithDetails } | null>(null)
@@ -80,20 +84,17 @@ export default function Payments() {
   const tabs = ['Unverified', 'Verified', 'Rejected'] as const
 
   return (
-    <div className="space-y-6">
-      {/* Search */}
-      {/* <div className="relative max-w-full">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <input
-          id="payments-search"
-          type="text"
-          placeholder="Search payments"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-100 bg-[#f8f9fa] rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
-        />
-        </div> */}
-      <div className="px-20">
+    <DashboardCanvas className="space-y-6">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
+        <h1 className="flex items-center gap-3 text-[28px] font-bold text-[#111111]">
+          <button type="button" onClick={toggle} aria-label="Toggle sidebar" className="grid h-8 w-8 place-items-center rounded-md text-[#111111] hover:bg-white">
+            <Symbols name="menu" />
+          </button>
+          Payments
+        </h1>
+      </div>
+
+      <DashboardSearchRow>
         <Input
           id="payments-search"
           placeholder="Search payments"
@@ -101,10 +102,9 @@ export default function Payments() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-      </div>
+      </DashboardSearchRow>
 
-      {/* Tabs */}
-      <div className="flex gap-3">
+      <div className="mx-auto grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-3">
         {tabs.map((tab) => {
           const count = (payments ?? []).filter(p =>
             tab === 'Unverified' ? p.status === 'not_verified' :
@@ -112,38 +112,30 @@ export default function Payments() {
             p.status === 'rejected'
           ).length
           return (
-            <button
+            <MetricTile
               key={tab}
-              id={`tab-${tab.toLowerCase()}`}
+              label={tab}
+              value={count}
+              active={activeTab === tab}
+              tone={tab === 'Verified' ? 'green' : tab === 'Rejected' ? 'red' : 'blue'}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 text-sm font-semibold rounded transition-colors ${
-                activeTab === tab
-                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm'
-                  : 'text-gray-700 hover:text-gray-900 border border-transparent'
-              }`}
-            >
-              {tab}
-              {count > 0 && (
-                <span className={`ml-1.5 text-xs ${activeTab === tab ? 'text-indigo-500' : 'text-gray-400'}`}>({count})</span>
-              )}
-            </button>
+            />
           )
         })}
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border-none overflow-hidden">
+      <TableShell className="mx-auto w-full max-w-5xl">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
-              <th className="px-6 py-4 font-semibold">Invoice ID</th>
-              <th className="px-6 py-4 font-semibold">Tenant Name</th>
-              <th className="px-6 py-4 font-semibold">Transaction date</th>
-              <th className="px-6 py-4 font-semibold">Amount</th>
-              <th className="px-6 py-4 font-semibold">Actions</th>
+            <tr className="border-b border-[#C8C8C8] text-left text-xs uppercase tracking-wider text-[#858585]">
+              <th className="px-5 py-4 font-bold">ID</th>
+              <th className="border-l border-[#C8C8C8] px-5 py-4 font-bold">Tenant</th>
+              <th className="border-l border-[#C8C8C8] px-5 py-4 font-bold">Date</th>
+              <th className="border-l border-[#C8C8C8] px-5 py-4 font-bold">Amount</th>
+              <th className="border-l border-[#C8C8C8] px-5 py-4 font-bold">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-[#C8C8C8]">
             {isLoading ? (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
@@ -167,32 +159,33 @@ export default function Payments() {
                 return (
                   <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
                     {/* Invoice ID */}
-                    <td className="px-6 py-4 font-mono text-gray-800 font-medium">
+                    <td className="px-5 py-4 font-mono text-[13px] font-bold text-[#111111]">
                       {shortInvoiceId(p.invoice_id)}
                     </td>
 
                     {/* Tenant */}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-xs text-gray-600 font-medium">
-                          {p.tenant.name.charAt(0).toUpperCase()}
-                        </span>
-                        <span className="text-gray-700">{p.tenant.name}</span>
+                    <td className="border-l border-[#C8C8C8] px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar name={p.tenant.name} size={32} />
+                        <div>
+                          <p className="text-[13px] font-bold text-[#111111]">{p.tenant.name}</p>
+                          <p className="text-[11px] text-[#858585]">{p.tenant.email}</p>
+                        </div>
                       </div>
                     </td>
 
                     {/* Date */}
-                    <td className="px-6 py-4 text-gray-600">
+                    <td className="border-l border-[#C8C8C8] px-5 py-4 font-semibold text-[#111111]">
                       {formatDate(p.transaction_date)}
                     </td>
 
                     {/* Amount */}
-                    <td className="px-6 py-4 text-gray-800 font-medium">
+                    <td className="border-l border-[#C8C8C8] px-5 py-4 font-bold text-[#111111]">
                       {formatCurrency(p.invoices?.total_amount ?? 0)}
                     </td>
 
                     {/* Actions */}
-                    <td className="px-6 py-4">
+                    <td className="border-l border-[#C8C8C8] px-5 py-4">
                       {p.status === 'not_verified' ? (
                         <div className="flex items-center gap-2">
                           {/* Check proof → opens modal */}
@@ -202,24 +195,21 @@ export default function Payments() {
                               const url = await getProofUrl(p.proof_images)
                               if (url) setSelectedProof({ url, payment: p })
                             }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                            className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-[13px] font-bold text-[#111111] hover:bg-white"
                           >
-                            <svg className="h-3.5 w-3.5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-                            </svg>
+                            <Symbols name="check_circle" />
                             Check proof
                           </button>
                         </div>
                       ) : p.status === 'verified' ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-green-700 font-medium">
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-                          </svg>
+                        <StatusPill tone="green">
                           Verified
-                        </span>
+                        </StatusPill>
                       ) : (
-                        <span className="inline-flex text-xs text-red-600 font-medium" title={p.rejection_reason ?? undefined}>
+                        <span title={p.rejection_reason ?? undefined}>
+                        <StatusPill tone="red">
                           Rejected
+                        </StatusPill>
                         </span>
                       )}
                     </td>
@@ -229,7 +219,7 @@ export default function Payments() {
             )}
           </tbody>
         </table>
-      </div>
+      </TableShell>
 
       {/* ── Proof modal with Approve / Reject ─────────────────────────────────── */}
       {selectedProof && (
@@ -361,6 +351,6 @@ export default function Payments() {
           </div>
         </div>
       )}
-    </div>
+    </DashboardCanvas>
   )
 }

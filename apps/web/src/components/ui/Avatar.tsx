@@ -35,8 +35,13 @@ export default function Avatar({ src, name, size = 64 }: AvatarProps) {
         style={{
           width: size,
           height: size,
+          minWidth: size,
+          minHeight: size,
+          aspectRatio: "1 / 1",
           borderRadius: "50%",
           objectFit: "cover",
+          display: "block",
+          flexShrink: 0,
         }}
       />
     );
@@ -48,11 +53,15 @@ export default function Avatar({ src, name, size = 64 }: AvatarProps) {
       style={{
         width: size,
         height: size,
+        minWidth: size,
+        minHeight: size,
+        aspectRatio: "1 / 1",
         borderRadius: "50%",
         backgroundColor,
         color: "white",
         display: "grid",
         placeItems: "center",
+        flexShrink: 0,
         fontSize: Math.max(12, Math.round(size * 0.34)),
         fontWeight: 700,
       }}

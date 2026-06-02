@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Archive,
   Home,
@@ -17,11 +17,12 @@ import TenantAccountModal from '../../components/tenants/TenantAccountModal'
 import TenantDetailsDrawer from '../../components/tenants/TenantDetailsDrawer'
 import { supabase } from '../../lib/supabase'
 import { callEdgeFunction } from '../../lib/edgeFunctions'
-import { useSidebarHeader } from '../../components/layout/sidebar-context'
+import { useSidebar } from '../../components/layout/sidebar-context'
 import Button from "@/components/ui/Button";
 import { Symbols } from "@/components/ui/MaterialSymbols";
 import { Input } from '@/components/ui/Field'
 import Avatar from '@/components/ui/Avatar'
+import { DashboardCanvas, DashboardSearchRow, MetricTile, StatusPill, TableShell } from '@/components/dashboardPrimitives'
 
 type TenantTab = 'All' | 'Needs Onboarding' | 'Assigned' | 'Unassigned' | 'Archived'
 
@@ -35,13 +36,6 @@ const formatDate = (dateStr?: string) => {
 const formatPeriod = (start?: string) => {
   if (!start) return '-'
   return `${formatDate(start)} - ongoing`
-}
-
-const statusClasses: Record<string, string> = {
-  archived: 'border-gray-300 bg-gray-100 text-gray-600',
-  assigned: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  needs_onboarding: 'border-orange-200 bg-orange-50 text-orange-700',
-  unassigned: 'border-blue-200 bg-blue-50 text-[#3B5998]',
 }
 
 function getLifecycleLabel(tenant: TenantWithDetails) {
@@ -60,7 +54,7 @@ function getLifecycleKey(tenant: TenantWithDetails) {
 
 export default function Tenants() {
   const { data: tenants = [], isLoading, error, refetch } = useTenants()
-  const { setActions } = useSidebarHeader()
+  const { toggle } = useSidebar()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<TenantTab>('All')
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false)
@@ -110,48 +104,6 @@ export default function Tenants() {
       return true
     })
   }, [activeTab, search, tenants])
-
-  useEffect(() => {
-    setActions(
-      <>
-        <Button
-          emphasis="outlined"
-          onClick={() => {
-            setAssignTarget(null);
-            setIsAssignModalOpen(true);
-            setActiveMenuId(null);
-          }}
-        >
-          <Symbols name="in_home_mode" />
-          Assign Room
-        </Button>
-        {/*<button
-          onClick={() => {
-            setAssignTarget(null);
-            setIsAssignModalOpen(true);
-            setActiveMenuId(null);
-          }}
-          className="inline-flex items-center rounded-md border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-[#3B5998] hover:bg-blue-50"
-        >
-          <Home className="mr-2 h-4 w-4" />
-          Assign Room
-        </button>*/}
-        <Button onClick={() => setIsAccountModalOpen(true)}>
-          <Symbols name="person_add" />
-          Add Account
-        </Button>
-        {/*<button
-          onClick={() => setIsAccountModalOpen(true)}
-          className="inline-flex items-center rounded-md bg-[#3B5998] px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
-        >
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add Account
-        </button>*/}
-      </>,
-    )
-
-    return () => setActions(null)
-  }, [setActions])
 
   if (error) {
     return <div className="p-8 text-red-500">Error loading tenants: {(error as Error).message}</div>
@@ -207,62 +159,59 @@ export default function Tenants() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 p-6">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`rounded-lg border px-4 py-3 text-left transition ${activeTab === tab
-                ? 'border-blue-300 bg-blue-50 text-[#3B5998]'
-                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-              }`}
-          >
-            <p className="text-xs font-bold uppercase tracking-wide">{tab}</p>
-            <p className="mt-1 text-2xl font-bold">{counts[tab]}</p>
+    <DashboardCanvas className="space-y-5">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
+        <h1 className="flex items-center gap-3 text-[28px] font-bold text-[#111111]">
+          <button type="button" onClick={toggle} aria-label="Toggle sidebar" className="grid h-8 w-8 place-items-center rounded-md text-[#111111] hover:bg-white">
+            <Symbols name="menu" />
           </button>
+          Tenants
+        </h1>
+
+        <div className="flex gap-2">
+          <Button
+            emphasis="outlined"
+            onClick={() => {
+              setAssignTarget(null);
+              setIsAssignModalOpen(true);
+              setActiveMenuId(null);
+            }}
+          >
+            <Symbols name="in_home_mode" />
+            Assign Room
+          </Button>
+          <Button onClick={() => setIsAccountModalOpen(true)}>
+            <Symbols name="person_add" />
+            New Tenant
+          </Button>
+        </div>
+      </div>
+
+      <DashboardSearchRow>
+        <Input
+          placeholder="Search tenants"
+          leadingIcon={<Symbols name="search" />}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </DashboardSearchRow>
+
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-3 md:grid-cols-5">
+        {tabs.map((tab) => (
+          <MetricTile
+            key={tab}
+            label={tab === 'Needs Onboarding' ? 'Need Onboarding' : tab}
+            value={counts[tab]}
+            active={activeTab === tab}
+            tone={tab === 'Archived' ? 'gray' : tab === 'Needs Onboarding' ? 'orange' : 'blue'}
+            onClick={() => setActiveTab(tab)}
+          />
         ))}
       </div>
 
-      <div className="rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-900">
-        Needs Onboarding means the tenant has not finished first mobile login/password setup. Unassigned means the tenant has no active room contract.
-      </div>
-
-      <div className="flex justify-center gap-3 px-20">
-        {/*<div className="relative max-w-xl flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder="Search name, email, phone, or room"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>*/}
-        <Input
-          placeholder="Search name, email, phone, or room"
-          leadingIcon={<Symbols name="search" />}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ flex: 1 }}
-        />
-        {/*<button
-          onClick={() => setActiveTab("All")}
-          className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-        >
-          Clear Filters
-        </button>*/}
-        <Button
-          emphasis="outlined"
-          action="mono"
-          onClick={() => setActiveTab("All")}
-        >
-          Clear Filters
-        </Button>
-      </div>
-
-      <div className="overflow-visible rounded-lg border border-gray-200 bg-white shadow">
+      <TableShell className="mx-auto w-full max-w-6xl">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-[#F7F7F7]">
             <tr>
               <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-700">Tenant</th>
               <th className="border-l border-gray-200 px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-700">Lifecycle</th>
@@ -299,9 +248,9 @@ export default function Tenants() {
                     </td>
 
                     <td className="border-l border-gray-200 px-5 py-4">
-                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${statusClasses[lifecycleKey]}`}>
+                      <StatusPill tone={lifecycleKey === 'assigned' ? 'green' : lifecycleKey === 'needs_onboarding' ? 'orange' : lifecycleKey === 'archived' ? 'gray' : 'blue'}>
                         {getLifecycleLabel(tenant)}
-                      </span>
+                      </StatusPill>
                     </td>
                     <td className="whitespace-nowrap border-l border-gray-200 px-5 py-4 text-sm text-gray-900">
                       {tenant.activeContract?.room?.number ? `#${tenant.activeContract.room.number}` : '-'}
@@ -310,9 +259,9 @@ export default function Tenants() {
                       {formatPeriod(tenant.activeContract?.start_date)}
                     </td>
                     <td className="whitespace-nowrap border-l border-gray-200 px-5 py-4 text-sm">
-                      <span className={tenant.paymentState === 'Paid' ? 'text-emerald-700' : tenant.paymentState === 'Pending' ? 'text-orange-700' : 'text-red-700'}>
+                      <StatusPill tone={tenant.paymentState === 'Paid' ? 'green' : tenant.paymentState === 'Pending' ? 'orange' : 'red'}>
                         {tenant.paymentState}
-                      </span>
+                      </StatusPill>
                     </td>
                     <td className="border-l border-gray-200 px-5 py-4 text-sm font-medium">
                       <div className="flex gap-3 text-gray-500">
@@ -363,7 +312,7 @@ export default function Tenants() {
             )}
           </tbody>
         </table>
-      </div>
+      </TableShell>
 
       <TenantAccountModal
         isOpen={isAccountModalOpen}
@@ -397,6 +346,6 @@ export default function Tenants() {
         onClose={() => setEditTarget(null)}
         onSave={handleSaveTenantInfo}
       />
-    </div>
+    </DashboardCanvas>
   )
 }

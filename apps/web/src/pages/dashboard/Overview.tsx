@@ -151,18 +151,16 @@ function KpiCard({
   tone?: 'neutral' | 'good' | 'warn' | 'danger'
 }) {
   const toneClass = {
-    neutral: 'bg-[#EEF2FF] text-[#3045AF]',
-    good: 'bg-[#EAFBF3] text-[#00895E]',
-    warn: 'bg-[#FFF5E8] text-[#B86A00]',
-    danger: 'bg-[#FDEDEC] text-[#D6420F]',
+    neutral: 'text-[#111111]',
+    good: 'text-[#00895E]',
+    warn: 'text-[#B86A00]',
+    danger: 'text-[#D6420F]',
   }[tone]
 
   return (
-    <section className="rounded-lg border border-[#D4D4D4] bg-[#FAFAFA] px-5 py-4 shadow-[0_2px_5px_rgba(0,0,0,0.14)]">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <h2 className="text-[15px] font-bold uppercase text-[#6F7785]">{title}</h2>
-        <span className={`grid h-9 w-9 place-items-center rounded-lg ${toneClass}`}>{icon}</span>
-      </div>
+    <section className="min-h-[148px] rounded-lg border border-[#D4D4D4] bg-[#FAFAFA] px-5 py-4 shadow-[0_2px_5px_rgba(0,0,0,0.14)]">
+      <span className={`mb-3 grid h-7 w-7 place-items-center ${toneClass}`}>{icon}</span>
+      <h2 className="mb-7 text-[14px] font-bold uppercase tracking-wide text-[#858585]">{title}</h2>
       <p className="text-[30px] font-bold leading-none text-[#0F0F0F]">{value}</p>
       <p className="mt-2 text-[15px] font-medium text-[#6F7785]">{detail}</p>
     </section>
@@ -194,17 +192,141 @@ function AlertBadge({ tone }: { tone: DashboardAlert['tone'] }) {
   return <span className={`h-3 w-3 rounded-full ${className}`} />
 }
 
-function RoomBar({ label, value, total, className }: { label: string; value: number; total: number; className: string }) {
-  const percent = total > 0 ? Math.round((value / total) * 100) : 0
+type RoomCounts = {
+  total: number
+  occupied: number
+  available: number
+  maintenance: number
+}
+
+type TenantCounts = {
+  active: number
+  needsOnboarding: number
+  archived: number
+}
+
+type SnapshotStatus = 'occupied' | 'available' | 'maintenance' | 'empty'
+
+const snapshotTileCount = 8
+
+const roomStatusMeta: Record<SnapshotStatus, { label: string; tile: string; dot: string }> = {
+  occupied: {
+    label: 'Occupied',
+    tile: 'bg-[#1584C4]',
+    dot: 'bg-[#1584C4]',
+  },
+  available: {
+    label: 'Available',
+    tile: 'bg-[#19C867]',
+    dot: 'bg-[#19C867]',
+  },
+  maintenance: {
+    label: 'Maintenance',
+    tile: 'bg-[#D7440A]',
+    dot: 'bg-[#D7440A]',
+  },
+  empty: {
+    label: 'Empty',
+    tile: 'bg-[#E5E5E5]',
+    dot: 'bg-[#E5E5E5]',
+  },
+}
+
+function buildRoomTiles(rooms?: RoomCounts): SnapshotStatus[] {
+  if (!rooms || rooms.total <= 0) return Array.from({ length: snapshotTileCount }, () => 'empty' as const)
+
+  const entries = [
+    { status: 'occupied' as const, count: rooms.occupied },
+    { status: 'available' as const, count: rooms.available },
+    { status: 'maintenance' as const, count: rooms.maintenance },
+  ].map((entry) => {
+    const raw = (entry.count / rooms.total) * snapshotTileCount
+    return {
+      ...entry,
+      fraction: raw - Math.floor(raw),
+      slots: entry.count > 0 ? Math.max(1, Math.floor(raw)) : 0,
+    }
+  })
+
+  let diff = snapshotTileCount - entries.reduce((total, entry) => total + entry.slots, 0)
+
+  while (diff > 0) {
+    const target = [...entries]
+      .filter((entry) => entry.count > 0)
+      .sort((a, b) => b.fraction - a.fraction || b.count - a.count)[0]
+    if (!target) break
+    target.slots += 1
+    diff -= 1
+  }
+
+  while (diff < 0) {
+    const target = [...entries]
+      .filter((entry) => entry.slots > 1)
+      .sort((a, b) => a.fraction - b.fraction || b.slots - a.slots)[0]
+    if (!target) break
+    target.slots -= 1
+    diff += 1
+  }
+
+  const tiles = entries.flatMap((entry) => Array.from({ length: entry.slots }, () => entry.status))
+  return [...tiles, ...Array.from({ length: snapshotTileCount }, () => 'empty' as const)].slice(0, snapshotTileCount)
+}
+
+function RoomSnapshotPanel({
+  rooms,
+  tenants,
+}: {
+  rooms?: RoomCounts
+  tenants?: TenantCounts
+}) {
+  const tiles = buildRoomTiles(rooms)
+  const roomStats = [
+    { status: 'occupied' as const, value: rooms?.occupied ?? 0 },
+    { status: 'available' as const, value: rooms?.available ?? 0 },
+    { status: 'maintenance' as const, value: rooms?.maintenance ?? 0 },
+  ]
+  const tenantStats = [
+    { label: 'Active', value: tenants?.active ?? 0 },
+    { label: 'Onboarding', value: tenants?.needsOnboarding ?? 0 },
+    { label: 'Archived', value: tenants?.archived ?? 0 },
+  ]
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between text-[15px] font-bold text-[#111111]">
-        <span>{label}</span>
-        <span>{value}</span>
+      <div className="grid gap-5 px-5 py-5 sm:grid-cols-[minmax(128px,176px)_1fr]">
+        <div className="grid grid-cols-4 gap-1.5">
+          {tiles.map((status, index) => (
+            <span
+              key={`${status}-${index}`}
+              className={`aspect-square min-h-0 rounded-md ${roomStatusMeta[status].tile}`}
+              aria-label={roomStatusMeta[status].label}
+            />
+          ))}
+        </div>
+
+        <div className="grid content-center gap-3">
+          {roomStats.map((stat) => (
+            <div key={stat.status} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 text-[#858585]">
+              <span className={`h-4 w-4 rounded-full ${roomStatusMeta[stat.status].dot}`} />
+              <span className="text-[17px] font-medium">{roomStatusMeta[stat.status].label}</span>
+              <span className="text-[18px] font-bold">{stat.value}</span>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-[#E4E4E4]">
-        <div className={`h-full rounded-full ${className}`} style={{ width: `${percent}%` }} />
+
+      <div className="border-t border-[#D4D4D4]">
+        <header className="border-b border-[#D4D4D4] px-5 py-4">
+          <h3 className="text-[18px] font-bold uppercase tracking-wide text-[#858585]">Tenant Snapshot</h3>
+        </header>
+        <div className="grid grid-cols-3 gap-2 px-5 py-5">
+          {tenantStats.map((stat) => (
+            <div key={stat.label}>
+              <p className="text-[34px] font-bold leading-none text-[#858585]">{stat.value}</p>
+              <p className="mt-3 text-[16px] font-medium text-[#858585]">{stat.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -320,15 +442,8 @@ export default function Overview() {
           </div>
         </Panel>
 
-        <Panel title="Room Snapshot">
-          <div className="grid gap-5 px-5 py-5">
-            <RoomBar label="Occupied" value={summary?.rooms.occupied ?? 0} total={summary?.rooms.total ?? 0} className="bg-[#3045AF]" />
-            <RoomBar label="Available" value={summary?.rooms.available ?? 0} total={summary?.rooms.total ?? 0} className="bg-[#00895E]" />
-            <RoomBar label="Maintenance" value={summary?.rooms.maintenance ?? 0} total={summary?.rooms.total ?? 0} className="bg-[#D6420F]" />
-            <div className="rounded-lg bg-[#F1F1F1] px-4 py-3 text-[15px] font-semibold text-[#6F7785]">
-              {summary?.tenants.active ?? 0} active tenants · {summary?.tenants.needsOnboarding ?? 0} need onboarding · {summary?.tenants.archived ?? 0} archived
-            </div>
-          </div>
+        <Panel title="Room Snapshots">
+          <RoomSnapshotPanel rooms={summary?.rooms} tenants={summary?.tenants} />
         </Panel>
       </div>
 

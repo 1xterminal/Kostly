@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useMemo, useState } from "react"
 import { useRooms } from "../../hooks/useRooms"
 
 import Button from "@/components/ui/Button";
@@ -6,32 +6,59 @@ import { Input } from "@/components/ui/Field";
 import NewRoomModal from "@/components/rooms/NewRoomModal";
 import { RoomCard } from "@/components/rooms/RoomCard";
 import EditRoomModal from "@/components/rooms/EditRoomModal";
-import { useSidebarHeader } from "@/components/layout/sidebar-context";
+import { useSidebar } from "@/components/layout/sidebar-context";
 import { Symbols } from "@/components/ui/MaterialSymbols";
+import { DashboardCanvas, DashboardSearchRow, MetricTile } from "@/components/dashboardPrimitives";
+
+type RoomFilter = "All" | "Available" | "Occupied" | "Maintenance";
 
 export default function RoomInventory() {
   const { data: rooms, isLoading, error, refetch } = useRooms();
 
-  const { setActions } = useSidebarHeader();
+  const { toggle } = useSidebar();
 
   const [search, setSearch] = useState("");
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [activeFilter, setActiveFilter] = useState<RoomFilter>("All");
 
   const [isNewRoomOpen, setIsNewRoomOpen] = useState(false);
   const [isSetStatusOpen, setIsSetStatusOpen] = useState(false);
 
   const [selectedId, setSelectedId] = useState("0");
 
-  useEffect(() => {
-    setActions(
-      <Button onClick={() => setIsNewRoomOpen(true)}>
-        <Symbols name="add_home" />
-        New Room
-      </Button>,
-    );
+  const selectId = (id: string) => {
+    setSelectedId(id);
+    setIsSetStatusOpen(true);
+  };
 
-    return () => setActions(null);
-  }, [setActions, setIsNewRoomOpen]);
+  const counts = useMemo(() => {
+    const list = rooms ?? []
+    return {
+      All: list.length,
+      Available: list.filter((room) => room.status === "available").length,
+      Occupied: list.filter((room) => room.status === "occupied").length,
+      Maintenance: list.filter((room) => room.status === "maintenance").length,
+    } satisfies Record<RoomFilter, number>
+  }, [rooms])
+
+  const filteredRooms = (rooms || []).filter((room) => {
+    const activeContract = room.contracts?.find((contract) => contract.status === "active")
+    const activeTicket = room.maintenance_tickets?.find((ticket) =>
+      ticket.ticket_status === "reported" || ticket.ticket_status === "in_progress"
+    )
+    const haystack = [
+      room.number,
+      activeContract?.tenant?.name ?? "",
+      activeTicket?.description ?? "",
+    ].join(" ").toLowerCase()
+
+    if (search && !haystack.includes(search.toLowerCase()))
+      return false;
+
+    if (activeFilter !== "All" && room.status !== activeFilter.toLowerCase())
+      return false;
+
+    return true;
+  });
 
   if (error) {
     return (
@@ -41,90 +68,50 @@ export default function RoomInventory() {
     );
   }
 
-  const selectId = (id: string) => {
-    setSelectedId(id);
-    setIsSetStatusOpen(true);
-  };
-
-  const toggleFilter = (filter: string) => {
-    if (activeFilters.includes(filter))
-      setActiveFilters(activeFilters.filter((f) => f !== filter));
-    else setActiveFilters([...activeFilters, filter]);
-  };
-
-  const filteredRooms = (rooms || []).filter((room) => {
-    // Filter by search
-    if (search && !room.number.toLowerCase().includes(search.toLowerCase()))
-      return false;
-
-    // Filter by chips
-    if (activeFilters.length > 0) {
-      if (activeFilters.includes("Available") && room.status !== "available")
-        return false;
-      if (activeFilters.includes("Occupied") && room.status !== "occupied")
-        return false;
-      if (
-        activeFilters.includes("Maintenance") &&
-        room.status !== "maintenance"
-      )
-        return false;
-    }
-
-    return true;
-  });
-
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6 lg:p-8">
-      {/*<div className="flex items-center space-x-4">
-        <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            placeholder="Search rooms"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>*/}
-      <div className="flex flex-col gap-4 lg:px-20">
-        <Input
-          placeholder="Search Rooms"
-          leadingIcon={<Symbols name="search" />}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+    <DashboardCanvas className="space-y-6">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
+        <h1 className="flex items-center gap-3 text-[28px] font-bold text-[#111111]">
+          <button type="button" onClick={toggle} aria-label="Toggle sidebar" className="grid h-8 w-8 place-items-center rounded-md text-[#111111] hover:bg-white">
+            <Symbols name="menu" />
+          </button>
+          Room Inventory
+        </h1>
 
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex flex-wrap items-center gap-2 font-bold">
-            <span className="mr-1">Filter:</span>
-            {['Available', 'Occupied', 'Maintenance'].map((filter) => (
-              <button
-                key={filter}
-                onClick={() => toggleFilter(filter as 'Available' | 'Occupied' | 'Maintenance')}
-                className={`
-                  whitespace-nowrap py-1 px-4 border-2 text-sm
-                  ${activeFilters.includes(filter)
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-gray-300 text-gray-500 hover:text-gray-700 hover:border-gray-400'
-                  }
-                  rounded-full
-                `}
-              >
-                {filter}
-              </button>
-            ))}
-          </nav>
-        </div>
+        <Button onClick={() => setIsNewRoomOpen(true)}>
+          <Symbols name="add_home" />
+          New Room
+        </Button>
       </div>
 
-      <div>
+      <DashboardSearchRow>
+        <Input
+          placeholder="Search rooms"
+          leadingIcon={<Symbols name="search" />}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </DashboardSearchRow>
+
+      <div className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-3 md:grid-cols-4">
+        {(["All", "Available", "Occupied", "Maintenance"] as RoomFilter[]).map((filter) => (
+          <MetricTile
+            key={filter}
+            label={filter}
+            value={counts[filter]}
+            active={activeFilter === filter}
+            tone={filter === "Available" ? "green" : filter === "Maintenance" ? "orange" : "blue"}
+            onClick={() => setActiveFilter(filter)}
+          />
+        ))}
+      </div>
+
+      <div className="mx-auto w-full max-w-5xl">
         {
           isLoading ? (
             <div className="p-8">Loading rooms...</div>
           ): filteredRooms?.length === 0 ? (
-            <div className="p-8 text-red-500">No rooms found</div>
+            <div className="rounded-md border border-[#C8C8C8] bg-[#F7F7F7] p-8 text-center text-[#858585]">No rooms found.</div>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {filteredRooms?.map((room) => {
@@ -153,6 +140,6 @@ export default function RoomInventory() {
           refetch()
         }}
       />
-    </div>
+    </DashboardCanvas>
   )
 }

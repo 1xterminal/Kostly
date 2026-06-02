@@ -23,6 +23,11 @@ function Layout() {
   const { isOpen, toggle } = useSidebar()
   const { actions } = useSidebarHeader()
   const title = PAGE_TITLES[location.pathname] ?? 'Dashboard'
+  const hasEmbeddedHeader = [
+    '/dashboard/rooms',
+    '/dashboard/tenants',
+    '/dashboard/payments',
+  ].includes(location.pathname) || location.pathname.startsWith('/dashboard/reports/')
 
   // AutoAnimate only where it makes sense — header action buttons
   const [actionsRef] = useAutoAnimate()
@@ -90,57 +95,59 @@ function Layout() {
           minHeight: 0,
         }}>
 
-          <header
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 20,
-              paddingTop: 0,
-              flexShrink: 0,
-            }}
-          >
-            <h1
+          {!hasEmbeddedHeader && (
+            <header
               style={{
-                fontSize: 32,
-                fontWeight: 700,
-                color: '#111827',
-                letterSpacing: '-0.5px',
                 display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: 16,
-                margin: 0,
+                marginBottom: 20,
+                paddingTop: 0,
+                flexShrink: 0,
               }}
             >
-              <button
-                onClick={toggle}
-                aria-label="Toggle sidebar"
+              <h1
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
+                  fontSize: 32,
+                  fontWeight: 700,
+                  color: '#111827',
+                  letterSpacing: '-0.5px',
                   display: 'flex',
                   alignItems: 'center',
-                  color: '#111827',
-                  padding: 0,
-                  opacity: 1,
-                  transition: 'opacity 0.15s ease',
+                  gap: 16,
+                  margin: 0,
                 }}
-                onMouseEnter={e => (e.currentTarget.style.opacity = '0.5')}
-                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
               >
-                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              {title}
-            </h1>
+                <button
+                  onClick={toggle}
+                  aria-label="Toggle sidebar"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: '#111827',
+                    padding: 0,
+                    opacity: 1,
+                    transition: 'opacity 0.15s ease',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '0.5')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                >
+                  <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                {title}
+              </h1>
 
-            {/* AutoAnimate — action buttons animate when pages swap them */}
-            <div ref={actionsRef} style={{ display: 'flex', gap: 16 }}>
-              {actions}
-            </div>
-          </header>
+              {/* AutoAnimate — action buttons animate when pages swap them */}
+              <div ref={actionsRef} style={{ display: 'flex', gap: 16 }}>
+                {actions}
+              </div>
+            </header>
+          )}
 
           <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
             <Outlet />
