@@ -7,14 +7,14 @@ interface OccupancyPieChartProps {
 
 export function OccupancyPieChart({ data, currentRate }: OccupancyPieChartProps) {
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
+        <div className="flex flex-col rounded-md border border-[#C8C8C8] bg-[#F7F7F7] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.12)]">
             <div className="mb-4">
-                <h3 className="text-[11px] font-bold text-gray-400 tracking-wider uppercase">Occupancy</h3>
-                <p className="text-[22px] font-bold text-gray-900 mt-1">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#858585]">Occupancy</h3>
+                <p className="mt-1 text-[22px] font-bold text-[#111111]">
                     {currentRate}%
                 </p>
             </div>
-            <div className="h-[200px] w-full" style={{ minHeight: 200 }}>
+            <div className="h-[170px] w-full" style={{ minHeight: 170 }}>
                 <ResponsiveContainer width="100%" height="100%" debounce={100}>
                     <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={false} stroke="#F3F4F6" />

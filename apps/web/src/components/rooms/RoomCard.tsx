@@ -1,4 +1,11 @@
 import type { RoomWithRelations } from '@/types'
+import { StatusPill } from '@/components/dashboardPrimitives'
+
+const currencyFormatter = new Intl.NumberFormat('id-ID', {
+  style: 'currency',
+  currency: 'IDR',
+  maximumFractionDigits: 0,
+})
 
 export function RoomCard(roomData: RoomWithRelations) {
   const activeContract = roomData.contracts?.find(contract => contract.status === 'active')
@@ -9,59 +16,47 @@ export function RoomCard(roomData: RoomWithRelations) {
   const theme = {
     "available": {
       "cardBackground": "from-[#0fc95c]/0 to-[#0fc95c]/10",
-      "chipBackground": "bg-[#0fc95c]/10",
-      "text": "text-[#0fc95c]",
-      "chipBorder": "border-[#0fc95c]"
+      "tone": "green" as const,
     },
     "occupied": {
       "cardBackground": "from-[#0b7abe]/0 to-[#0b7abe]/10",
-      "chipBackground": "bg-[#0b7abe]/10",
-      "text": "text-[#0b7abe]",
-      "chipBorder": "border-[#0b7abe]"
+      "tone": "blue" as const,
     },
     "maintenance": {
       "cardBackground": "from-[#cb460c]/0 to-[#cb460c]/10",
-      "chipBackground": "bg-[#cb460c]/10",
-      "text": "text-[#cb460c]",
-      "chipBorder": "border-[#cb460c]"
+      "tone": "orange" as const,
     }
   }
 
   return (
     <div key={roomData.id} className={`
-      h-40 p-5 rounded-lg
-      border border-gray-300
-      bg-white shadow-sm
+      h-[140px] p-5 rounded-md
+      border border-[#C8C8C8]
+      bg-white shadow-[0_2px_4px_rgba(0,0,0,0.12)]
       flex flex-col justify-between
       bg-linear-to-b ${theme[roomData.status].cardBackground}
     `}>
-      {/* bg-linear-to-b from-[${accentColor}00] to-[${accentColor}ff] */}
         <div className="flex justify-between items-start">
-          <h1 className="font-semibold text-3xl">#{roomData.number}</h1>
-          <span className={`
-            uppercase font-bold text-sm ${theme[roomData.status].text}
-            ${theme[roomData.status].chipBackground}
-            border ${theme[roomData.status].chipBorder}
-            px-4 py-1
-            rounded-full`}>
+          <h1 className="text-[30px] font-bold leading-none text-[#111111]">#{roomData.number}</h1>
+          <StatusPill tone={theme[roomData.status].tone}>
             {roomData.status}
-          </span>
+          </StatusPill>
         </div>
         {
           roomData.status === 'available' ?
             <div className="flex flex-col gap-0.5">
-              <p className='uppercase font-bold text-sm'>Price</p>
-              <p>{roomData.price}</p>
+              <p className='text-[13px] font-bold uppercase tracking-wide text-[#111111]'>Price</p>
+              <p className="text-[15px] text-[#111111]">{currencyFormatter.format(Number(roomData.price))}</p>
             </div>
           : roomData.status === 'occupied' ?
             <div className="flex flex-col gap-0.5">
-              <p className='uppercase font-bold text-sm'>Tenant</p>
-              <p>{activeContract?.tenant?.name ?? 'No active tenant'}</p>
+              <p className='text-[13px] font-bold uppercase tracking-wide text-[#111111]'>Tenant</p>
+              <p className="truncate text-[15px] text-[#111111]">{activeContract?.tenant?.name ?? 'No active tenant'}</p>
             </div>
           : // Maintenance
             <div className="flex flex-col gap-0.5">
-              <p className='uppercase font-bold text-sm'>Reason</p>
-              <p className="line-clamp-2">{activeTicket?.description ?? 'No active ticket'}</p>
+              <p className='text-[13px] font-bold uppercase tracking-wide text-[#111111]'>Reason</p>
+              <p className="line-clamp-2 text-[15px] text-[#111111]">{activeTicket?.description ?? 'No active ticket'}</p>
             </div>
         }
     </div>

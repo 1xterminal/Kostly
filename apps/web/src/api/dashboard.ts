@@ -295,7 +295,7 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
       maintenance: rooms.filter((room) => room.status === 'maintenance').length,
     },
     tenants: {
-      active: tenants.filter((tenant) => tenant.tenant_status !== 'archived').length,
+      active: tenants.filter((tenant) => tenant.tenant_status !== 'archived' && tenant.onboarding !== false).length,
       needsOnboarding: tenants.filter((tenant) => tenant.tenant_status !== 'archived' && tenant.onboarding === false).length,
       archived: tenants.filter((tenant) => tenant.tenant_status === 'archived').length,
     },
