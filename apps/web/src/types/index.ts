@@ -55,6 +55,9 @@ export type TicketWithRelations = MaintenanceTicket & {
   reporter?: Pick<AppUser, 'id' | 'name' | 'email' | 'avatar_path'> & {
     avatar_url?: string | null
   }
+  payment?: Pick<Payment, 'id' | 'invoice_id' | 'transaction_date' | 'status' | 'rejection_reason'> & {
+    invoice?: Pick<Invoice, 'id' | 'total_amount' | 'billing_month' | 'due_date' | 'status'> | null
+  } | null
   replies?:  (TicketReply & {
     sender?: Pick<AppUser, 'id' | 'name' | 'role' | 'avatar_path'> & {
       avatar_url?: string | null

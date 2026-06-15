@@ -123,12 +123,26 @@ class PaymentsListScreen extends ConsumerWidget {
                               p['invoice_id'] as String;
                           final shortId =
                               '#INV${invoiceId.substring(0, 6).toUpperCase()}';
+                          final amount = invoice?['total_amount'] as num? ?? 0;
+                          final billingMonth = DateTime.tryParse(
+                            invoice?['billing_month'] as String? ?? '',
+                          );
+                          final rejectionReason =
+                              p['rejection_reason'] as String?;
                           final date = DateTime.tryParse(
                             p['created_at'] as String? ?? '',
                           );
                           final dateStr = date != null
                               ? DateFormat('d MMMM yyyy').format(date)
                               : '-';
+                          final monthStr = billingMonth != null
+                              ? DateFormat('MMMM yyyy').format(billingMonth)
+                              : '-';
+                          final amountStr = NumberFormat.currency(
+                            locale: 'id_ID',
+                            symbol: 'IDR ',
+                            decimalDigits: 0,
+                          ).format(amount);
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
@@ -138,6 +152,10 @@ class PaymentsListScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: ListTile(
+                              isThreeLine:
+                                  status == 'rejected' &&
+                                  rejectionReason != null &&
+                                  rejectionReason.isNotEmpty,
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
@@ -152,14 +170,42 @@ class PaymentsListScreen extends ConsumerWidget {
                                   ),
                                 ),
                               ),
-                              subtitle: Text(
-                                _statusLabel(status),
-                                style: TextStyle(
-                                  color: _statusColor(status),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                  letterSpacing: 0.5,
-                                ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '$amountStr · $monthStr',
+                                    style: const TextStyle(
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _statusLabel(status),
+                                    style: TextStyle(
+                                      color: _statusColor(status),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  if (status == 'rejected' &&
+                                      rejectionReason != null &&
+                                      rejectionReason.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      rejectionReason,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Color(0xFFDC2626),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                               trailing: Column(
                                 mainAxisAlignment: MainAxisAlignment.start,

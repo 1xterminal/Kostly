@@ -9,17 +9,11 @@ import type { Report } from '@/types'
 import { getReports } from '@/api/reports'
 import Avatar from '@/components/ui/Avatar'
 import { StatusPill, TableShell } from '@/components/dashboardPrimitives'
+import Button from '@/components/ui/Button'
+import { Symbols } from '@/components/ui/MaterialSymbols'
+import { exportMonthlyReportWorkbook, type ReportExportInvoice } from '@/lib/exportReportWorkbook'
 
-type InvoiceLogRow = {
-    id: string
-    due_date: string
-    status: 'unpaid' | 'pending' | 'paid'
-    total_amount: number
-    contracts: {
-        rooms: { number: string } | null
-    } | null
-    users: { name: string } | null
-}
+type InvoiceLogRow = ReportExportInvoice
 
 export default function ReportDetails() {
     const { reportId } = useParams<{ reportId: string }>()
@@ -61,11 +55,23 @@ export default function ReportDetails() {
     const currentOccupancyRate = report ? Number(report.occupancy_rate) : 0
 
     // Fetch invoices for "Transaction Log"
-    const { data: invoices } = useQuery({
+    const { data: invoices, isLoading: invoicesLoading } = useQuery({
         queryKey: ['invoices', monthYear],
         enabled: !!monthYear,
         queryFn: async () => {
-            const { data, error } = await supabase.from('invoices').select('*, contracts(rooms(number)), users(name)').eq('billing_month', monthYear!)
+            const { data, error } = await supabase
+                .from('invoices')
+                .select(`
+                    id,
+                    billing_month,
+                    due_date,
+                    status,
+                    total_amount,
+                    contracts ( rooms ( number ) ),
+                    users ( name, email ),
+                    payments ( id, status, transaction_date, rejection_reason, created_at, verified_at )
+                `)
+                .eq('billing_month', monthYear!)
             if (error) throw error
             return data
         }
@@ -95,6 +101,18 @@ export default function ReportDetails() {
                 <div>
                     <h1 className="text-[28px] font-bold tracking-tight text-[#111111]">Report Details</h1>
                     <p className="mt-1 text-[16px] text-[#858585]">{monthYear ? new Date(monthYear).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) : 'Loading...'}</p>
+                </div>
+                <div className="ml-auto">
+                    <Button
+                        type="button"
+                        disabled={!report || invoicesLoading}
+                        onClick={() => {
+                            if (report) exportMonthlyReportWorkbook(report, typedInvoices)
+                        }}
+                    >
+                        <Symbols name="download" />
+                        Export Excel
+                    </Button>
                 </div>
             </div>
 

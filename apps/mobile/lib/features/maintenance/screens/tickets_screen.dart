@@ -146,6 +146,14 @@ class _TicketRow extends StatelessWidget {
               ),
             ),
             Text(
+              _categoryLabel(ticket),
+              style: const TextStyle(
+                color: Color(0xFF2E41A2),
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+            Text(
               ticket.description,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -193,4 +201,10 @@ Color _statusColor(String status) {
   if (status == 'reported' || status == 'in_progress') return _kOrange;
   if (status == 'resolved') return const Color(0xFF059669);
   return _kMuted;
+}
+
+String _categoryLabel(MaintenanceTicket ticket) {
+  return ticket.ticketCategory == 'payment_dispute'
+      ? 'Payment dispute'
+      : 'Maintenance';
 }

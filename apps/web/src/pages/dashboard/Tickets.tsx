@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getTicketById, getTickets, replyToTicket, ticketKeys, updateTicketStatus } from '@/api/maintenance'
 import type { Enums, TicketWithRelations } from '@/types'
@@ -13,6 +14,7 @@ const statusOptions: TicketStatus[] = ['reported', 'in_progress', 'resolved', 'c
 export default function Tickets() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [searchParams] = useSearchParams()
 
   const ticketsQuery = useQuery({
     queryKey: ticketKeys.all,
@@ -20,7 +22,8 @@ export default function Tickets() {
   })
 
   const tickets = useMemo(() => ticketsQuery.data ?? [], [ticketsQuery.data])
-  const selectedTicketId = selectedId ?? tickets[0]?.id ?? null
+  const selectedTicketId = selectedId ?? searchParams.get('ticket') ?? tickets[0]?.id ?? null
+
   const filteredTickets = useMemo(() => {
     const needle = search.toLowerCase().trim()
     if (!needle) return tickets
@@ -100,6 +103,9 @@ function TicketListItem({ ticket, active, onClick }: { ticket: TicketWithRelatio
             </p>
             <p className={`mt-2 text-xs font-extrabold tracking-[0.12em] ${isUnresolved(ticket.ticket_status) ? 'text-[#d44b14]' : 'text-[#4f6f52]'}`}>
               {statusLabel(ticket.ticket_status)}
+            </p>
+            <p className="mt-1 text-xs font-bold text-[#3045AF]">
+              {categoryLabel(ticket)}
             </p>
           </div>
         </div>
@@ -199,6 +205,10 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
       </div>
       <p className="mt-6 max-w-4xl leading-snug">{ticket.description}</p>
 
+      {ticket.ticket_category === 'payment_dispute' && (
+        <PaymentDisputeContext ticket={ticket} />
+      )}
+
       <section className="mt-8 max-w-5xl">
         <h3 className="font-extrabold uppercase tracking-wide">{replies.length} Response{replies.length === 1 ? '' : 's'}</h3>
         <div className="my-6 space-y-5">
@@ -257,6 +267,45 @@ function TicketDetailContent({ ticket, onChanged }: { ticket: TicketWithRelation
   )
 }
 
+function PaymentDisputeContext({ ticket }: { ticket: TicketWithRelations }) {
+  const payment = ticket.payment
+  const invoice = payment?.invoice
+
+  return (
+    <section className="mt-6 max-w-4xl rounded-md border border-[#C8C8C8] bg-white px-5 py-4 shadow-sm">
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h3 className="text-base font-extrabold uppercase tracking-wide text-[#3045AF]">Payment Dispute</h3>
+        <span className="rounded-full border border-[#F0B4A4] bg-[#FFF1EE] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#D6420F]">
+          {payment?.status?.replace('_', ' ') ?? 'Payment'}
+        </span>
+      </div>
+      <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <dt className="text-xs font-bold uppercase tracking-wide text-[#858585]">Invoice</dt>
+          <dd className="mt-1 font-bold text-[#111111]">{payment?.invoice_id ? `#INV${payment.invoice_id.slice(0, 5).toUpperCase()}` : '-'}</dd>
+        </div>
+        <div>
+          <dt className="text-xs font-bold uppercase tracking-wide text-[#858585]">Amount</dt>
+          <dd className="mt-1 font-bold text-[#111111]">{formatCurrency(Number(invoice?.total_amount ?? 0))}</dd>
+        </div>
+        <div>
+          <dt className="text-xs font-bold uppercase tracking-wide text-[#858585]">Billing Month</dt>
+          <dd className="mt-1 font-bold text-[#111111]">{invoice?.billing_month ? formatMonth(invoice.billing_month) : '-'}</dd>
+        </div>
+        <div>
+          <dt className="text-xs font-bold uppercase tracking-wide text-[#858585]">Transaction Date</dt>
+          <dd className="mt-1 font-bold text-[#111111]">{payment?.transaction_date ? formatDate(payment.transaction_date) : '-'}</dd>
+        </div>
+      </dl>
+      {payment?.rejection_reason && (
+        <p className="mt-4 rounded-md bg-[#FFF1EE] px-3 py-2 text-sm font-medium text-[#D6420F]">
+          {payment.rejection_reason}
+        </p>
+      )}
+    </section>
+  )
+}
+
 function ticketTitle(ticket: TicketWithRelations) {
   const firstLine = ticket.description.split(/\r?\n/)[0]
   const firstSentence = firstLine.split(/[.!?]/)[0]
@@ -275,6 +324,22 @@ function statusLabel(status: TicketStatus) {
   if (status === 'reported' || status === 'in_progress') return 'Unresolved'
   if (status === 'resolved') return 'Resolved'
   return 'Closed'
+}
+
+function categoryLabel(ticket: TicketWithRelations) {
+  return ticket.ticket_category === 'payment_dispute' ? 'Payment Dispute' : 'Maintenance'
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount)
+}
+
+function formatMonth(value: string) {
+  return new Date(value).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function replySenderName(reply: NonNullable<TicketWithRelations['replies']>[number], ticket: TicketWithRelations) {

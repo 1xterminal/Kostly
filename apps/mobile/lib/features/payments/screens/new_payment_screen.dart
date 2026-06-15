@@ -11,7 +11,9 @@ import '../../home/providers/home_providers.dart';
 import '../providers/payment_providers.dart';
 
 class NewPaymentScreen extends ConsumerStatefulWidget {
-  const NewPaymentScreen({super.key});
+  final String? initialInvoiceId;
+
+  const NewPaymentScreen({super.key, this.initialInvoiceId});
 
   @override
   ConsumerState<NewPaymentScreen> createState() => _NewPaymentScreenState();
@@ -242,6 +244,8 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
   }
 
   Widget _buildForm(List<Map<String, dynamic>> invoices) {
+    _maybePreselectInvoice(invoices);
+
     final amount = _selectedInvoice != null
         ? _currency.format(_selectedInvoice!['total_amount'] ?? 0)
         : null;
@@ -454,5 +458,23 @@ class _NewPaymentScreenState extends ConsumerState<NewPaymentScreen> {
         ),
       ],
     );
+  }
+
+  void _maybePreselectInvoice(List<Map<String, dynamic>> invoices) {
+    if (_selectedInvoice != null || widget.initialInvoiceId == null) return;
+
+    Map<String, dynamic>? matchingInvoice;
+    for (final invoice in invoices) {
+      if (invoice['id'] == widget.initialInvoiceId) {
+        matchingInvoice = invoice;
+        break;
+      }
+    }
+    if (matchingInvoice == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _selectedInvoice != null) return;
+      setState(() => _selectedInvoice = matchingInvoice);
+    });
   }
 }

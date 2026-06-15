@@ -34,6 +34,11 @@ export type PaymentWithDetails = {
     email: string
     phone_number: string | null
   }
+  dispute_tickets?: {
+    id: string
+    ticket_status: string
+    ticket_category: string
+  }[] | null
 }
 
 // ── Hook ───────────────────────────────────────────────────────────────────────
@@ -78,6 +83,11 @@ export function usePayments() {
             name,
             email,
             phone_number
+          ),
+          dispute_tickets:maintenance_tickets!maintenance_tickets_payment_id_fkey (
+            id,
+            ticket_status,
+            ticket_category
           )
         `)
         .order('created_at', { ascending: false })

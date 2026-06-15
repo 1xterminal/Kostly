@@ -81,7 +81,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       GoRoute(
         path: '/payments/new',
-        builder: (_, _) => const NewPaymentScreen(),
+        builder: (_, state) => NewPaymentScreen(
+          initialInvoiceId: state.uri.queryParameters['invoice'],
+        ),
       ),
       GoRoute(
         path: '/payments/:id',
