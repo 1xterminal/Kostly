@@ -78,6 +78,16 @@ class _TicketDetailsScreenState extends ConsumerState<TicketDetailsScreen> {
                             alignment: Alignment.centerLeft,
                             child: _StatusPill(status: ticket.ticketStatus),
                           ),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              _categoryLabel(ticket),
+                              style: const TextStyle(
+                                color: Color(0xFF2E41A2),
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
                           // const SizedBox(height: 34),
                           Row(
                             spacing: 16,
@@ -329,6 +339,12 @@ Color _statusColor(String status) {
   if (status == 'reported' || status == 'in_progress') return _kOrange;
   if (status == 'resolved') return const Color(0xFF059669);
   return _kMuted;
+}
+
+String _categoryLabel(MaintenanceTicket ticket) {
+  return ticket.ticketCategory == 'payment_dispute'
+      ? 'Payment dispute'
+      : 'Maintenance';
 }
 
 String _relativeTime(DateTime value) {

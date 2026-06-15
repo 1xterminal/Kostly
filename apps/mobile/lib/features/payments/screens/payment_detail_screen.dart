@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../maintenance/providers/maintenance_providers.dart';
 import '../providers/payment_providers.dart';
 
-class PaymentDetailScreen extends ConsumerWidget {
+class PaymentDetailScreen extends ConsumerStatefulWidget {
   final String paymentId;
   const PaymentDetailScreen({super.key, required this.paymentId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final asyncPayment = ref.watch(paymentDetailProvider(paymentId));
+  ConsumerState<PaymentDetailScreen> createState() =>
+      _PaymentDetailScreenState();
+}
+
+class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
+  bool _isOpeningDispute = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final asyncPayment = ref.watch(paymentDetailProvider(widget.paymentId));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F4F4),
@@ -63,6 +73,7 @@ class PaymentDetailScreen extends ConsumerWidget {
     final shortId = '#${invoiceId.substring(0, 6).toUpperCase()}';
     final status = payment['status'] as String;
     final amount = invoice?['total_amount'] as num? ?? 0;
+    final invoiceStatus = invoice?['status'] as String?;
     final rejectionReason = payment['rejection_reason'] as String?;
 
     final currency = NumberFormat.currency(
@@ -180,6 +191,38 @@ class PaymentDetailScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isOpeningDispute
+                    ? null
+                    : () => _openPaymentDispute(context, payment),
+                icon: _isOpeningDispute
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.forum_outlined),
+                label: Text(
+                  _isOpeningDispute
+                      ? 'Opening dispute...'
+                      : 'Discuss in Maintenance Center',
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: invoiceStatus == 'paid'
+                    ? null
+                    : () => context.push('/payments/new?invoice=$invoiceId'),
+                icon: const Icon(Icons.upload_file_outlined),
+                label: const Text('Submit new proof'),
+              ),
+            ),
           ],
 
           const SizedBox(height: 28),
@@ -237,5 +280,43 @@ class PaymentDetailScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _openPaymentDispute(
+    BuildContext context,
+    Map<String, dynamic> payment,
+  ) async {
+    final paymentId = payment['id'] as String;
+    final invoice = payment['invoices'] as Map<String, dynamic>?;
+    final invoiceId =
+        invoice?['id'] as String? ?? payment['invoice_id'] as String;
+    final rejectionReason = payment['rejection_reason'] as String?;
+    final shortInvoice = '#${invoiceId.substring(0, 6).toUpperCase()}';
+    final message = [
+      'Payment dispute for invoice $shortInvoice.',
+      if (rejectionReason != null && rejectionReason.trim().isNotEmpty)
+        'Rejection reason: ${rejectionReason.trim()}',
+      'I want to discuss this rejected payment.',
+    ].join('\n\n');
+
+    setState(() => _isOpeningDispute = true);
+    try {
+      final ticketId = await ref
+          .read(maintenanceRepositoryProvider)
+          .createPaymentDispute(paymentId: paymentId, message: message);
+      ref.invalidate(maintenanceTicketsProvider);
+      ref.invalidate(maintenanceTicketProvider(ticketId));
+      if (context.mounted) context.push('/maintenance/$ticketId');
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isOpeningDispute = false);
+    }
   }
 }

@@ -23,7 +23,15 @@ export async function getTickets(): Promise<TicketWithRelations[]> {
     .select(`
       *,
       room:rooms ( id, number ),
-      reporter:users!maintenance_tickets_reported_by_user_id_fkey ( id, name, email, avatar_path )
+      reporter:users!maintenance_tickets_reported_by_user_id_fkey ( id, name, email, avatar_path ),
+      payment:payments!maintenance_tickets_payment_id_fkey (
+        id,
+        invoice_id,
+        transaction_date,
+        status,
+        rejection_reason,
+        invoice:invoices ( id, total_amount, billing_month, due_date, status )
+      )
     `)
     .order('created_at', { ascending: false })
 
@@ -41,6 +49,14 @@ export async function getTicketById(id: string): Promise<TicketWithRelations> {
       *,
       room:rooms ( id, number ),
       reporter:users!maintenance_tickets_reported_by_user_id_fkey ( id, name, email, avatar_path ),
+      payment:payments!maintenance_tickets_payment_id_fkey (
+        id,
+        invoice_id,
+        transaction_date,
+        status,
+        rejection_reason,
+        invoice:invoices ( id, total_amount, billing_month, due_date, status )
+      ),
       replies:ticket_replies (
         *,
         sender:users!ticket_replies_sender_id_fkey ( id, name, role, avatar_path )

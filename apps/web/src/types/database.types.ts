@@ -193,10 +193,12 @@ export type Database = {
           date_created: string
           description: string
           id: string
+          payment_id: string | null
           reported_by_user_id: string
           resolved_at: string | null
           resolved_message: string | null
           room_id: string
+          ticket_category: string
           ticket_status: Database["public"]["Enums"]["ticket_status_enum"]
           updated_at: string
         }
@@ -205,10 +207,12 @@ export type Database = {
           date_created?: string
           description: string
           id?: string
+          payment_id?: string | null
           reported_by_user_id: string
           resolved_at?: string | null
           resolved_message?: string | null
           room_id: string
+          ticket_category?: string
           ticket_status?: Database["public"]["Enums"]["ticket_status_enum"]
           updated_at?: string
         }
@@ -217,14 +221,23 @@ export type Database = {
           date_created?: string
           description?: string
           id?: string
+          payment_id?: string | null
           reported_by_user_id?: string
           resolved_at?: string | null
           resolved_message?: string | null
           room_id?: string
+          ticket_category?: string
           ticket_status?: Database["public"]["Enums"]["ticket_status_enum"]
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "maintenance_tickets_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "maintenance_tickets_reported_by_user_id_fkey"
             columns: ["reported_by_user_id"]

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import { usePayments } from '../../hooks/usePayments'
 import type { PaymentWithDetails } from '../../hooks/usePayments'
 import { Input } from '@/components/ui/Field'
@@ -24,6 +25,7 @@ const shortInvoiceId = (id: string) => `#INV${id.slice(0, 5).toUpperCase()}`
 // ── Component ──────────────────────────────────────────────────────────────────
 export default function Payments() {
   const { data: payments, isLoading, error, approvePayment, rejectPayment, getProofUrl } = usePayments()
+  const navigate = useNavigate()
   const { toggle } = useSidebar()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<'Unverified' | 'Verified' | 'Rejected'>('Unverified')
@@ -156,6 +158,7 @@ export default function Payments() {
               </tr>
             ) : (
               filtered.map((p) => {
+                const disputeTicket = p.dispute_tickets?.find(ticket => ticket.ticket_category === 'payment_dispute')
                 return (
                   <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
                     {/* Invoice ID */}
@@ -206,11 +209,28 @@ export default function Payments() {
                           Verified
                         </StatusPill>
                       ) : (
-                        <span title={p.rejection_reason ?? undefined}>
-                        <StatusPill tone="red">
-                          Rejected
-                        </StatusPill>
-                        </span>
+                        <div className="space-y-2">
+                          <StatusPill tone="red">
+                            Rejected
+                          </StatusPill>
+                          {p.rejection_reason && (
+                            <p className="max-w-[240px] text-[12px] leading-snug text-[#6f6f6f]">
+                              {p.rejection_reason}
+                            </p>
+                          )}
+                          {disputeTicket ? (
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/dashboard/maintenance?ticket=${disputeTicket.id}`)}
+                              className="inline-flex items-center gap-1 text-[12px] font-bold text-[#3045AF] hover:underline"
+                            >
+                              <Symbols name="forum" />
+                              Open dispute · {disputeTicket.ticket_status.replace('_', ' ')}
+                            </button>
+                          ) : (
+                            <p className="text-[12px] font-semibold text-[#858585]">No dispute opened</p>
+                          )}
+                        </div>
                       )}
                     </td>
                   </tr>

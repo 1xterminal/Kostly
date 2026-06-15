@@ -65,6 +65,8 @@ class TicketReply {
 class MaintenanceTicket {
   final String id;
   final String description;
+  final String ticketCategory;
+  final String? paymentId;
   final String ticketStatus;
   final DateTime dateCreated;
   final DateTime createdAt;
@@ -76,6 +78,8 @@ class MaintenanceTicket {
   const MaintenanceTicket({
     required this.id,
     required this.description,
+    required this.ticketCategory,
+    this.paymentId,
     required this.ticketStatus,
     required this.dateCreated,
     required this.createdAt,
@@ -95,6 +99,8 @@ class MaintenanceTicket {
     return MaintenanceTicket(
       id: json['id'] as String,
       description: json['description'] as String,
+      ticketCategory: json['ticket_category'] as String? ?? 'maintenance',
+      paymentId: json['payment_id'] as String?,
       ticketStatus: json['ticket_status'] as String,
       dateCreated: DateTime.parse(json['date_created'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -116,7 +122,7 @@ class MaintenanceRepository {
     final data = await supabase
         .from('maintenance_tickets')
         .select('''
-          id, description, ticket_status, date_created, created_at, resolved_message, resolved_at,
+          id, description, ticket_category, payment_id, ticket_status, date_created, created_at, resolved_message, resolved_at,
           room:rooms(id, number)
         ''')
         .eq('reported_by_user_id', userId)
@@ -134,7 +140,7 @@ class MaintenanceRepository {
     final data = await supabase
         .from('maintenance_tickets')
         .select('''
-          id, description, ticket_status, date_created, created_at, resolved_message, resolved_at,
+          id, description, ticket_category, payment_id, ticket_status, date_created, created_at, resolved_message, resolved_at,
           room:rooms(id, number),
           replies:ticket_replies(
             id, sender_id, message, created_at,
@@ -175,8 +181,82 @@ class MaintenanceRepository {
       'reported_by_user_id': userId,
       'room_id': roomId,
       'description': description,
+      'ticket_category': 'maintenance',
       'ticket_status': 'reported',
     });
+  }
+
+  Future<MaintenanceTicket?> findPaymentDispute(String paymentId) async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not logged in');
+
+    final data = await supabase
+        .from('maintenance_tickets')
+        .select('''
+          id, description, ticket_category, payment_id, ticket_status, date_created, created_at, resolved_message, resolved_at,
+          room:rooms(id, number)
+        ''')
+        .eq('reported_by_user_id', userId)
+        .eq('ticket_category', 'payment_dispute')
+        .eq('payment_id', paymentId)
+        .maybeSingle();
+
+    return data == null ? null : MaintenanceTicket.fromJson(data);
+  }
+
+  Future<String> createPaymentDispute({
+    required String paymentId,
+    required String message,
+  }) async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Not logged in');
+
+    final existing = await findPaymentDispute(paymentId);
+    if (existing != null) return existing.id;
+
+    final payment = await supabase
+        .from('payments')
+        .select('''
+          id, invoice_id, rejection_reason,
+          invoices(
+            id,
+            contracts(room_id)
+          )
+        ''')
+        .eq('id', paymentId)
+        .eq('tenant_id', userId)
+        .eq('status', 'rejected')
+        .maybeSingle();
+
+    if (payment == null) {
+      throw Exception('Rejected payment not found.');
+    }
+
+    final invoice = payment['invoices'] as Map<String, dynamic>?;
+    final contract = invoice?['contracts'] as Map<String, dynamic>?;
+    final roomId = contract?['room_id'] as String?;
+    if (roomId == null) throw Exception('Active room not found for payment.');
+
+    try {
+      final inserted = await supabase
+          .from('maintenance_tickets')
+          .insert({
+            'reported_by_user_id': userId,
+            'room_id': roomId,
+            'description': message.trim(),
+            'ticket_category': 'payment_dispute',
+            'payment_id': paymentId,
+            'ticket_status': 'reported',
+          })
+          .select('id')
+          .single();
+
+      return inserted['id'] as String;
+    } catch (_) {
+      final duplicate = await findPaymentDispute(paymentId);
+      if (duplicate != null) return duplicate.id;
+      rethrow;
+    }
   }
 
   Future<void> addReply({

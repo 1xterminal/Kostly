@@ -9,7 +9,7 @@ final tenantPaymentsProvider =
 
       final response = await supabase
           .from('payments')
-          .select('*, invoices(id, total_amount, billing_month)')
+          .select('*, invoices(id, total_amount, billing_month, due_date, status)')
           .eq('tenant_id', userId)
           .order('created_at', ascending: false);
 
